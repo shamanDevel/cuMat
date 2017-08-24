@@ -2,8 +2,15 @@
 
 # Define 'cuMat_headers' variable to list all the header files
 # Todo: maybe replace by GLOB
-set(CUMAT_HEADERS 
-  Matrix.h
+set(CUMAT_HEADERS
+  src/Macros.h 
+  src/Logging.h
+  src/Errors.h
+  src/Constants.h
+  src/Context.h
+  src/Allocator.h
+  src/DeviceMemory.h
+  src/Matrix.h
   )
 
 add_library(cuMat INTERFACE) # 'moduleA' is an INTERFACE pseudo target
@@ -12,9 +19,12 @@ add_library(cuMat INTERFACE) # 'moduleA' is an INTERFACE pseudo target
 # From here, the target 'moduleA' can be customised
 #
 target_include_directories(cuMat INTERFACE ../) # Transitively forwarded
+target_include_directories(cuMat INTERFACE ${CUDA_INCLUDE_DIRS})
 #install(TARGETS cuMat ...)
 
 #
 #  HACK: have the files showing in the IDE, under the name 'moduleA_ide'
 #
-add_custom_target(cuMat_ide SOURCES ${CUMAT_HEADERS})
+cuda_add_library(cuMat_ide ${CUMAT_HEADERS})
+target_include_directories(cuMat_ide INTERFACE ../) # Transitively forwarded
+target_include_directories(cuMat_ide INTERFACE ${CUDA_INCLUDE_DIRS})
