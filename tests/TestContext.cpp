@@ -49,3 +49,32 @@ TEST_CASE("muliple_contexts", "[context]")
 	//test if really count-many different streams were created
 	REQUIRE(streams.size() == count);
 }
+
+TEST_CASE("allocator", "[context]")
+{
+	//Test if the allocator works
+	cuMat::Context& context = cuMat::Context::current();
+	void* mem;
+
+	//freeing of NULL does nothing
+	context.freeDevice(nullptr);
+	context.freeHost(nullptr);
+
+	//allocating size zero works
+	mem = context.mallocDevice(0);
+	context.freeDevice(mem);
+	mem = context.mallocHost(0);
+	context.freeHost(mem);
+
+	//allocate some memory
+	std::vector<size_t> sizes({ 1,4,16,1024,1000000 });
+	for (size_t s : sizes)
+	{
+		mem = context.mallocHost(s);
+		REQUIRE(mem != nullptr);
+		context.freeHost(mem);
+		mem = context.mallocDevice(s);
+		REQUIRE(mem != nullptr);
+		context.freeDevice(mem);
+	}
+}

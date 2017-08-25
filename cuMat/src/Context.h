@@ -60,6 +60,72 @@ public:
 	cudaStream_t stream() const { return stream_; }
 
 	/**
+	 * \brief Allocates size-number of bytes on the host system.
+	 * This memory must be freed with freeHost(void*).
+	 * 
+	 * Note that allocate zero bytes is perfectly fine. 
+	 * That is also the only case in which this function might
+	 * return NULL.
+	 * Otherwise, always a valid pointer must be returned
+	 * or an exception is thrown.
+	 * 
+	 * \param size the number of bytes to allocate
+	 * \return the adress of the new host memory
+	 */
+	void* mallocHost(size_t size)
+	{
+		//TODO: add a plugin-mechanism for custom allocators
+		if (size == 0) return nullptr;
+		void* memory;
+		CUMAT_SAFE_CALL(cudaMallocHost(&memory, size));
+		return memory;
+	}
+
+	/**
+	* \brief Allocates size-number of bytes on the device system.
+	* This memory must be freed with freeDevice(void*).
+	*
+	* Note that allocate zero bytes is perfectly fine.
+	* That is also the only case in which this function might
+	* return NULL.
+	* Otherwise, always a valid pointer must be returned
+	* or an exception is thrown.
+	*
+	* \param size the number of bytes to allocate
+	* \return the adress of the new device memory
+	*/
+	void* mallocDevice(size_t size)
+	{
+		//TODO: add a plugin-mechanism for custom allocators
+		if (size == 0) return nullptr;
+		void* memory;
+		CUMAT_SAFE_CALL(cudaMalloc(&memory, size));
+		return memory;
+	}
+
+	/**
+	 * \brief Frees memory previously allocated with allocateHost(size_t).
+	 * Passing a NULL-pointer should be a no-op.
+	 * \param memory the memory to be freed
+	 */
+	void freeHost(void* memory)
+	{
+		//TODO: add a plugin-mechanism for custom allocators
+		CUMAT_SAFE_CALL(cudaFreeHost(memory));
+	}
+
+	/**
+	* \brief Frees memory previously allocated with allocateDevice(size_t).
+	* Passing a NULL-pointer should be a no-op.
+	* \param memory the memory to be freed
+	*/
+	void freeDevice(void* memory)
+	{
+		//TODO: add a plugin-mechanism for custom allocators
+		CUMAT_SAFE_CALL(cudaFree(memory));
+	}
+
+	/**
 	* \brief Returns the context of the current thread.
 	* It is automatically created if not explicitly initialized with
 	* assignDevice(int).
