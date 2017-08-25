@@ -77,4 +77,7 @@ TEST_CASE("allocator", "[context]")
 		REQUIRE(mem != nullptr);
 		context.freeDevice(mem);
 	}
+
+	REQUIRE(context.getAliveDevicePointers() == 0);
+	REQUIRE(context.getAliveHostPointers() == 0);
 }

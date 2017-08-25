@@ -9,7 +9,7 @@ set(CUMAT_HEADERS
   src/Constants.h
   src/Context.h
   src/Allocator.h
-  src/DeviceMemory.h
+  src/DevicePointer.h
   src/Matrix.h
   )
 

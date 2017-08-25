@@ -9,6 +9,20 @@
 #include "Errors.h"
 #include "Logging.h"
 
+#ifndef CUMAT_CONTEXT_DEBUG_MEMORY
+/**
+ * \brief Define this constant as 1 to enable a simple mechanism to test for memory leaks
+ */
+#define CUMAT_CONTEXT_DEBUG_MEMORY 0
+#else
+#if defined(NDEBUG) && CUMAT_CONTEXT_DEBUG_MEMORY==1
+#error You requested to turn on CUMAT_CONTEXT_DEBUG_MEMORY but disabled assertions
+#endif
+#endif
+#if CUMAT_CONTEXT_DEBUG_MEMORY==1
+#include <assert.h>
+#endif
+
 CUMAT_NAMESPACE_BEGIN
 
 /**
@@ -22,6 +36,13 @@ struct Context
 private:
 	cudaStream_t stream_;
 	int device_ = 0;
+
+#if CUMAT_CONTEXT_DEBUG_MEMORY==1
+	int allocationsHost_ = 0;
+	int allocationsDevice_ = 0;
+#endif
+
+	CUMAT_DISALLOW_COPY_AND_ASSIGN(Context);
 
 public:
 	Context(int device = 0)
@@ -51,6 +72,10 @@ public:
 			stream_ = nullptr;
 		}
 		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Context deleted for thread 0x" << std::hex << std::this_thread::get_id();
+#if CUMAT_CONTEXT_DEBUG_MEMORY==1
+		assert(allocationsHost_ == 0 && "some host memory was not released");
+		assert(allocationsDevice_ == 0 && "some device memory was not released");
+#endif
 	}
 
 	/**
@@ -76,6 +101,9 @@ public:
 	{
 		//TODO: add a plugin-mechanism for custom allocators
 		if (size == 0) return nullptr;
+#if CUMAT_CONTEXT_DEBUG_MEMORY==1
+		allocationsHost_++;
+#endif
 		void* memory;
 		CUMAT_SAFE_CALL(cudaMallocHost(&memory, size));
 		return memory;
@@ -98,6 +126,9 @@ public:
 	{
 		//TODO: add a plugin-mechanism for custom allocators
 		if (size == 0) return nullptr;
+#if CUMAT_CONTEXT_DEBUG_MEMORY==1
+		allocationsDevice_++;
+#endif
 		void* memory;
 		CUMAT_SAFE_CALL(cudaMalloc(&memory, size));
 		return memory;
@@ -110,6 +141,12 @@ public:
 	 */
 	void freeHost(void* memory)
 	{
+#if CUMAT_CONTEXT_DEBUG_MEMORY==1
+		if (memory != nullptr) {
+			allocationsHost_--;
+			assert(allocationsHost_ >= 0 && "You freed more pointers than were allocated");
+		}
+#endif
 		//TODO: add a plugin-mechanism for custom allocators
 		CUMAT_SAFE_CALL(cudaFreeHost(memory));
 	}
@@ -121,6 +158,12 @@ public:
 	*/
 	void freeDevice(void* memory)
 	{
+#if CUMAT_CONTEXT_DEBUG_MEMORY==1
+		if (memory != nullptr) {
+			allocationsDevice_--;
+			assert(allocationsDevice_ >= 0 && "You freed more pointers than were allocated");
+		}
+#endif
 		//TODO: add a plugin-mechanism for custom allocators
 		CUMAT_SAFE_CALL(cudaFree(memory));
 	}
@@ -136,6 +179,14 @@ public:
 		static thread_local Context INSTANCE;
 		return INSTANCE;
 	}
+
+	
+#if CUMAT_CONTEXT_DEBUG_MEMORY==1
+	//For testing only
+	int getAliveHostPointers() const { return allocationsHost_; }
+	//For testing only
+	int getAliveDevicePointers() const { return allocationsDevice_; }
+#endif
 };
 
 
