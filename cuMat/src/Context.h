@@ -26,12 +26,63 @@
 CUMAT_NAMESPACE_BEGIN
 
 /**
+ * \brief A structure holding information for launching
+ * a 1D, 2D or 3D kernel.
+ * 
+ * Sample code for kernels:
+ *     __global__ void My1DKernel(dim3 virtual_size, ...) {
+ *         CUMAT_KERNEL_1D_LOOP(i, virtual_size) {
+ *             // do something at e.g. matrix.rawCoeff(i)
+ *         }
+ *     }
+ *     
+ *     __global__ void My2DKernel(dim3 virtual_size, ...) {
+ *         CUMAT_KERNEL_2D_LOOP(i, j, virtual_size) {
+ *             // do something at e.g. matrix.coeff(i, j, 0)
+ *         }
+ *     }
+ *     
+ *     __global__ void My3DKernel(dim3 virtual_size, ...) {
+ *         CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size) {
+ *             // do something at e.g. matrix.coeff(i, j, k)
+ *         }
+ *     }
+ * 
+ * Launch the 1D,2D,3D-kernel using:
+ *     KernelLaunchConfig cfg = context.createLaunchConfigXD(...);
+ *     MyKernel<<<cfg.block_count, cfg.thread_per_block, 0, context.stream()>>>(cfg.virtual_size, ...);
+ */
+struct KernelLaunchConfig
+{
+	dim3 virtual_size;
+	dim3 thread_per_block;
+	dim3 block_count;
+};
+
+#define CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, axis) \
+	for (Index i = blockIdx.axis * blockDim.axis + threadIdx.axis; \
+		 i < virtual_size.axis; \
+		 i += blockDim.axis * gridDim.axis)
+
+#define CUMAT_KERNEL_1D_LOOP(i, virtual_size) \
+	CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, x)
+
+#define CUMAT_KERNEL_2D_LOOP(i, j, virtual_size) \
+	CUMAT_KERNEL_AXIS_LOOP(j, virtual_size, y) \
+	CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, x)
+
+#define CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size) \
+	CUMAT_KERNEL_AXIS_LOOP(k, virtual_size, z) \
+	CUMAT_KERNEL_AXIS_LOOP(j, virtual_size, y) \
+	CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, x)
+
+/**
  * \brief Stores the cuda context of the current thread.
  * cuMat uses one cuda stream per thread, and also potentially
  * different devices.
  * 
  */
-struct Context
+class Context
 {
 private:
 	cudaStream_t stream_;
@@ -73,9 +124,21 @@ public:
 		}
 		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Context deleted for thread 0x" << std::hex << std::this_thread::get_id();
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
-		assert(allocationsHost_ == 0 && "some host memory was not released");
-		assert(allocationsDevice_ == 0 && "some device memory was not released");
+		CUMAT_ASSERT(allocationsHost_ == 0 && "some host memory was not released");
+		CUMAT_ASSERT(allocationsDevice_ == 0 && "some device memory was not released");
 #endif
+	}
+
+	/**
+	* \brief Returns the context of the current thread.
+	* It is automatically created if not explicitly initialized with
+	* assignDevice(int).
+	* \return the current context.
+	*/
+	static Context& current()
+	{
+		static thread_local Context INSTANCE;
+		return INSTANCE;
 	}
 
 	/**
@@ -124,6 +187,7 @@ public:
 	*/
 	void* mallocDevice(size_t size)
 	{
+		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Allocate " << size << " bytes";
 		//TODO: add a plugin-mechanism for custom allocators
 		if (size == 0) return nullptr;
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
@@ -144,7 +208,7 @@ public:
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
 		if (memory != nullptr) {
 			allocationsHost_--;
-			assert(allocationsHost_ >= 0 && "You freed more pointers than were allocated");
+			CUMAT_ASSERT(allocationsHost_ >= 0 && "You freed more pointers than were allocated");
 		}
 #endif
 		//TODO: add a plugin-mechanism for custom allocators
@@ -158,28 +222,16 @@ public:
 	*/
 	void freeDevice(void* memory)
 	{
+		CUMAT_LOG(CUMAT_LOG_DEBUG) << "free 0x" << std::hex << memory;
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
 		if (memory != nullptr) {
 			allocationsDevice_--;
-			assert(allocationsDevice_ >= 0 && "You freed more pointers than were allocated");
-		}
+			CUMAT_ASSERT(allocationsDevice_ >= 0 && "You freed more pointers than were allocated");
+	}
 #endif
 		//TODO: add a plugin-mechanism for custom allocators
 		CUMAT_SAFE_CALL(cudaFree(memory));
 	}
-
-	/**
-	* \brief Returns the context of the current thread.
-	* It is automatically created if not explicitly initialized with
-	* assignDevice(int).
-	* \return the current context.
-	*/
-	static Context& current()
-	{
-		static thread_local Context INSTANCE;
-		return INSTANCE;
-	}
-
 	
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
 	//For testing only
@@ -187,6 +239,72 @@ public:
 	//For testing only
 	int getAliveDevicePointers() const { return allocationsDevice_; }
 #endif
+
+	/**
+	 * \brief Returns the kernel launch configurations for a 1D launch.
+	 * For details on how to use it, see the documentation of
+	 * KernelLaunchConfig.
+	 * \param size the size of the problem
+	 * \return the launch configuration
+	 */
+	KernelLaunchConfig createLaunchConfig1D(unsigned int size) const
+	{
+		CUMAT_ASSERT_ARGUMENT(size > 0);
+		//TODO: Very simplistic first version
+		//Later improve to read the actual pysical thread count per block and pysical block count
+		KernelLaunchConfig cfg = {
+			dim3(size, 1, 1),
+			dim3(1024, 1, 1),
+			dim3(CUMAT_DIV_UP(size, 1024), 1, 1)
+		};
+		return cfg;
+	}
+
+	/**
+	* \brief Returns the kernel launch configurations for a 2D launch.
+	* For details on how to use it, see the documentation of
+	* KernelLaunchConfig.
+	* \param sizex the size of the problem along x
+	* \param sizey the size of the problem along y
+	* \return the launch configuration
+	*/
+	KernelLaunchConfig createLaunchConfig2D(unsigned int sizex, unsigned int sizey) const
+	{
+		CUMAT_ASSERT_ARGUMENT(sizex > 0);
+		CUMAT_ASSERT_ARGUMENT(sizey > 0);
+		//TODO: Very simplistic first version
+		//Later improve to read the actual pysical thread count per block and pysical block count
+		KernelLaunchConfig cfg = {
+			dim3(sizex, sizey, 1),
+			dim3(32, 32, 1),
+			dim3(CUMAT_DIV_UP(sizex, 32), CUMAT_DIV_UP(sizey, 32), 1)
+		};
+		return cfg;
+	}
+
+	/**
+	* \brief Returns the kernel launch configurations for a 3D launch.
+	* For details on how to use it, see the documentation of
+	* KernelLaunchConfig.
+	* \param sizex the size of the problem along x
+	* \param sizey the size of the problem along y
+	* \param sizez the size of the problem along z
+	* \return the launch configuration
+	*/
+	KernelLaunchConfig createLaunchConfig3D(unsigned int sizex, unsigned int sizey, unsigned int sizez) const
+	{
+		CUMAT_ASSERT_ARGUMENT(sizex > 0);
+		CUMAT_ASSERT_ARGUMENT(sizey > 0);
+		CUMAT_ASSERT_ARGUMENT(sizez > 0);
+		//TODO: Very simplistic first version
+		//Later improve to read the actual pysical thread count per block and pysical block count
+		KernelLaunchConfig cfg = {
+			dim3(sizex, sizey, sizez),
+			dim3(16, 8, 8),
+			dim3(CUMAT_DIV_UP(sizex, 16), CUMAT_DIV_UP(sizey, 8), CUMAT_DIV_UP(sizey, 8))
+		};
+		return cfg;
+	}
 };
 
 

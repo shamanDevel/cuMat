@@ -92,9 +92,10 @@ TEST_CASE("Move4", "[device_pointer]")
 TEST_CASE("Casting", "[device_pointer]")
 {
 	{
-		cuMat::DevicePointer<int> t1;
-		//REQUIRE(t1 == nullptr);
-
+		cuMat::DevicePointer<int> t1(8);
+		const cuMat::DevicePointer<int> t2(8);
+		REQUIRE(t1.pointer() != nullptr);
+		REQUIRE(t2.pointer() != nullptr);
 	}
 	assertMemoryLeak();
 }

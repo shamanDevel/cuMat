@@ -27,6 +27,8 @@ enum Flags
 	RowMajorBit = 0x01,
 
 };
+#define CUMAT_IS_COLUMN_MAJOR(flags) ((flags)&Flags::RowMajorBit==0)
+#define CUMAT_IS_ROW_MAJOR(flags) ((flags)&Flags::RowMajorBit)
 
 CUMAT_NAMESPACE_END
 

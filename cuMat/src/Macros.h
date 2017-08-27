@@ -1,6 +1,13 @@
 #ifndef __CUMAT_MACROS_H__
 #define __CUMAT_MACROS_H__
 
+#include <assert.h>
+#include <exception>
+
+/*
+ * This file contains global macros and type definitions used everywhere
+ */
+
 #ifndef CUMAT_NAMESPACE
 /**
  * \brief The namespace of the library
@@ -37,5 +44,36 @@
 #define CUMAT_DISALLOW_COPY_AND_ASSIGN(TypeName)\
 	TypeName(const TypeName&) = delete;      \
     void operator=(const TypeName&) = delete
+
+
+/**
+ * \brief Runtime assertion, uses assert()
+ * Only use for something that should never happen
+ * \param x the expression that must be true
+ */
+#define CUMAT_ASSERT(x) assert(x)
+
+
+#define CUMAT_ASSERT_ARGUMENT(x) \
+	if (!(x)) throw std::invalid_argument("Invalid argument: " #x);
+#define CUMAT_ASSERT_BOUNDS(x) \
+	if (!(x)) throw std::out_of_range("Out of bounds: " #x);
+#define CUMAT_ASSERT_ERROR(x) \
+	if (!(x)) throw std::runtime_error("Runtime Error: " #x);
+
+#define CUMAT_STRONG_INLINE inline
+
+
+/**
+ * \brief Returns the integer division x/y rounded up.
+ * Taken from https://stackoverflow.com/a/2745086/4053176
+ */
+#define CUMAT_DIV_UP(x, y) (((x) + (y) - 1) / (y))
+
+
+/**
+ * \brief The datatype used for matrix indexing
+ */
+typedef ptrdiff_t Index;
 
 #endif

@@ -97,8 +97,8 @@ public:
 		release();
 	}
 
-	T& operator *  () { return *pointer_; }
-	T* operator -> () { return pointer_; }
+	T* pointer() { return pointer_; }
+	const T* pointer() const { return pointer_; }
 };
 
 CUMAT_NAMESPACE_END
