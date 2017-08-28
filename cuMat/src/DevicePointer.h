@@ -97,8 +97,8 @@ public:
 		release();
 	}
 
-	T* pointer() { return pointer_; }
-	const T* pointer() const { return pointer_; }
+	__host__ __device__ T* pointer() { return pointer_; }
+	__host__ __device__ const T* pointer() const { return pointer_; }
 };
 
 CUMAT_NAMESPACE_END

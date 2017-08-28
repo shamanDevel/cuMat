@@ -46,6 +46,8 @@
     void operator=(const TypeName&) = delete
 
 
+//TODO: move assertions to Errors.h ?
+
 /**
  * \brief Runtime assertion, uses assert()
  * Only use for something that should never happen
@@ -60,6 +62,12 @@
 	if (!(x)) throw std::out_of_range("Out of bounds: " #x);
 #define CUMAT_ASSERT_ERROR(x) \
 	if (!(x)) throw std::runtime_error("Runtime Error: " #x);
+
+/**
+ * \brief Assertions in device code (if supported)
+ * \param x the expression that must be true
+ */
+#define CUMAT_ASSERT_CUDA(x) //do nothing, not supported
 
 #define CUMAT_STRONG_INLINE inline
 

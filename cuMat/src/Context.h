@@ -187,7 +187,6 @@ public:
 	*/
 	void* mallocDevice(size_t size)
 	{
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Allocate " << size << " bytes";
 		//TODO: add a plugin-mechanism for custom allocators
 		if (size == 0) return nullptr;
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
@@ -222,7 +221,6 @@ public:
 	*/
 	void freeDevice(void* memory)
 	{
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "free 0x" << std::hex << memory;
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
 		if (memory != nullptr) {
 			allocationsDevice_--;

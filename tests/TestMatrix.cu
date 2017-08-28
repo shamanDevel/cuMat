@@ -161,7 +161,7 @@ TEST_CASE("write_raw", "[matrix]")
 	int sz = 16;
 	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, 0> m(sx, sy, sz);
 
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.size());
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig1D((unsigned int) m.size());
 	TestMatrixWriteRawKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
 		(cfg.virtual_size, m);
 	CUMAT_CHECK_ERROR();
@@ -171,5 +171,113 @@ TEST_CASE("write_raw", "[matrix]")
 	for (int i=0; i<sx*sy*sz; ++i)
 	{
 		REQUIRE(host[i] == i);
+	}
+}
+
+template<typename MatrixType>
+__global__ void TestMatrixReadRawKernel(dim3 virtual_size, MatrixType matrix, int* failure)
+{
+	CUMAT_KERNEL_1D_LOOP(i, virtual_size)
+	{
+		if (matrix.rawCoeff(i) != i) failure[0] = 1;
+	}
+}
+//Test if the kernel can read the raw data
+TEST_CASE("read_raw", "[matrix]")
+{
+	cuMat::Context& ctx = cuMat::Context::current();
+
+	int sx = 4;
+	int sy = 8;
+	int sz = 16;
+	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, 0> m(sx, sy, sz);
+
+	std::vector<int> host1(sx * sy * sz);
+	for (int i = 0; i<sx*sy*sz; ++i)
+	{
+		host1[i] = i;
+	}
+	m.copyFromHost(host1.data());
+
+	cuMat::DevicePointer<int> successFlag(1);
+	CUMAT_SAFE_CALL(cudaMemset(successFlag.pointer(), 0, sizeof(int)));
+
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig1D((unsigned int) m.size());
+	TestMatrixReadRawKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
+		(cfg.virtual_size, m, successFlag.pointer());
+	CUMAT_CHECK_ERROR();
+
+	int successFlagHost;
+	cudaMemcpy(&successFlagHost, successFlag.pointer(), sizeof(int), cudaMemcpyDeviceToHost);
+	REQUIRE(successFlagHost == 0);
+}
+
+
+template<typename MatrixType>
+__global__ void TestMatrixWriteCoeffKernel(dim3 virtual_size, MatrixType matrix)
+{
+	CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size)
+	{
+		matrix.coeff(i, j, k) = i + j*100 + k * 100*100;
+	}
+}
+//Tests if a kernel can write the 3d-indexed coefficients
+TEST_CASE("write_coeff_columnMajor", "[matrix]")
+{
+	cuMat::Context& ctx = cuMat::Context::current();
+
+	int sx = 4;
+	int sy = 8;
+	int sz = 16;
+	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajorBit> m(sx, sy, sz);
+
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, sz);
+	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
+		(cfg.virtual_size, m);
+	CUMAT_CHECK_ERROR();
+
+	std::vector<int> host(sx * sy * sz);
+	m.copyToHost(&host[0]);
+	int i = 0;
+	for (int z=0; z<sz; ++z)
+	{
+		for (int y=0; y<sy; ++y)
+		{
+			for (int x=0; x<sx; ++x)
+			{
+				REQUIRE(host[i] == x + y * 100 + z * 100 * 100);
+				i++;
+			}
+		}
+	}
+}
+//Tests if a kernel can write the 3d-indexed coefficients
+TEST_CASE("write_coeff_rowMajor", "[matrix]")
+{
+	cuMat::Context& ctx = cuMat::Context::current();
+
+	int sx = 4;
+	int sy = 8;
+	int sz = 16;
+	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajorBit> m(sx, sy, sz);
+
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, sz);
+	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
+		(cfg.virtual_size, m);
+	CUMAT_CHECK_ERROR();
+
+	std::vector<int> host(sx * sy * sz);
+	m.copyToHost(&host[0]);
+	int i = 0;
+	for (int z = 0; z<sz; ++z)
+	{
+		for (int x = 0; x<sx; ++x)
+		{
+			for (int y = 0; y<sy; ++y)
+			{
+				REQUIRE(host[i] == x + y * 100 + z * 100 * 100);
+				i++;
+			}
+		}
 	}
 }

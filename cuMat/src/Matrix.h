@@ -35,11 +35,11 @@ namespace internal {
 			CUMAT_ASSERT_ARGUMENT(rows == _Rows && cols == _Columns && batches == _Batches);
 		}
 		void swap(DenseStorage& other) { std::swap(data_, other.data_); }
-		static CUMAT_STRONG_INLINE Index rows() { return _Rows; }
-		static CUMAT_STRONG_INLINE Index cols() { return _Columns; }
-		static CUMAT_STRONG_INLINE Index batches() { return _Batches; }
-		CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
-		CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index rows() { return _Rows; }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index cols() { return _Columns; }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index batches() { return _Batches; }
+		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
 	};
 
 	//TODO: do I need specializations for null-matrices?
@@ -75,11 +75,11 @@ namespace internal {
 			std::swap(data_, other.data_);
 			std::swap(rows_, other.rows_);
 		}
-		CUMAT_STRONG_INLINE Index rows() const { return rows_; }
-		static CUMAT_STRONG_INLINE Index cols() { return _Columns; }
-		static CUMAT_STRONG_INLINE Index batches() { return _Batches; }
-		CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
-		CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return rows_; }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index cols() { return _Columns; }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index batches() { return _Batches; }
+		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
 	};
 
 	//dynamic number of cols
@@ -111,11 +111,11 @@ namespace internal {
 			std::swap(data_, other.data_);
 			std::swap(cols_, other.cols_);
 		}
-		static CUMAT_STRONG_INLINE Index rows() { return _Rows; }
-		CUMAT_STRONG_INLINE Index cols() const { return cols_; }
-		static CUMAT_STRONG_INLINE Index batches() { return _Batches; }
-		CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
-		CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index rows() { return _Rows; }
+		__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return cols_; }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index batches() { return _Batches; }
+		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
 	};
 
 	//dynamic number of batches
@@ -147,11 +147,11 @@ namespace internal {
 			std::swap(data_, other.data_);
 			std::swap(batches_, other.batches_);
 		}
-		static CUMAT_STRONG_INLINE Index rows() { return _Rows; }
-		static CUMAT_STRONG_INLINE Index cols() { return _Columns; }
-		CUMAT_STRONG_INLINE Index batches() const { return batches_; }
-		CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
-		CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index rows() { return _Rows; }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index cols() { return _Columns; }
+		__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
+		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
 	};
 
 	//dynamic number of rows and cols
@@ -188,11 +188,11 @@ namespace internal {
 			std::swap(rows_, other.rows_);
 			std::swap(cols_, other.cols_);
 		}
-		CUMAT_STRONG_INLINE Index rows() const { return rows_; }
-		CUMAT_STRONG_INLINE Index cols() const { return cols_; }
-		static CUMAT_STRONG_INLINE Index batches() { return _Batches; }
-		CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
-		CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return rows_; }
+		__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return cols_; }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index batches() { return _Batches; }
+		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
 	};
 
 	//dynamic number of rows and batches
@@ -229,11 +229,11 @@ namespace internal {
 			std::swap(rows_, other.rows_);
 			std::swap(batches_, other.batches_);
 		}
-		CUMAT_STRONG_INLINE Index rows() const { return rows_; }
-		static CUMAT_STRONG_INLINE Index cols() { return _Columns; }
-		CUMAT_STRONG_INLINE Index batches() const { return batches_; }
-		CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
-		CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return rows_; }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index cols() { return _Columns; }
+		__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
+		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
 	};
 
 	//dynamic number of cols and batches
@@ -270,11 +270,11 @@ namespace internal {
 			std::swap(cols_, other.cols_);
 			std::swap(batches_, other.batches_);
 		}
-		static CUMAT_STRONG_INLINE Index rows() { return _Rows; }
-		CUMAT_STRONG_INLINE Index cols() const { return cols_; }
-		CUMAT_STRONG_INLINE Index batches() const { return batches_; }
-		CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
-		CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		static __host__ __device__ CUMAT_STRONG_INLINE Index rows() { return _Rows; }
+		__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return cols_; }
+		__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
+		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
 	};
 
 	//everything is dynamic
@@ -320,11 +320,11 @@ namespace internal {
 			std::swap(cols_, other.cols_);
 			std::swap(batches_, other.batches_);
 		}
-		CUMAT_STRONG_INLINE Index rows() const { return rows_; }
-		CUMAT_STRONG_INLINE Index cols() const { return cols_; }
-		CUMAT_STRONG_INLINE Index batches() const { return batches_; }
-		CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
-		CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return rows_; }
+		__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return cols_; }
+		__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
+		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
+		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
 	};
 }
 
@@ -410,12 +410,12 @@ public:
 
 	__device__ CUMAT_STRONG_INLINE _Scalar& coeff(Index row, Index col, Index batch)
 	{
-		CUMAT_ASSERT_BOUNDS(row >= 0);
-		CUMAT_ASSERT_BOUNDS(row < rows());
-		CUMAT_ASSERT_BOUNDS(col >= 0);
-		CUMAT_ASSERT_BOUNDS(col < cols());
-		CUMAT_ASSERT_BOUNDS(batch >= 0);
-		CUMAT_ASSERT_BOUNDS(batch < batches());
+		CUMAT_ASSERT_CUDA(row >= 0);
+		CUMAT_ASSERT_CUDA(row < rows());
+		CUMAT_ASSERT_CUDA(col >= 0);
+		CUMAT_ASSERT_CUDA(col < cols());
+		CUMAT_ASSERT_CUDA(batch >= 0);
+		CUMAT_ASSERT_CUDA(batch < batches());
 		if (CUMAT_IS_ROW_MAJOR(Flags))
 			return data_.data()[col + cols() * (row + rows() * batch)];
 		else
@@ -423,12 +423,12 @@ public:
 	}
 	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch) const
 	{
-		CUMAT_ASSERT_BOUNDS(row >= 0);
-		CUMAT_ASSERT_BOUNDS(row < rows());
-		CUMAT_ASSERT_BOUNDS(col >= 0);
-		CUMAT_ASSERT_BOUNDS(col < cols());
-		CUMAT_ASSERT_BOUNDS(batch >= 0);
-		CUMAT_ASSERT_BOUNDS(batch < batches());
+		CUMAT_ASSERT_CUDA(row >= 0);
+		CUMAT_ASSERT_CUDA(row < rows());
+		CUMAT_ASSERT_CUDA(col >= 0);
+		CUMAT_ASSERT_CUDA(col < cols());
+		CUMAT_ASSERT_CUDA(batch >= 0);
+		CUMAT_ASSERT_CUDA(batch < batches());
 		if (CUMAT_IS_ROW_MAJOR(Flags))
 			return data_.data()[col + cols() * (row + rows() * batch)];
 		else
@@ -437,15 +437,15 @@ public:
 
 	__device__ CUMAT_STRONG_INLINE _Scalar& rawCoeff(Index index)
 	{
-		CUMAT_ASSERT_BOUNDS(index >= 0);
-		CUMAT_ASSERT_BOUNDS(index < size());
+		CUMAT_ASSERT_CUDA(index >= 0);
+		CUMAT_ASSERT_CUDA(index < size());
 		return data_.data()[index];
 	}
 
 	__device__ CUMAT_STRONG_INLINE const _Scalar& rawCoeff(Index index) const
 	{
-		CUMAT_ASSERT_BOUNDS(index >= 0);
-		CUMAT_ASSERT_BOUNDS(index < size());
+		CUMAT_ASSERT_CUDA(index >= 0);
+		CUMAT_ASSERT_CUDA(index < size());
 		return data_.data()[index];
 	}
 
