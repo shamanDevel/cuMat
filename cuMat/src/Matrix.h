@@ -339,10 +339,10 @@ namespace internal {
  * the GPU memory, not on the stack (as opposed to Eigen).
  * 
  * \tparam _Scalar the scalar type of the matrix
- * \tparam _Rows the number of rows, can be a compile-time constant or \b Dynamic
- * \tparam _Columns the number of cols, can be a compile-time constant or \b Dynamic
- * \tparam _Batches the number of batches, can be a compile-time constant or \b Dynamic
- * \tparam _Flags a combination of flags from the \b Flags enum.
+ * \tparam _Rows the number of rows, can be a compile-time constant or cuMat::Dynamic
+ * \tparam _Columns the number of cols, can be a compile-time constant or Dynamic
+ * \tparam _Batches the number of batches, can be a compile-time constant or Dynamic
+ * \tparam _Flags a combination of flags from the \ref Flags enum.
  */
 template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags>
 class Matrix

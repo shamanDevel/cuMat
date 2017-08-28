@@ -30,6 +30,7 @@ CUMAT_NAMESPACE_BEGIN
  * a 1D, 2D or 3D kernel.
  * 
  * Sample code for kernels:
+ * \code
  *     __global__ void My1DKernel(dim3 virtual_size, ...) {
  *         CUMAT_KERNEL_1D_LOOP(i, virtual_size) {
  *             // do something at e.g. matrix.rawCoeff(i)
@@ -47,10 +48,13 @@ CUMAT_NAMESPACE_BEGIN
  *             // do something at e.g. matrix.coeff(i, j, k)
  *         }
  *     }
+ * \endcode
  * 
  * Launch the 1D,2D,3D-kernel using:
+ * \code
  *     KernelLaunchConfig cfg = context.createLaunchConfigXD(...);
  *     MyKernel<<<cfg.block_count, cfg.thread_per_block, 0, context.stream()>>>(cfg.virtual_size, ...);
+ * \endcode
  */
 struct KernelLaunchConfig
 {
