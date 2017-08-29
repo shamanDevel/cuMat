@@ -404,14 +404,40 @@ public:
 		: data_(rows, cols, batches)
 	{}
 
+	/**
+	 * \brief Returns the number of rows of this matrix.
+	 * \return the number of rows
+	 */
 	__host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return data_.rows(); }
 
+	/**
+	 * \brief Returns the number of columns of this matrix.
+	 * \return the number of columns
+	 */
 	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return data_.cols(); }
 
+	/**
+	 * \brief Returns the number of batches of this matrix.
+	 * \return the number of batches
+	 */
 	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return data_.batches(); }
 
+	/**
+	 * \brief Returns the total number of entries in this matrix.
+	 * This value is computed as \code rows()*cols()*batches()* \endcode
+	 * \return the total number of entries
+	 */
 	__host__ __device__ CUMAT_STRONG_INLINE Index size() const { return rows()*cols()*batches(); }
 
+	/**
+	 * \brief Accesses the coefficient at the specified coordinate for reading and writing.
+	 * If the device supports it (CUMAT_ASSERT_CUDA is defined), the
+	 * access is checked for out-of-bound tests by assertions.
+	 * \param row the row index
+	 * \param col the column index
+	 * \param batch the batch index
+	 * \return a reference to the entry
+	 */
 	__device__ CUMAT_STRONG_INLINE _Scalar& coeff(Index row, Index col, Index batch)
 	{
 		CUMAT_ASSERT_CUDA(row >= 0);
@@ -425,6 +451,15 @@ public:
 		else
 			return data_.data()[row + rows() * (col + cols() * batch)];
 	}
+	/**
+	* \brief Accesses the coefficient at the specified coordinate for reading.
+	* If the device supports it (CUMAT_ASSERT_CUDA is defined), the
+	* access is checked for out-of-bound tests by assertions.
+	* \param row the row index
+	* \param col the column index
+	* \param batch the batch index
+	* \return a read-only reference to the entry
+	*/
 	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch) const
 	{
 		CUMAT_ASSERT_CUDA(row >= 0);
@@ -439,6 +474,13 @@ public:
 			return data_.data()[row + rows() * (col + cols() * batch)];
 	}
 
+	/**
+	 * \brief Access to the linearized coefficient.
+	 * The format of the indexing depends on whether this
+	 * matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
+	 * \param index the linearized index of the entry.
+	 * \return the entry at that index
+	 */
 	__device__ CUMAT_STRONG_INLINE _Scalar& rawCoeff(Index index)
 	{
 		CUMAT_ASSERT_CUDA(index >= 0);
@@ -446,6 +488,13 @@ public:
 		return data_.data()[index];
 	}
 
+	/**
+	* \brief Access to the linearized coefficient, read-only.
+	* The format of the indexing depends on whether this
+	* matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
+	* \param index the linearized index of the entry.
+	* \return the entry at that index
+	*/
 	__device__ CUMAT_STRONG_INLINE const _Scalar& rawCoeff(Index index) const
 	{
 		CUMAT_ASSERT_CUDA(index >= 0);
@@ -453,11 +502,19 @@ public:
 		return data_.data()[index];
 	}
 
+	/**
+	 * \brief Allows raw read and write access to the underlying buffer
+	 * \return the underlying device buffer
+	 */
 	__host__ __device__ CUMAT_STRONG_INLINE _Scalar* data()
 	{
 		return data_.data();
 	}
 
+	/**
+	* \brief Allows raw read-only access to the underlying buffer
+	* \return the underlying device buffer
+	*/
 	__host__ __device__ CUMAT_STRONG_INLINE const _Scalar* data() const
 	{
 		return data_.data();
@@ -466,7 +523,8 @@ public:
 	/**
 	 * \brief Performs a sychronous copy from host data into the
 	 * device memory of this matrix.
-	 * 
+	 * This copy is synchronized on the default stream,
+	 * hence synchronous to every computation but slow.
 	 * \param data the data to copy into this matrix
 	 */
 	void copyFromHost(const _Scalar* data)
@@ -478,7 +536,8 @@ public:
 	* \brief Performs a sychronous copy from the
 	* device memory of this matrix into the
 	* specified host memory
-	*
+	* This copy is synchronized on the default stream,
+	 * hence synchronous to every computation but slow.
 	* \param data the data in which the matrix is stored
 	*/
 	void copyToHost(_Scalar* data) const
