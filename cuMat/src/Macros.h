@@ -37,6 +37,15 @@
 #define CUMAT_THREAD_LOCAL thread_local
 #endif
 
+#ifndef CUMAT_EIGEN_SUPPORT
+/**
+ * \brief Set CUMAT_EIGEN_INTEROP to 1 to enable Eigen interop.
+ * This enables the methods to convert between Eigen matrices and cuMat matrices.
+ * Default: 0
+ */
+#define CUMAT_EIGEN_SUPPORT 0
+#endif
+
 /**
  * \brief Define this macro in a class that should not be copyable or assignable
  * \param TypeName the name of the class

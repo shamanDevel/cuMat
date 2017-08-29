@@ -6,6 +6,10 @@
 #include "Context.h"
 #include "DevicePointer.h"
 
+#if CUMAT_EIGEN_SUPPORT==1
+#include <Eigen/Dense>
+#endif
+
 CUMAT_NAMESPACE_BEGIN
 
 namespace internal {
