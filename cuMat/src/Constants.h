@@ -20,15 +20,15 @@ enum Flags
 	/**
 	 * \brief The storage is column major (the default).
 	 */
-	ColumnMajorBit = 0x00,
+	ColumnMajor = 0x00,
 	/**
 	 * \brief The storage is row major.
 	 */
-	RowMajorBit = 0x01,
+	RowMajor = 0x01,
 
 };
-#define CUMAT_IS_COLUMN_MAJOR(flags) ((flags)&Flags::RowMajorBit==0)
-#define CUMAT_IS_ROW_MAJOR(flags) ((flags)&Flags::RowMajorBit)
+#define CUMAT_IS_COLUMN_MAJOR(flags) ((flags)&Flags::RowMajor==0)
+#define CUMAT_IS_ROW_MAJOR(flags) ((flags)&Flags::RowMajor)
 
 CUMAT_NAMESPACE_END
 

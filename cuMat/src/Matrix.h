@@ -7,7 +7,8 @@
 #include "DevicePointer.h"
 
 #if CUMAT_EIGEN_SUPPORT==1
-#include <Eigen/Dense>
+#include <Eigen/Core>
+#include "EigenInteropHelpers.h"
 #endif
 
 CUMAT_NAMESPACE_BEGIN
@@ -354,7 +355,15 @@ class Matrix
 protected:
 	internal::DenseStorage<_Scalar, _Rows, _Columns, _Batches> data_;
 public:
-	enum { Flags = _Flags };
+	enum
+	{
+		Flags = _Flags,
+		Rows = _Rows,
+		Columns = _Columns,
+		Batches = _Batches
+	};
+	using Scalar = _Scalar;
+	using Type = Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>;
 
 	/**
 	 * \brief Default constructor.
@@ -428,6 +437,8 @@ public:
 	 * \return the total number of entries
 	 */
 	__host__ __device__ CUMAT_STRONG_INLINE Index size() const { return rows()*cols()*batches(); }
+
+	// COEFFICIENT ACCESS
 
 	/**
 	 * \brief Accesses the coefficient at the specified coordinate for reading and writing.
@@ -520,6 +531,8 @@ public:
 		return data_.data();
 	}
 
+	// COPY CALLS
+
 	/**
 	 * \brief Performs a sychronous copy from host data into the
 	 * device memory of this matrix.
@@ -544,6 +557,93 @@ public:
 	{
 		CUMAT_SAFE_CALL(cudaMemcpy(data, data_.data(), sizeof(_Scalar)*size(), cudaMemcpyDeviceToHost));
 	}
+
+	// EIGEN INTEROP
+#if CUMAT_EIGEN_SUPPORT==1
+
+	/**
+	 * \brief The Eigen Matrix type that corresponds to this cuMat matrix.
+	 * Note that Eigen does not support batched matrices. Hence, you can
+	 * only convert cuMat matrices of batch size 1 (during compile time or runtime)
+	 * to Eigen.
+	 */
+	typedef typename CUMAT_NAMESPACE eigen::MatrixCuMatToEigen<Type>::type EigenMatrix_t;
+
+#ifdef CUMAT_PARSED_BY_DOXYGEN
+	/**
+	 * \brief Converts this cuMat matrix to the corresponding Eigen matrix.
+	 * Note that Eigen does not support batched matrices. Hence, this 
+	 * conversion is only possible, if<br>
+	 * a) the matrix has a compile-time batch size of 1, or<br>
+	 * b) the matrix has a dynamic batch size and the batch size is 1 during runtime.
+	 * 
+	 * <p>
+	 * Design decision:<br>
+	 * Converting between cuMat and Eigen is done using synchronous memory copies.
+	 * It requires a complete synchronization of host and device. Therefore,
+	 * this operation is very expensive.<br>
+	 * Because of that, I decided to implement the conversion using 
+	 * explicit methods (toEigen() and fromEigen(EigenMatrix_t) 
+	 * instead of conversion operators or constructors.
+	 * It should be made clear to the reader that this operation
+	 * is expensive and should be used carfully, i.e. only to pass
+	 * data in and out before and after the computation.
+	 * \return the Eigen matrix with the contents of this matrix.
+	 */
+	EigenMatrix_t toEigen() const;
+
+	/**
+	* \brief Converts the specified Eigen matrix into the
+	* corresponding cuMat matrix.
+	* Note that Eigen does not support batched matrices. Hence, this
+	* conversion is only possible, if<br>
+	* a) the target matrix has a compile-time batch size of 1, or<br>
+	* b) the target matrix has a dynamic batch size and the batch size is 1 during runtime.<br>
+	* A new cuMat matrix is returned.
+	* TODO: implement this as an expression template
+	*
+	* <p>
+	* Design decision:<br>
+	* Converting between cuMat and Eigen is done using synchronous memory copies.
+	* It requires a complete synchronization of host and device. Therefore,
+	* this operation is very expensive.<br>
+	* Because of that, I decided to implement the conversion using
+	* explicit methods (toEigen() and fromEigen(EigenMatrix_t)
+	* instead of conversion operators or constructors.
+	* It should be made clear to the reader that this operation
+	* is expensive and should be used carfully, i.e. only to pass
+	* data in and out before and after the computation.
+	* \return the Eigen matrix with the contents of this matrix.
+	*/
+	static Type fromEigen(const EigenMatrix_t& mat);
+#else
+
+	//TODO: once expression templates are implemented,
+	// move them upward to work on the expression templates directly
+	// (issue an evaluation in between)
+	template<typename T = std::enable_if<_Batches == 1 || _Batches == Dynamic, EigenMatrix_t>>
+	typename T::type toEigen() const
+	{
+		if (_Batches == Dynamic) CUMAT_ASSERT_ARGUMENT(batches() == 1);
+		EigenMatrix_t mat(rows(), cols());
+		copyToHost(mat.data());
+		return mat;
+	}
+
+	//TODO: once expression templates are implemented,
+	// return an expression template that can then be assigned
+	// to a matrix. By that, the matrix can also be reshaped.
+	template<typename T = std::enable_if<_Batches == 1 || _Batches == Dynamic, Type>>
+	static typename T::type fromEigen(const EigenMatrix_t& mat)
+	{
+		Type m(mat.rows(), mat.cols());
+		m.copyFromHost(mat.data());
+		return m;
+	}
+#endif
+	
+
+#endif
 };
 
 CUMAT_NAMESPACE_END

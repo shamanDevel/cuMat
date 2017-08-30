@@ -1,6 +1,7 @@
 #include <catch/catch.hpp>
 
 #include <cuMat/src/Matrix.h>
+#include <cuMat/src/EigenInteropHelpers.h>
 
 #define TEST_SIZE_F1(type, flags, rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime) \
 	do{ \
@@ -14,14 +15,14 @@
 
 #define TEST_SIZE_F2(rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime) \
 	do{ \
-	TEST_SIZE_F1(bool, cuMat::RowMajorBit,   rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
-	TEST_SIZE_F1(bool, cuMat::ColumnMajorBit,rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
-	TEST_SIZE_F1(int, cuMat::RowMajorBit,   rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
-	TEST_SIZE_F1(int, cuMat::ColumnMajorBit,rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
-	TEST_SIZE_F1(float, cuMat::RowMajorBit,   rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
-	TEST_SIZE_F1(float, cuMat::ColumnMajorBit,rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
-	TEST_SIZE_F1(double, cuMat::RowMajorBit,   rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
-	TEST_SIZE_F1(double, cuMat::ColumnMajorBit,rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
+	TEST_SIZE_F1(bool, cuMat::RowMajor,   rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
+	TEST_SIZE_F1(bool, cuMat::ColumnMajor,rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
+	TEST_SIZE_F1(int, cuMat::RowMajor,   rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
+	TEST_SIZE_F1(int, cuMat::ColumnMajor,rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
+	TEST_SIZE_F1(float, cuMat::RowMajor,   rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
+	TEST_SIZE_F1(float, cuMat::ColumnMajor,rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
+	TEST_SIZE_F1(double, cuMat::RowMajor,   rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
+	TEST_SIZE_F1(double, cuMat::ColumnMajor,rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime); \
 	}while(false)
 	
 
@@ -69,14 +70,14 @@ TEST_CASE("instantiation_fully", "[matrix]")
 	} while (false)
 #define TEST_SIZE_D2(rows, cols, batches) \
 	do { \
-	TEST_SIZE_D1(bool, cuMat::RowMajorBit, rows, cols, batches); \
-	TEST_SIZE_D1(bool, cuMat::ColumnMajorBit, rows, cols, batches); \
-	TEST_SIZE_D1(int, cuMat::RowMajorBit, rows, cols, batches); \
-	TEST_SIZE_D1(int, cuMat::ColumnMajorBit, rows, cols, batches); \
-	TEST_SIZE_D1(float, cuMat::RowMajorBit, rows, cols, batches); \
-	TEST_SIZE_D1(float, cuMat::ColumnMajorBit, rows, cols, batches); \
-	TEST_SIZE_D1(double, cuMat::RowMajorBit, rows, cols, batches); \
-	TEST_SIZE_D1(double, cuMat::ColumnMajorBit, rows, cols, batches); \
+	TEST_SIZE_D1(bool, cuMat::RowMajor, rows, cols, batches); \
+	TEST_SIZE_D1(bool, cuMat::ColumnMajor, rows, cols, batches); \
+	TEST_SIZE_D1(int, cuMat::RowMajor, rows, cols, batches); \
+	TEST_SIZE_D1(int, cuMat::ColumnMajor, rows, cols, batches); \
+	TEST_SIZE_D1(float, cuMat::RowMajor, rows, cols, batches); \
+	TEST_SIZE_D1(float, cuMat::ColumnMajor, rows, cols, batches); \
+	TEST_SIZE_D1(double, cuMat::RowMajor, rows, cols, batches); \
+	TEST_SIZE_D1(double, cuMat::ColumnMajor, rows, cols, batches); \
 	} while(false)
 
 TEST_CASE("instantiation_default", "[matrix]")
@@ -229,7 +230,7 @@ TEST_CASE("write_coeff_columnMajor", "[matrix]")
 	int sx = 4;
 	int sy = 8;
 	int sz = 16;
-	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajorBit> m(sx, sy, sz);
+	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor> m(sx, sy, sz);
 
 	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, sz);
 	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
@@ -259,7 +260,7 @@ TEST_CASE("write_coeff_rowMajor", "[matrix]")
 	int sx = 4;
 	int sy = 8;
 	int sz = 16;
-	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajorBit> m(sx, sy, sz);
+	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor> m(sx, sy, sz);
 
 	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, sz);
 	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
@@ -279,5 +280,107 @@ TEST_CASE("write_coeff_rowMajor", "[matrix]")
 				i++;
 			}
 		}
+	}
+}
+
+// EIGEN INTEROP
+
+template<typename _Matrix>
+void testMatrixToEigen(const _Matrix& m)
+{
+	cuMat::Context& ctx = cuMat::Context::current();
+	int sx = m.rows();
+	int sy = m.cols();
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, 1);
+	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
+		(cfg.virtual_size, m);
+	CUMAT_CHECK_ERROR();
+
+	auto host = m.toEigen();
+	for (int y = 0; y<sy; ++y)
+	{
+		for (int x = 0; x<sx; ++x)
+		{
+			REQUIRE(host(x, y) == x + y * 100);
+		}
+	}
+}
+
+TEST_CASE("matrix_to_eigen", "[matrix]")
+{
+	testMatrixToEigen(cuMat::Matrix<float, 4, 8, 1, cuMat::ColumnMajor>(4, 8, 1));
+	testMatrixToEigen(cuMat::Matrix<int, 16, 8, 1, cuMat::ColumnMajor>(16, 8, 1));
+	testMatrixToEigen(cuMat::Matrix<float, cuMat::Dynamic, cuMat::Dynamic, 1, cuMat::ColumnMajor>(32, 6, 1));
+
+	testMatrixToEigen(cuMat::Matrix<float, 4, 8, 1, cuMat::RowMajor>(4, 8, 1));
+	testMatrixToEigen(cuMat::Matrix<int, 16, 8, 1, cuMat::RowMajor>(16, 8, 1));
+	testMatrixToEigen(cuMat::Matrix<float, cuMat::Dynamic, cuMat::Dynamic, 1, cuMat::RowMajor>(32, 6, 1));
+}
+
+template<typename MatrixType>
+__global__ void TestMatrixWriteCoeffKernel(dim3 virtual_size, MatrixType matrix, int* failure)
+{
+	CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size)
+	{
+		if (matrix.coeff(i, j, k) != i + j * 100 + k * 100 * 100)
+			failure[0] = 1;
+	}
+}
+template <typename _Matrix>
+void testMatrixFromEigen(const _Matrix& m)
+{
+	int sx = m.rows();
+	int sy = m.cols();
+	_Matrix host = m;
+
+	for (int y = 0; y<sy; ++y)
+	{
+		for (int x = 0; x<sx; ++x)
+		{
+			host(x, y) = x + y * 100;
+		}
+	}
+
+	cuMat::Context& ctx = cuMat::Context::current();
+
+	typedef typename cuMat::eigen::MatrixEigenToCuMat<_Matrix>::type matrix_t;
+	matrix_t mat = matrix_t::fromEigen(host);
+
+	cuMat::DevicePointer<int> successFlag(1);
+	CUMAT_SAFE_CALL(cudaMemset(successFlag.pointer(), 0, sizeof(int)));
+
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, 1);
+	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
+		(cfg.virtual_size, mat, successFlag.pointer());
+	CUMAT_CHECK_ERROR();
+
+	int successFlagHost;
+	cudaMemcpy(&successFlagHost, successFlag.pointer(), sizeof(int), cudaMemcpyDeviceToHost);
+	REQUIRE(successFlagHost == 0);
+}
+TEST_CASE("matrix_from_eigen", "[matrix]")
+{
+	testMatrixFromEigen(Eigen::Matrix<float, 8, 6, Eigen::RowMajor>());
+	{
+		auto m = Eigen::Matrix<float, Eigen::Dynamic, 6, Eigen::RowMajor>();
+		m.resize(12, 6);
+		testMatrixFromEigen(m);
+	}
+	{
+		auto m = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>();
+		m.resize(12, 24);
+		testMatrixFromEigen(m);
+	}
+
+	testMatrixFromEigen(Eigen::Matrix<float, 8, 6, Eigen::ColMajor>());
+	{
+		auto m = Eigen::Matrix<float, 16, Eigen::Dynamic, Eigen::ColMajor>();
+		m.resize(16, 8);
+		testMatrixFromEigen(m);
+	}
+	{
+		auto m = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>();
+		m.resize(12, 24);
+		testMatrixFromEigen(m);
 	}
 }

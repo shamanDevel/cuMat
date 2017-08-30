@@ -10,6 +10,7 @@ set(CUMAT_HEADERS
   src/Context.h
   src/Allocator.h
   src/DevicePointer.h
+  src/EigenInteropHelpers.h
   src/Matrix.h
   )
 

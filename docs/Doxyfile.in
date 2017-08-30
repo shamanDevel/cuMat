@@ -317,13 +317,16 @@ PERLMOD_MAKEVAR_PREFIX =
 # Configuration options related to the preprocessor
 #---------------------------------------------------------------------------
 ENABLE_PREPROCESSING   = YES
-MACRO_EXPANSION        = NO
-EXPAND_ONLY_PREDEF     = NO
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = 
 INCLUDE_FILE_PATTERNS  = 
-PREDEFINED             = CUMAT_PARSED_BY_DOXYGEN
-EXPAND_AS_DEFINED      = 
+PREDEFINED             = CUMAT_PARSED_BY_DOXYGEN \
+                         CUMAT_EIGEN_SUPPORT=1
+EXPAND_AS_DEFINED      = CUMAT_NAMESPACE_BEGIN \
+                         CUMAT_NAMESPACE_END \
+                         CUMAT_NAMESPACE
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 # Configuration options related to external references
