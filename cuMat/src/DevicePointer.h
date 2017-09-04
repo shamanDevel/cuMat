@@ -99,6 +99,14 @@ public:
 
 	__host__ __device__ T* pointer() { return pointer_; }
 	__host__ __device__ const T* pointer() const { return pointer_; }
+
+	/**
+	 * \brief Returns the current value of the reference counter.
+	 * This can be used to determine if this memory is used uniquely
+	 * by an object.
+	 * \return the current number of references
+	 */
+	size_t getCounter() const { return counter_ ? *counter_ : 0; }
 };
 
 CUMAT_NAMESPACE_END

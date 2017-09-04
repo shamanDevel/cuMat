@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "Context.h"
 #include "DevicePointer.h"
+#include "MatrixBase.h"
 
 #if CUMAT_EIGEN_SUPPORT==1
 #include <Eigen/Core>
@@ -39,12 +40,19 @@ namespace internal {
 		{
 			CUMAT_ASSERT_ARGUMENT(rows == _Rows && cols == _Columns && batches == _Batches);
 		}
+		DenseStorage(const DevicePointer<_Scalar>& data, Index rows, Index cols, Index batches)
+			: data_(data)
+		{
+			CUMAT_ASSERT_ARGUMENT(rows == _Rows && cols == _Columns && batches == _Batches);
+		}
 		void swap(DenseStorage& other) { std::swap(data_, other.data_); }
 		static __host__ __device__ CUMAT_STRONG_INLINE Index rows() { return _Rows; }
 		static __host__ __device__ CUMAT_STRONG_INLINE Index cols() { return _Columns; }
 		static __host__ __device__ CUMAT_STRONG_INLINE Index batches() { return _Batches; }
 		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
 		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
+		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
 
 	//TODO: do I need specializations for null-matrices?
@@ -75,6 +83,13 @@ namespace internal {
 			CUMAT_ASSERT_ARGUMENT(cols == _Columns && batches == _Batches);
 			CUMAT_ASSERT_ARGUMENT(rows >= 0);
 		}
+		DenseStorage(const DevicePointer<_Scalar>& data, Index rows, Index cols, Index batches)
+			: data_(data)
+			, rows_(rows)
+		{
+			CUMAT_ASSERT_ARGUMENT(cols == _Columns && batches == _Batches);
+			CUMAT_ASSERT_ARGUMENT(rows >= 0);
+		}
 		void swap(DenseStorage& other) noexcept
 		{
 			std::swap(data_, other.data_);
@@ -85,6 +100,8 @@ namespace internal {
 		static __host__ __device__ CUMAT_STRONG_INLINE Index batches() { return _Batches; }
 		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
 		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
+		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
 
 	//dynamic number of cols
@@ -111,6 +128,13 @@ namespace internal {
 			CUMAT_ASSERT_ARGUMENT(rows == _Rows && batches == _Batches);
 			CUMAT_ASSERT_ARGUMENT(cols >= 0);
 		}
+		DenseStorage(const DevicePointer<_Scalar>& data, Index rows, Index cols, Index batches)
+			: data_(data)
+			, cols_(cols)
+		{
+			CUMAT_ASSERT_ARGUMENT(rows == _Rows && batches == _Batches);
+			CUMAT_ASSERT_ARGUMENT(cols >= 0);
+		}
 		void swap(DenseStorage& other) noexcept
 		{
 			std::swap(data_, other.data_);
@@ -121,6 +145,8 @@ namespace internal {
 		static __host__ __device__ CUMAT_STRONG_INLINE Index batches() { return _Batches; }
 		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
 		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
+		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
 
 	//dynamic number of batches
@@ -147,6 +173,13 @@ namespace internal {
 			CUMAT_ASSERT_ARGUMENT(rows == _Rows && cols == _Columns);
 			CUMAT_ASSERT_ARGUMENT(batches >= 0);
 		}
+		DenseStorage(const DevicePointer<_Scalar>& data, Index rows, Index cols, Index batches)
+			: data_(data)
+			, batches_(batches)
+		{
+			CUMAT_ASSERT_ARGUMENT(rows == _Rows && cols == _Columns);
+			CUMAT_ASSERT_ARGUMENT(batches >= 0);
+		}
 		void swap(DenseStorage& other) noexcept
 		{
 			std::swap(data_, other.data_);
@@ -157,6 +190,8 @@ namespace internal {
 		__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
 		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
 		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
+		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
 
 	//dynamic number of rows and cols
@@ -187,6 +222,15 @@ namespace internal {
 			CUMAT_ASSERT_ARGUMENT(rows >= 0);
 			CUMAT_ASSERT_ARGUMENT(cols >= 0);
 		}
+		DenseStorage(const DevicePointer<_Scalar>& data, Index rows, Index cols, Index batches)
+			: data_(data)
+			, rows_(rows)
+			, cols_(cols)
+		{
+			CUMAT_ASSERT_ARGUMENT(batches == _Batches);
+			CUMAT_ASSERT_ARGUMENT(rows >= 0);
+			CUMAT_ASSERT_ARGUMENT(cols >= 0);
+		}
 		void swap(DenseStorage& other) noexcept
 		{
 			std::swap(data_, other.data_);
@@ -198,6 +242,8 @@ namespace internal {
 		static __host__ __device__ CUMAT_STRONG_INLINE Index batches() { return _Batches; }
 		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
 		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
+		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
 
 	//dynamic number of rows and batches
@@ -228,6 +274,15 @@ namespace internal {
 			CUMAT_ASSERT_ARGUMENT(rows >= 0);
 			CUMAT_ASSERT_ARGUMENT(batches >= 0);
 		}
+		DenseStorage(const DevicePointer<_Scalar>& data, Index rows, Index cols, Index batches)
+			: data_(data)
+			, rows_(rows)
+			, batches_(batches)
+		{
+			CUMAT_ASSERT_ARGUMENT(cols == _Columns);
+			CUMAT_ASSERT_ARGUMENT(rows >= 0);
+			CUMAT_ASSERT_ARGUMENT(batches >= 0);
+		}
 		void swap(DenseStorage& other) noexcept
 		{
 			std::swap(data_, other.data_);
@@ -239,6 +294,8 @@ namespace internal {
 		__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
 		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
 		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
+		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
 
 	//dynamic number of cols and batches
@@ -269,6 +326,15 @@ namespace internal {
 			CUMAT_ASSERT_ARGUMENT(cols >= 0);
 			CUMAT_ASSERT_ARGUMENT(batches >= 0);
 		}
+		DenseStorage(const DevicePointer<_Scalar>& data, Index rows, Index cols, Index batches)
+			: data_(data)
+			, cols_(cols)
+			, batches_(batches)
+		{
+			CUMAT_ASSERT_ARGUMENT(rows == _Rows);
+			CUMAT_ASSERT_ARGUMENT(cols >= 0);
+			CUMAT_ASSERT_ARGUMENT(batches >= 0);
+		}
 		void swap(DenseStorage& other) noexcept
 		{
 			std::swap(data_, other.data_);
@@ -280,6 +346,8 @@ namespace internal {
 		__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
 		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
 		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
+		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
 
 	//everything is dynamic
@@ -318,6 +386,16 @@ namespace internal {
 			CUMAT_ASSERT_ARGUMENT(cols >= 0);
 			CUMAT_ASSERT_ARGUMENT(batches >= 0);
 		}
+		DenseStorage(const DevicePointer<_Scalar>& data, Index rows, Index cols, Index batches)
+			: data_(data)
+			, rows_(rows)
+			, cols_(cols)
+			, batches_(batches)
+		{
+			CUMAT_ASSERT_ARGUMENT(rows >= 0);
+			CUMAT_ASSERT_ARGUMENT(cols >= 0);
+			CUMAT_ASSERT_ARGUMENT(batches >= 0);
+		}
 		void swap(DenseStorage& other) noexcept
 		{
 			std::swap(data_, other.data_);
@@ -330,6 +408,8 @@ namespace internal {
 		__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
 		__host__ __device__ CUMAT_STRONG_INLINE const _Scalar *data() const { return data_.pointer(); }
 		__host__ __device__ CUMAT_STRONG_INLINE _Scalar *data() { return data_.pointer(); }
+		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
+		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
 }
 
@@ -343,6 +423,11 @@ namespace internal {
  * There is no limit on the size of the compile-time dimensions, since all memory lives in 
  * the GPU memory, not on the stack (as opposed to Eigen).
  * 
+ * The matrix class is a very slim class. It follows the copy-on-write principle.
+ * This means that all copies of the matrices (created on assignment) share the same
+ * underlying memory. Only if the contents are changed, the changes are written into
+ * new memory (or in the same if this matrix uses the underlying memory exlusivly).
+ * 
  * \tparam _Scalar the scalar type of the matrix
  * \tparam _Rows the number of rows, can be a compile-time constant or cuMat::Dynamic
  * \tparam _Columns the number of cols, can be a compile-time constant or Dynamic
@@ -350,10 +435,11 @@ namespace internal {
  * \tparam _Flags a combination of flags from the \ref Flags enum.
  */
 template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags>
-class Matrix
+class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> >
 {
 protected:
-	internal::DenseStorage<_Scalar, _Rows, _Columns, _Batches> data_;
+	using Storage_t = internal::DenseStorage<_Scalar, _Rows, _Columns, _Batches>;
+	Storage_t data_;
 public:
 	enum
 	{
@@ -531,6 +617,16 @@ public:
 		return data_.data();
 	}
 
+	CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const
+	{
+		return data_.dataPointer();
+	}
+
+	CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer()
+	{
+		return data_.dataPointer();
+	}
+
 	// COPY CALLS
 
 	/**
@@ -642,6 +738,49 @@ public:
 	}
 #endif
 	
+
+	// ASSIGNMENT
+
+	//template<typename OtherDerieved>
+	//CUMAT_STRONG_INLINE Derived& operator=(const MatrixBase<OtherDerieved>& other);
+
+	//assignments from other matrices: convert compile-size to dynamic
+
+	template<int _OtherRows, int _OtherColumns, int _OtherBatches, int _OtherFlags>
+	Matrix(const Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, _OtherFlags>& other)
+		: data_(other.dataPointer(), other.rows(), other.cols(), other.batches()) //shallow copy
+	{
+		CUMAT_STATIC_ASSERT(_Rows == Dynamic || _OtherRows == _Rows, 
+			"unable to assign a matrix to another matrix with a different compile time row count");
+		CUMAT_STATIC_ASSERT(_Columns == Dynamic || _OtherColumns == _Columns, 
+			"unable to assign a matrix to another matrix with a different compile time column count");
+		CUMAT_STATIC_ASSERT(_Batches == Dynamic || _OtherBatches == _Batches, 
+			"unable to assign a matrix to another matrix with a different compile time batch count");
+
+		//TODO: relax the following constraint to allow automatic transposing?
+		CUMAT_STATIC_ASSERT(_OtherFlags == _Flags,
+			"unable to assign a matrix to another matrix with a different storage order, transpose them explicitly");
+	}
+
+	template<int _OtherRows, int _OtherColumns, int _OtherBatches, int _OtherFlags>
+	CUMAT_STRONG_INLINE Type& operator=(const Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, _OtherFlags>& other)
+	{
+		CUMAT_STATIC_ASSERT(_Rows == Dynamic || _OtherRows == _Rows,
+			"unable to assign a matrix to another matrix with a different compile time row count");
+		CUMAT_STATIC_ASSERT(_Columns == Dynamic || _OtherColumns == _Columns,
+			"unable to assign a matrix to another matrix with a different compile time column count");
+		CUMAT_STATIC_ASSERT(_Batches == Dynamic || _OtherBatches == _Batches,
+			"unable to assign a matrix to another matrix with a different compile time batch count");
+
+		//TODO: relax the following constraint to allow automatic transposing?
+		CUMAT_STATIC_ASSERT(_OtherFlags == _Flags,
+			"unable to assign a matrix to another matrix with a different storage order, transpose them explicitly");
+
+		// shallow copy
+		data_ = Storage_t(other.dataPointer(), other.rows(), other.cols(), other.batches());
+
+		return *this;
+	}
 
 #endif
 };

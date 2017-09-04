@@ -384,3 +384,26 @@ TEST_CASE("matrix_from_eigen", "[matrix]")
 		testMatrixFromEigen(m);
 	}
 }
+
+// Matrix assignments
+
+TEST_CASE("assign", "[matrix]")
+{
+	cuMat::Matrix<int, 5, 7, 3, cuMat::RowMajor> mat1;
+	REQUIRE(mat1.dataPointer().getCounter() == 1);
+	
+	cuMat::Matrix<int, cuMat::Dynamic, 7, 3, cuMat::RowMajor> mat2(mat1);
+	REQUIRE(mat1.dataPointer().getCounter() == 2);
+	
+	cuMat::Matrix<int, 5, 7, cuMat::Dynamic, cuMat::RowMajor> mat3;
+	mat3 = mat1;
+	REQUIRE(mat1.dataPointer().getCounter() == 3);
+
+	cuMat::Matrix<int, cuMat::Dynamic, 7, cuMat::Dynamic, cuMat::RowMajor> mat4(mat3);
+	REQUIRE(mat1.dataPointer().getCounter() == 4);
+	REQUIRE(mat4.dataPointer().getCounter() == 4);
+	
+	REQUIRE(mat1.data() == mat2.data());
+	REQUIRE(mat1.data() == mat3.data());
+	REQUIRE(mat1.data() == mat4.data());
+}
