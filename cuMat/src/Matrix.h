@@ -2,10 +2,12 @@
 #define __CUMAT_MATRIX_H__
 
 #include "Macros.h"
+#include "ForwardDeclarations.h"
 #include "Constants.h"
 #include "Context.h"
 #include "DevicePointer.h"
 #include "MatrixBase.h"
+#include "NullaryOps.h"
 
 #if CUMAT_EIGEN_SUPPORT==1
 #include <Eigen/Core>
@@ -411,7 +413,21 @@ namespace internal {
 		CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const { return data_; }
 		CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer() { return data_; }
 	};
-}
+
+	template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags>
+	struct traits<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> >
+	{
+		typedef typename _Scalar Scalar;
+		enum
+		{
+			Flags = _Flags,
+			RowsAtCompileTime = _Rows,
+			ColsAtCompileTime = _Columns,
+			BatchesAtCompileTime = _Batches
+		};
+	};
+
+} //end namespace internal
 
 /**
  * \brief The basic matrix class.
@@ -450,6 +466,9 @@ public:
 	};
 	using Scalar = _Scalar;
 	using Type = Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>;
+
+	typedef typename MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > Base;
+	using Base::eval_t;
 
 	/**
 	 * \brief Default constructor.
@@ -526,6 +545,22 @@ public:
 
 	// COEFFICIENT ACCESS
 
+	__host__ __device__ CUMAT_STRONG_INLINE Index index(Index row, Index col, Index batch) const
+	{
+		CUMAT_ASSERT_CUDA(row >= 0);
+		CUMAT_ASSERT_CUDA(row < rows());
+		CUMAT_ASSERT_CUDA(col >= 0);
+		CUMAT_ASSERT_CUDA(col < cols());
+		CUMAT_ASSERT_CUDA(batch >= 0);
+		CUMAT_ASSERT_CUDA(batch < batches());
+		if (CUMAT_IS_ROW_MAJOR(Flags)) {
+			return col + cols() * (row + rows() * batch);
+		}
+		else {
+			return row + rows() * (col + cols() * batch);
+		}
+	}
+
 	/**
 	 * \brief Accesses the coefficient at the specified coordinate for reading and writing.
 	 * If the device supports it (CUMAT_ASSERT_CUDA is defined), the
@@ -537,16 +572,7 @@ public:
 	 */
 	__device__ CUMAT_STRONG_INLINE _Scalar& coeff(Index row, Index col, Index batch)
 	{
-		CUMAT_ASSERT_CUDA(row >= 0);
-		CUMAT_ASSERT_CUDA(row < rows());
-		CUMAT_ASSERT_CUDA(col >= 0);
-		CUMAT_ASSERT_CUDA(col < cols());
-		CUMAT_ASSERT_CUDA(batch >= 0);
-		CUMAT_ASSERT_CUDA(batch < batches());
-		if (CUMAT_IS_ROW_MAJOR(Flags))
-			return data_.data()[col + cols() * (row + rows() * batch)];
-		else
-			return data_.data()[row + rows() * (col + cols() * batch)];
+		return data_.data()[index(row, col, batch)];
 	}
 	/**
 	* \brief Accesses the coefficient at the specified coordinate for reading.
@@ -559,16 +585,7 @@ public:
 	*/
 	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch) const
 	{
-		CUMAT_ASSERT_CUDA(row >= 0);
-		CUMAT_ASSERT_CUDA(row < rows());
-		CUMAT_ASSERT_CUDA(col >= 0);
-		CUMAT_ASSERT_CUDA(col < cols());
-		CUMAT_ASSERT_CUDA(batch >= 0);
-		CUMAT_ASSERT_CUDA(batch < batches());
-		if (CUMAT_IS_ROW_MAJOR(Flags))
-			return data_.data()[col + cols() * (row + rows() * batch)];
-		else
-			return data_.data()[row + rows() * (col + cols() * batch)];
+		return data_.data()[index(row, col, batch)];
 	}
 
 	/**
@@ -617,12 +634,12 @@ public:
 		return data_.data();
 	}
 
-	CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const
+	__host__ __device__ CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const
 	{
 		return data_.dataPointer();
 	}
 
-	CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer()
+	__host__ __device__ CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer()
 	{
 		return data_.dataPointer();
 	}
@@ -780,6 +797,43 @@ public:
 		data_ = Storage_t(other.dataPointer(), other.rows(), other.cols(), other.batches());
 
 		return *this;
+	}
+
+	// EVALUATIONS
+
+	template<typename Derived>
+	Matrix(const MatrixBase<Derived>& expr)
+		: data_(expr.rows(), expr.cols(), expr.batches())
+	{
+		expr.evalTo(*this);
+	}
+
+	CUMAT_STRONG_INLINE void evalTo(eval_t& m) const
+	{
+		CUMAT_ASSERT_ERROR("evalTo should never be called on Matrix! There should be specializations for that");
+	}
+
+	// STATIC METHODS AND OTHER HELPERS
+
+	template<typename _NullaryFunctor>
+	using NullaryOp_t = NullaryOp<_Scalar, _Rows, _Columns, _Batches, _Flags, _NullaryFunctor >;
+
+	static NullaryOp_t<functor::ConstantFunctor<_Scalar> >
+	Constant(Index rows, Index cols, Index batches, const _Scalar& value)
+	{
+		if (_Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(_Rows == rows && "runtime row count does not match compile time row count");
+		if (_Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(_Columns == cols && "runtime row count does not match compile time row count");
+		if (_Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(_Batches == batches && "runtime row count does not match compile time row count");
+		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
+			rows, cols, batches, functor::ConstantFunctor<_Scalar>(value));
+	}
+
+	void setZero()
+	{
+		Index s = size();
+		if (s > 0) {
+			CUMAT_SAFE_CALL(cudaMemsetAsync(data(), 0, sizeof(_Scalar) * size(), Context::current().stream()));
+		}
 	}
 
 #endif

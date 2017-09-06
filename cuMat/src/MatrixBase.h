@@ -4,24 +4,31 @@
 #include <cuda_runtime.h>
 
 #include "Macros.h"
+#include "ForwardDeclarations.h"
 #include "Constants.h"
 
 CUMAT_NAMESPACE_BEGIN
 
-template<typename Derived>
+/**
+ * \brief The base class of all matrix types and matrix expressions.
+ * \tparam _Derived 
+ */
+template<typename _Derived>
 class MatrixBase
 {
-	
 public:
+
+	typedef typename internal::traits<_Derived>::Scalar Scalar;
+
 	/** 
-	 * \returns a reference to the derived object 
+	 * \returns a reference to the _Derived object 
 	 */
-	__host__ __device__ CUMAT_STRONG_INLINE Derived& derived() { return *static_cast<Derived*>(this); }
+	__host__ __device__ CUMAT_STRONG_INLINE _Derived& derived() { return *static_cast<_Derived*>(this); }
 	
 	/** 
-	 * \returns a const reference to the derived object 
+	 * \returns a const reference to the _Derived object 
 	 */
-	__host__ __device__ CUMAT_STRONG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
+	__host__ __device__ CUMAT_STRONG_INLINE const _Derived& derived() const { return *static_cast<const _Derived*>(this); }
 
 	/** 
 	 * \brief Returns the number of rows of this matrix.
@@ -45,7 +52,32 @@ public:
 	*/
 	__host__ __device__ CUMAT_STRONG_INLINE Index size() const { return rows()*cols()*batches(); }
 
-	// TODO: eval()
+	// EVALUATION
+
+	typedef typename Matrix<
+		typename internal::traits<_Derived>::Scalar,
+		internal::traits<_Derived>::RowsAtCompileTime,
+		internal::traits<_Derived>::ColsAtCompileTime,
+		internal::traits<_Derived>::BatchesAtCompileTime,
+		internal::traits<_Derived>::Flags
+	> eval_t;
+
+	/**
+	 * \brief Evaluates this into a matrix.
+	 * This evaluates any expression template. If this is already a matrix, it is returned unchanged.
+	 * \return the evaluated matrix
+	 */
+	eval_t eval()
+	{
+		return eval_t(derived());
+	}
+
+	/**
+	 * \brief Evaluates this into the the specified matrix.
+	 * This is called within eval() and the constructor of Matrix,
+	 * don't call it in user-code.
+	 */
+	void evalTo(eval_t& m) const { derived().evalTo(m); }
 };
 
 CUMAT_NAMESPACE_END

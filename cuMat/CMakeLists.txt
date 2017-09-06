@@ -4,6 +4,7 @@
 # Todo: maybe replace by GLOB
 set(CUMAT_HEADERS
   src/Macros.h 
+  src/ForwardDeclarations.h
   src/Logging.h
   src/Errors.h
   src/Constants.h
@@ -13,6 +14,8 @@ set(CUMAT_HEADERS
   src/EigenInteropHelpers.h
   src/MatrixBase.h
   src/Matrix.h
+  src/CwiseOp.h
+  src/NullaryOps.h
   )
 
 add_library(cuMat INTERFACE) # 'moduleA' is an INTERFACE pseudo target

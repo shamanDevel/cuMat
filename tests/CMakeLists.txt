@@ -6,9 +6,10 @@ set(CUMAT_TEST_FILES
   Barrier.h
   TestDevicePointer.cu
   TestMatrix.cu
+  TestNullaryOps.cu
   )
 
-list(APPEND CUDA_NVCC_FLAGS --cl-version=2017)
+list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
 cuda_add_executable(cuMat_tests ${CUMAT_TEST_FILES})
 set_target_properties(cuMat_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(cuMat_tests Catch)

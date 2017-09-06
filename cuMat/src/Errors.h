@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Macros.h"
+#include "Logging.h"
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -93,15 +94,19 @@ namespace internal {
 		{
 	#ifndef NDEBUG
 			if (cudaSuccess != err) {
-				throw cuda_error(format("cudaSafeCall() failed at %s:%i : %s\n",
-					file, line, cudaGetErrorString(err)));
+				std::string msg = format("cudaSafeCall() failed at %s:%i : %s\n",
+					file, line, cudaGetErrorString(err));
+				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				throw cuda_error(msg);
 			}
 	#if CUMAT_VERBOSE_ERROR_CHECKING==1
 			//insert a device-sync
 			err = cudaDeviceSynchronize();
 			if (cudaSuccess != err) {
-				throw cuda_error(format("cudaSafeCall() failed at %s:%i : %s\n",
-					file, line, cudaGetErrorString(err)));
+				std::string msg = format("cudaSafeCall() failed at %s:%i : %s\n",
+					file, line, cudaGetErrorString(err));
+				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				throw cuda_error(msg);
 			}
 	#endif
 	#endif
@@ -112,16 +117,20 @@ namespace internal {
 #ifndef NDEBUG
 			cudaError err = cudaGetLastError();
 			if (cudaSuccess != err) {
-				throw cuda_error(format("cudaCheckError() failed at %s:%i : %s\n",
-					file, line, cudaGetErrorString(err)));
+				std::string msg = format("cudaCheckError() failed at %s:%i : %s\n",
+					file, line, cudaGetErrorString(err));
+				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				throw cuda_error(msg);
 			}
 
 #if CUMAT_VERBOSE_ERROR_CHECKING==1
 			// More careful checking. However, this will affect performance.
 			err = cudaDeviceSynchronize();
 			if (cudaSuccess != err) {
-				throw cuda_error(format("cudaCheckError() failed at %s:%i : %s\n",
-					file, line, cudaGetErrorString(err)));
+				std::string msg = format("cudaCheckError() failed at %s:%i : %s\n",
+					file, line, cudaGetErrorString(err));
+				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				throw cuda_error(msg);
 			}
 #endif
 #endif

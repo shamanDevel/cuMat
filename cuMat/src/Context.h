@@ -2,6 +2,7 @@
 #define __CUMAT_CONTEXT_H__
 
 #include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 #include <thread>
 #include <mutex>
 
