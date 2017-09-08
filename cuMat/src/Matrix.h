@@ -7,6 +7,7 @@
 #include "Context.h"
 #include "DevicePointer.h"
 #include "MatrixBase.h"
+#include "CwiseOp.h"
 #include "NullaryOps.h"
 
 #if CUMAT_EIGEN_SUPPORT==1
@@ -451,7 +452,9 @@ namespace internal {
  * \tparam _Flags a combination of flags from the \ref Flags enum.
  */
 template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags>
-class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> >
+class Matrix 
+	: public CwiseOp<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > //inheriting from CwiseOp allows a Matrix to be used as a leaf
+	//: public MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> >
 {
 protected:
 	using Storage_t = internal::DenseStorage<_Scalar, _Rows, _Columns, _Batches>;
@@ -469,6 +472,7 @@ public:
 
 	typedef typename MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > Base;
 	using Base::eval_t;
+	using Base::size;
 
 	/**
 	 * \brief Default constructor.
@@ -535,13 +539,6 @@ public:
 	 * \return the number of batches
 	 */
 	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return data_.batches(); }
-
-	/**
-	 * \brief Returns the total number of entries in this matrix.
-	 * This value is computed as \code rows()*cols()*batches()* \endcode
-	 * \return the total number of entries
-	 */
-	__host__ __device__ CUMAT_STRONG_INLINE Index size() const { return rows()*cols()*batches(); }
 
 	// COEFFICIENT ACCESS
 
@@ -634,12 +631,12 @@ public:
 		return data_.data();
 	}
 
-	__host__ __device__ CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const
+	CUMAT_STRONG_INLINE const DevicePointer<_Scalar>& dataPointer() const
 	{
 		return data_.dataPointer();
 	}
 
-	__host__ __device__ CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer()
+	CUMAT_STRONG_INLINE DevicePointer<_Scalar>& dataPointer()
 	{
 		return data_.dataPointer();
 	}
@@ -809,10 +806,20 @@ public:
 	}
 
 	template<typename Derived>
+	CUMAT_STRONG_INLINE Type& operator=(const MatrixBase<Derived>& expr)
+	{
+		data_ = Storage_t(expr.rows(), expr.cols(), expr.batches());
+		expr.evalTo(*this);
+		return *this;
+	}
+
+	/*
+	template<typename Derived>
 	void evalTo(MatrixBase<Derived>& m) const
 	{
 		CUMAT_ASSERT_ERROR("evalTo should never be called on Matrix! There should be specializations for that");
 	}
+	*/
 
 	// STATIC METHODS AND OTHER HELPERS
 
@@ -854,8 +861,6 @@ public:
 			_Rows, _Columns, _Batches, functor::ConstantFunctor<_Scalar>(value));
 	}
 
-
-
 	void setZero()
 	{
 		Index s = size();
@@ -864,9 +869,42 @@ public:
 		}
 	}
 
-	// SLICING
+	// SLICING + BLOCKS
 
+	//most general version, static size
+	template<int NRows, int NColumns, int NBatches>
+	MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, Type>
+		block(Index start_row, Index start_column, Index start_batch)
+	{
+		CUMAT_STATIC_ASSERT(NRows > 0, "number of rows must be positive");
+		CUMAT_STATIC_ASSERT(NColumns > 0, "number of columns must be positive");
+		CUMAT_STATIC_ASSERT(NBatches > 0, "number of batches must be positive");
+		CUMAT_ASSERT_ARGUMENT(start_row >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_column >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_row + NRows <= rows());
+		CUMAT_ASSERT_ARGUMENT(start_column + NColumns <= cols());
+		CUMAT_ASSERT_ARGUMENT(start_batch + NBatches <= batches());
+		return MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, Type>(
+			*this, NRows, NColumns, NBatches, start_row, start_column, start_batch);
+	}
 
+	//most general version, dynamic size
+	MatrixBlock<_Scalar, Dynamic, Dynamic, Dynamic, _Flags, Type>
+		block(Index start_row, Index start_column, Index start_batch, Index num_rows, Index num_columns, Index num_batches)
+	{
+		CUMAT_ASSERT_ARGUMENT(start_row >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_column >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
+		CUMAT_ASSERT_ARGUMENT(num_rows > 0);
+		CUMAT_ASSERT_ARGUMENT(num_columns > 0);
+		CUMAT_ASSERT_ARGUMENT(num_batches > 0);
+		CUMAT_ASSERT_ARGUMENT(start_row + num_rows <= rows());
+		CUMAT_ASSERT_ARGUMENT(start_column + num_columns <= cols());
+		CUMAT_ASSERT_ARGUMENT(start_batch + num_batches <= batches());
+		return MatrixBlock<_Scalar, Dynamic, Dynamic, Dynamic, _Flags, Type>(
+			*this, num_rows, num_columns, num_batches, start_row, start_column, start_batch);
+	}
 
 #endif
 };

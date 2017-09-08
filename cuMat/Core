@@ -1,0 +1,12 @@
+
+
+/*
+Specifies the core modules.
+This enables all BLAS-related modules
+*/
+
+#include "src/MatrixBase.h"
+#include "src/Matrix.h"
+#include "src/MatrixBlock.h"
+
+#include "NullaryOps.h"

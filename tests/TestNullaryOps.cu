@@ -47,6 +47,12 @@ TEST_CASE("ConstantOp2", "[nullary]")
 	matrix_t m2 = setTwoExpr;
 	auto m2_host = m2.toEigen();
 	REQUIRE(m2_host.isConstant(5));
+
+	//3. assign to matrix
+	matrix_t m3(5, 8, 1);
+	m3 = setTwoExpr;
+	auto m3_host = m3.toEigen();
+	REQUIRE(m3_host.isConstant(5));
 }
 TEST_CASE("ConstantOp3", "[nullary]")
 {

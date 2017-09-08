@@ -7,6 +7,7 @@ set(CUMAT_TEST_FILES
   TestDevicePointer.cu
   TestMatrix.cu
   TestNullaryOps.cu
+  TestMatrixBlock.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)

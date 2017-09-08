@@ -16,6 +16,9 @@ set(CUMAT_HEADERS
   src/Matrix.h
   src/CwiseOp.h
   src/NullaryOps.h
+  src/MatrixBlock.h
+
+  Core
   )
 
 add_library(cuMat INTERFACE) # 'moduleA' is an INTERFACE pseudo target
