@@ -81,7 +81,7 @@ namespace functor
 	private:
 		const _Scalar value_;
 	public:
-		ConstantFunctor(const _Scalar& value)
+		ConstantFunctor(_Scalar value)
 			: value_(value)
 		{}
 

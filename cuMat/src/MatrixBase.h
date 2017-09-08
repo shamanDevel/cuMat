@@ -77,7 +77,8 @@ public:
 	 * This is called within eval() and the constructor of Matrix,
 	 * don't call it in user-code.
 	 */
-	void evalTo(eval_t& m) const { derived().evalTo(m); }
+	template<typename Derived>
+	void evalTo(MatrixBase<Derived>& m) const { derived().evalTo(m); }
 };
 
 CUMAT_NAMESPACE_END

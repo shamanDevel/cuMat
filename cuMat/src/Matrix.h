@@ -808,7 +808,8 @@ public:
 		expr.evalTo(*this);
 	}
 
-	CUMAT_STRONG_INLINE void evalTo(eval_t& m) const
+	template<typename Derived>
+	void evalTo(MatrixBase<Derived>& m) const
 	{
 		CUMAT_ASSERT_ERROR("evalTo should never be called on Matrix! There should be specializations for that");
 	}
@@ -827,6 +828,33 @@ public:
 		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
 			rows, cols, batches, functor::ConstantFunctor<_Scalar>(value));
 	}
+	//Specialization for some often used cases
+	template<typename T = std::enable_if<_Batches!=Dynamic && _Rows==Dynamic && _Columns==Dynamic, 
+		NullaryOp_t<functor::ConstantFunctor<_Scalar> >>>
+	static T::type Constant(Index rows, Index cols, const _Scalar& value)
+	{
+		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
+			rows, cols, _Batches, functor::ConstantFunctor<_Scalar>(value));
+	}
+	template<typename T = std::enable_if<_Batches != Dynamic 
+		&& ((_Rows == Dynamic && _Columns != Dynamic) || (_Rows != Dynamic && _Columns == Dynamic)),
+		NullaryOp_t<functor::ConstantFunctor<_Scalar> >>>
+		static T::type Constant(Index size, const _Scalar& value)
+	{
+		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
+			_Rows==Dynamic ? size : _Rows,
+			_Columns==Dynamic ? size : _Columns, 
+			_Batches, functor::ConstantFunctor<_Scalar>(value));
+	}
+	template<typename T = std::enable_if<_Batches != Dynamic && _Rows != Dynamic && _Columns != Dynamic,
+		NullaryOp_t<functor::ConstantFunctor<_Scalar> >>>
+		static T::type Constant(const _Scalar& value)
+	{
+		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
+			_Rows, _Columns, _Batches, functor::ConstantFunctor<_Scalar>(value));
+	}
+
+
 
 	void setZero()
 	{
@@ -835,6 +863,10 @@ public:
 			CUMAT_SAFE_CALL(cudaMemsetAsync(data(), 0, sizeof(_Scalar) * size(), Context::current().stream()));
 		}
 	}
+
+	// SLICING
+
+
 
 #endif
 };

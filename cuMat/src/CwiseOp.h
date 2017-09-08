@@ -36,6 +36,7 @@ public:
 	using Base::rows;
 	using Base::cols;
 	using Base::batches;
+	using Base::size;
 	using Base::derived;
 	using Base::eval_t;
 
@@ -44,16 +45,21 @@ public:
 		return derived().coeff(row, col, batch);
 	}
 
-	void evalTo(eval_t& m) const
+	template<typename Derived>
+	void evalTo(MatrixBase<Derived>& m) const
 	{
+		if (size() == 0) return;
+		CUMAT_ASSERT(rows() == m.rows());
+		CUMAT_ASSERT(cols() == m.cols());
+		CUMAT_ASSERT(batches() == m.batches());
+
 		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluate component wise expression " << typeid(derived()).name();
 		CUMAT_LOG(CUMAT_LOG_DEBUG) << " rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches();
 
 		//here is now the real logic
 		Context& ctx = Context::current();
 		KernelLaunchConfig cfg = ctx.createLaunchConfig3D(m.rows(), m.cols(), m.batches());
-		EvaluationKernel<_Derived, eval_t>
-			<<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream()>>>(cfg.virtual_size, derived(), m);
+		EvaluationKernel<<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream()>>>(cfg.virtual_size, derived(), m.derived());
 		CUMAT_CHECK_ERROR();
 		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
 	}
