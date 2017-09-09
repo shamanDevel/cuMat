@@ -542,6 +542,39 @@ public:
 
 	// COEFFICIENT ACCESS
 
+	/**
+	 * \brief Converts from the linear index back to row, column and batch index
+	 * \param index the linear index
+	 * \param row the row index (output)
+	 * \param col the column index (output)
+	 * \param batch the batch index (output)
+	 */
+	__host__ __device__ CUMAT_STRONG_INLINE void index(Index index, Index& row, Index& col, Index& batch) const
+	{
+		if (CUMAT_IS_ROW_MAJOR(Flags)) {
+			batch = index / (rows() * cols());
+			index -= batch * rows() * cols();
+			row = index / cols();
+			index -= row * cols();
+			col = index;
+		}
+		else {
+			batch = index / (rows() * cols());
+			index -= batch * rows() * cols();
+			col = index / rows();
+			index -= col * rows();
+			row = index;
+		}
+	}
+
+	/**
+	 * \brief Computes the linear index from the three coordinates row, column and batch
+	 * \param row the row index
+	 * \param col the column index
+	 * \param batch the batch index
+	 * \return the linear index
+	 * \see rawCoeff(Index)
+	 */
 	__host__ __device__ CUMAT_STRONG_INLINE Index index(Index row, Index col, Index batch) const
 	{
 		CUMAT_ASSERT_CUDA(row >= 0);
@@ -582,7 +615,11 @@ public:
 	*/
 	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch) const
 	{
+#if __CUDA_ARCH__ >= 350
+		return __ldg(data_.data() + index(row, col, batch));
+#else
 		return data_.data()[index(row, col, batch)];
+#endif
 	}
 
 	/**
@@ -610,7 +647,11 @@ public:
 	{
 		CUMAT_ASSERT_CUDA(index >= 0);
 		CUMAT_ASSERT_CUDA(index < size());
+#if __CUDA_ARCH__ >= 350
+		return __ldg(data_.data() + index);
+#else
 		return data_.data()[index];
+#endif
 	}
 
 	/**

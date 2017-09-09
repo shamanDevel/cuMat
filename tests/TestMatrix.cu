@@ -144,6 +144,49 @@ TEST_CASE("instantiation_throws", "[matrix]")
 }
 
 
+TEST_CASE("index_computations_rowMajor", "[matrix]")
+{
+	cuMat::Matrix<int, 5, 16, 7, cuMat::RowMajor> m;
+	for (Index i=0; i<m.rows(); ++i)
+	{
+		for (Index j=0; j<m.cols(); ++j)
+		{
+			for (Index k=0; k<m.batches(); ++k)
+			{
+				Index index = m.index(i, j, k);
+				REQUIRE(index >= 0);
+				REQUIRE(index < m.size());
+				Index i2, j2, k2;
+				m.index(index, i2, j2, k2);
+				REQUIRE(i2 == i);
+				REQUIRE(j2 == j);
+				REQUIRE(k2 == k);
+			}
+		}
+	}
+}
+TEST_CASE("index_computations_columnMajor", "[matrix]")
+{
+	cuMat::Matrix<int, 5, 16, 7, cuMat::ColumnMajor> m;
+	for (Index i = 0; i<m.rows(); ++i)
+	{
+		for (Index j = 0; j<m.cols(); ++j)
+		{
+			for (Index k = 0; k<m.batches(); ++k)
+			{
+				Index index = m.index(i, j, k);
+				REQUIRE(index >= 0);
+				REQUIRE(index < m.size());
+				Index i2, j2, k2;
+				m.index(index, i2, j2, k2);
+				REQUIRE(i2 == i);
+				REQUIRE(j2 == j);
+				REQUIRE(k2 == k);
+			}
+		}
+	}
+}
+
 template<typename MatrixType>
 __global__ void TestMatrixWriteRawKernel(dim3 virtual_size, MatrixType matrix)
 {

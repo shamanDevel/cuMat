@@ -82,6 +82,31 @@ public:
 	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
 
 	/**
+	* \brief Converts from the linear index back to row, column and batch index
+	* \param index the linear index
+	* \param row the row index (output)
+	* \param col the column index (output)
+	* \param batch the batch index (output)
+	*/
+	__host__ __device__ CUMAT_STRONG_INLINE void index(Index index, Index& row, Index& col, Index& batch) const
+	{
+		if (CUMAT_IS_ROW_MAJOR(Flags)) {
+			batch = index / (rows() * cols());
+			index -= batch * rows() * cols();
+			row = index / cols();
+			index -= row * cols();
+			col = index;
+		}
+		else {
+			batch = index / (rows() * cols());
+			index -= batch * rows() * cols();
+			col = index / rows();
+			index -= col * rows();
+			row = index;
+		}
+	}
+
+	/**
 	* \brief Accesses the coefficient at the specified coordinate for reading and writing.
 	* If the device supports it (CUMAT_ASSERT_CUDA is defined), the
 	* access is checked for out-of-bound tests by assertions.
@@ -106,6 +131,21 @@ public:
 	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch) const
 	{
 		return matrix_.coeff(row + start_row_, col + start_column_, batch + start_batch_);
+	}
+
+	/**
+	* \brief Access to the linearized coefficient.
+	* The format of the indexing depends on whether this
+	* matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
+	* \param idx the linearized index of the entry.
+	* \return the entry at that index
+	*/
+	__device__ CUMAT_STRONG_INLINE _Scalar& rawCoeff(Index idx)
+	{
+		//This method is quite ineffective at the moment, since it has to convert the values back to row,col,batch
+		Index i, j, k;
+		index(idx, i, j, k);
+		return coeff(i, j, k);
 	}
 
 	//ASSIGNMENT
