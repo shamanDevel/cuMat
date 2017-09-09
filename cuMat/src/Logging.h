@@ -22,29 +22,6 @@
 #include <string>
 
 CUMAT_NAMESPACE_BEGIN
-class DummyLogger
-{
-private:
-	std::ios_base::fmtflags flags_;
-
-public:
-	DummyLogger(const std::string& level)
-	{
-		flags_ = std::cout.flags();
-		std::cout << level << "  ";
-	}
-	~DummyLogger()
-	{
-		std::cout << std::endl;
-		std::cout.flags(flags_);
-	}
-
-	template <typename T>
-	DummyLogger& operator<<(const T& t) {
-		std::cout << t;
-		return *this;
-	}
-};
 
 /**
 * The logging level for information messages
@@ -65,6 +42,34 @@ public:
 * The logging level for information messages
 */
 #define CUMAT_LOG_SEVERE "[SEVERE]"
+
+class DummyLogger
+{
+private:
+	std::ios_base::fmtflags flags_;
+	bool enabled_;
+
+public:
+	DummyLogger(const std::string& level)
+		: enabled_(level != CUMAT_LOG_DEBUG) //to disable the many, many logs during kernel evaluations in the test suites
+	{
+		flags_ = std::cout.flags();
+		if (enabled_) std::cout << level << "  ";
+	}
+	~DummyLogger()
+	{
+		if (enabled_) {
+			std::cout << std::endl;
+			std::cout.flags(flags_);
+		}
+	}
+
+	template <typename T>
+	DummyLogger& operator<<(const T& t) {
+		if (enabled_) std::cout << t;
+		return *this;
+	}
+};
 
 /**
  * Returns the logger for the given level.

@@ -41,6 +41,12 @@ template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, t
 
 template<typename _Derived> class CwiseOp;
 template<typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, typename _NullaryFunctor> class NullaryOp;
+template<typename _Child, typename _UnaryFunctor> class UnaryOp;
+
+namespace functor
+{
+	template<typename _Scalar> class UnaryMathFunctor_negate;
+}
 
 CUMAT_NAMESPACE_END
 

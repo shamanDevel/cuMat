@@ -15,8 +15,10 @@ set(CUMAT_HEADERS
   src/MatrixBase.h
   src/Matrix.h
   src/CwiseOp.h
-  src/NullaryOps.h
   src/MatrixBlock.h
+  src/NullaryOps.h
+  src/UnaryOps.h
+  src/UnaryOpsPlugin.h
 
   Core
   )

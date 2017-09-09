@@ -54,6 +54,8 @@
 	TypeName(const TypeName&) = delete;      \
     void operator=(const TypeName&) = delete
 
+#define CUMAT_STR_DETAIL(x) #x
+#define CUMAT_STR(x) CUMAT_STR_DETAIL(x)
 
 //TODO: move assertions to Errors.h ?
 
@@ -66,11 +68,11 @@
 
 
 #define CUMAT_ASSERT_ARGUMENT(x) \
-	if (!(x)) throw std::invalid_argument("Invalid argument: " #x);
+	if (!(x)) throw std::invalid_argument(__FILE__ ":" CUMAT_STR(__LINE__) ": Invalid argument: " #x);
 #define CUMAT_ASSERT_BOUNDS(x) \
-	if (!(x)) throw std::out_of_range("Out of bounds: " #x);
+	if (!(x)) throw std::out_of_range(__FILE__ ":" CUMAT_STR(__LINE__) "Out of bounds: " #x);
 #define CUMAT_ASSERT_ERROR(x) \
-	if (!(x)) throw std::runtime_error("Runtime Error: " #x);
+	if (!(x)) throw std::runtime_error(__FILE__ ":" CUMAT_STR(__LINE__) "Runtime Error: " #x);
 
 /**
  * \brief Assertions in device code (if supported)

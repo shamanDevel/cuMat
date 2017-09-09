@@ -2,12 +2,16 @@
 
 set(CUMAT_TEST_FILES 
   main.cpp
-  TestContext.cu
+  
   Barrier.h
+  Utils.h
+
+  TestContext.cu
   TestDevicePointer.cu
   TestMatrix.cu
   TestNullaryOps.cu
   TestMatrixBlock.cu
+  TestUnaryOps.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)

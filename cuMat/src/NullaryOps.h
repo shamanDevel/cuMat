@@ -68,15 +68,10 @@ public:
 	}
 };
 
-/**
- * \brief A tag for nullary functors
- */
-struct NullaryFunctorTag {};
-
 namespace functor
 {
 	template<typename _Scalar>
-	class ConstantFunctor : public NullaryFunctorTag
+	class ConstantFunctor
 	{
 	private:
 		const _Scalar value_;

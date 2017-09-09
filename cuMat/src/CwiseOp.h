@@ -39,6 +39,7 @@ namespace
  *    method to convert from raw index (from 0 to size()-1) to row, column and batch index
  *  - defines a <code>__Device__ Scalar& rawCoeff(Index index)</code> method
  *    that is used to write the results back.
+ * 
  * Currently, the following classes support this interface and can therefore be used
  * as the left-hand-side of a component-wise expression:
  *  - Matrix

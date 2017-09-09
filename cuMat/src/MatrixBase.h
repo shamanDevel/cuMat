@@ -79,6 +79,11 @@ public:
 	 */
 	template<typename Derived>
 	void evalTo(MatrixBase<Derived>& m) const { derived().evalTo(m); }
+
+
+	// CWISE UNARY EXPRESSIONS
+#include "UnaryOpsPlugin.h"
+
 };
 
 CUMAT_NAMESPACE_END
