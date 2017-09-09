@@ -25,7 +25,15 @@ TEST_CASE("fixed_block_rw", "[block]")
 		m_host2[i] = m_device.block<rows, cols, 1>(0, 0, i).eval().toEigen();
 	}
 
+	const cuMat::Matrix<int, rows, cols, batches, cuMat::ColumnMajor> m_device_const = m_device;
+	Eigen::Matrix<int, rows, cols, Eigen::ColMajor> m_host3[batches];
+	for (int i = 0; i<batches; ++i)
+	{
+		m_host3[i] = m_device_const.block<rows, cols, 1>(0, 0, i).eval().toEigen();
+	}
+
 	for (int i = 0; i < batches; ++i) REQUIRE(m_host1[i] == m_host2[i]);
+	for (int i = 0; i < batches; ++i) REQUIRE(m_host1[i] == m_host3[i]);
 }
 
 TEST_CASE("dynamic_block_rw", "[block]")
@@ -49,5 +57,13 @@ TEST_CASE("dynamic_block_rw", "[block]")
 		m_host2[i] = m_device.block(0, 0, i, rows, cols, 1).eval().toEigen();
 	}
 
+	const cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor> m_device_const = m_device;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> m_host3[batches];
+	for (int i = 0; i<batches; ++i)
+	{
+		m_host3[i] = m_device_const.block(0, 0, i, rows, cols, 1).eval().toEigen();
+	}
+
 	for (int i = 0; i < batches; ++i) REQUIRE(m_host1[i] == m_host2[i]);
+	for (int i = 0; i < batches; ++i) REQUIRE(m_host1[i] == m_host3[i]);
 }

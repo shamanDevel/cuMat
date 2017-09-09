@@ -888,6 +888,22 @@ public:
 		return MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, Type>(
 			*this, NRows, NColumns, NBatches, start_row, start_column, start_batch);
 	}
+	template<int NRows, int NColumns, int NBatches>
+	MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, const Type>
+		block(Index start_row, Index start_column, Index start_batch) const
+	{
+		CUMAT_STATIC_ASSERT(NRows > 0, "number of rows must be positive");
+		CUMAT_STATIC_ASSERT(NColumns > 0, "number of columns must be positive");
+		CUMAT_STATIC_ASSERT(NBatches > 0, "number of batches must be positive");
+		CUMAT_ASSERT_ARGUMENT(start_row >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_column >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_row + NRows <= rows());
+		CUMAT_ASSERT_ARGUMENT(start_column + NColumns <= cols());
+		CUMAT_ASSERT_ARGUMENT(start_batch + NBatches <= batches());
+		return MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, const Type>(
+			*this, NRows, NColumns, NBatches, start_row, start_column, start_batch);
+	}
 
 	//most general version, dynamic size
 	MatrixBlock<_Scalar, Dynamic, Dynamic, Dynamic, _Flags, Type>
@@ -905,6 +921,24 @@ public:
 		return MatrixBlock<_Scalar, Dynamic, Dynamic, Dynamic, _Flags, Type>(
 			*this, num_rows, num_columns, num_batches, start_row, start_column, start_batch);
 	}
+	MatrixBlock<_Scalar, Dynamic, Dynamic, Dynamic, _Flags, const Type>
+		block(Index start_row, Index start_column, Index start_batch, Index num_rows, Index num_columns, Index num_batches) const
+	{
+		CUMAT_ASSERT_ARGUMENT(start_row >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_column >= 0);
+		CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
+		CUMAT_ASSERT_ARGUMENT(num_rows > 0);
+		CUMAT_ASSERT_ARGUMENT(num_columns > 0);
+		CUMAT_ASSERT_ARGUMENT(num_batches > 0);
+		CUMAT_ASSERT_ARGUMENT(start_row + num_rows <= rows());
+		CUMAT_ASSERT_ARGUMENT(start_column + num_columns <= cols());
+		CUMAT_ASSERT_ARGUMENT(start_batch + num_batches <= batches());
+		return MatrixBlock<_Scalar, Dynamic, Dynamic, Dynamic, _Flags, const Type>(
+			*this, num_rows, num_columns, num_batches, start_row, start_column, start_batch);
+	}
+
+
+	// TODO: specializations for batch==1, vectors, slices
 
 #endif
 };
