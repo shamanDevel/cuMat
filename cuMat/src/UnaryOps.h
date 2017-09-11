@@ -98,7 +98,9 @@ namespace functor
 
 	//DECLARE_FUNCTOR(negate); //this is already done in ForwardDeclarations.h
 
-	DEFINE_GENERAL_FUNCTOR(negate, (-x));
+	DEFINE_GENERAL_FUNCTOR(cwiseNegate, (-x));
+	DEFINE_GENERAL_FUNCTOR(cwiseAbs, abs(x));
+	DEFINE_GENERAL_FUNCTOR(cwiseInverse, 1/x);
 
 #undef DECLARE_FUNCTOR
 #undef DEFINE_GENERAL_FUNCTOR

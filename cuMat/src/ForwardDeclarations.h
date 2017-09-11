@@ -45,7 +45,9 @@ template<typename _Child, typename _UnaryFunctor> class UnaryOp;
 
 namespace functor
 {
-	template<typename _Scalar> class UnaryMathFunctor_negate;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseNegate;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseAbs;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseInverse;
 }
 
 CUMAT_NAMESPACE_END
