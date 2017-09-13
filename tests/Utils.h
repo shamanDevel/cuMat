@@ -28,23 +28,29 @@
  */
 #define CUMAT_TESTS_CALL_MATRIX_TEST(Scalar, Test) \
 { \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 8, 12, 16, cuMat::RowMajor, 8, 12, 16); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, 12, 16, cuMat::RowMajor, 20, 12, 16); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 8, cuMat::Dynamic, 16, cuMat::RowMajor, 8, 20, 16); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 8, 12, cuMat::Dynamic, cuMat::RowMajor, 8, 12, 20); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, 16, cuMat::RowMajor, 20, 25, 16); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, 12, cuMat::Dynamic, cuMat::RowMajor, 25, 12, 20); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 8, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor, 8, 20, 25); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor, 10, 8, 12); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 3, 4, 5, cuMat::RowMajor, 3, 4, 5); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, 4, 5, cuMat::RowMajor, 8, 4, 5); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 3, cuMat::Dynamic, 5, cuMat::RowMajor, 3, 8, 5); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 3, 4, cuMat::Dynamic, cuMat::RowMajor, 3, 4, 8); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, 5, cuMat::RowMajor, 8, 2, 5); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, 4, cuMat::Dynamic, cuMat::RowMajor, 2, 4, 8); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 3, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor, 3, 8, 2); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor, 10, 3, 4); \
 	\
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 8, 12, 16, cuMat::ColumnMajor, 8, 12, 16); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, 12, 16, cuMat::ColumnMajor, 20, 12, 16); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 8, cuMat::Dynamic, 16, cuMat::ColumnMajor, 8, 20, 16); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 8, 12, cuMat::Dynamic, cuMat::ColumnMajor, 8, 12, 20); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, 16, cuMat::ColumnMajor, 20, 25, 16); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, 12, cuMat::Dynamic, cuMat::ColumnMajor, 25, 12, 20); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 8, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor, 8, 20, 25); \
-	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor, 10, 8, 12); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 3, 4, 5, cuMat::ColumnMajor, 3, 4, 5); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, 4, 5, cuMat::ColumnMajor, 8, 4, 5); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 3, cuMat::Dynamic, 5, cuMat::ColumnMajor, 3, 8, 5); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 3, 4, cuMat::Dynamic, cuMat::ColumnMajor, 3, 4, 8); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, 5, cuMat::ColumnMajor, 8, 2, 5); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, 4, cuMat::Dynamic, cuMat::ColumnMajor, 2, 4, 8); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, 3, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor, 3, 8, 2); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor, 10, 3, 4); \
+}
+
+#define CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(Scalar, Test) \
+{ \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor, 10, 3, 4); \
+	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor, 10, 3, 4); \
 }
 
 #endif

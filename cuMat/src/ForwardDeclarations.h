@@ -63,6 +63,14 @@ namespace functor
 	template<typename _Scalar> class UnaryMathFunctor_cwiseNegate;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseAbs;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseInverse;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseExp;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseLog;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseLog1p;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseLog10;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseSqrt;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseRsqrt;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseCbrt;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseRcbrt;
 }
 
 CUMAT_NAMESPACE_END

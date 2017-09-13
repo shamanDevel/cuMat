@@ -36,18 +36,21 @@ void TestNegate(cuMat::Index rows, cuMat::Index cols, cuMat::Index batches)
 }
 TEST_CASE("cwiseNegate", "[unary]")
 {
-	CUMAT_TESTS_CALL_MATRIX_TEST(int, TestNegate);
-	CUMAT_TESTS_CALL_MATRIX_TEST(long, TestNegate);
-	CUMAT_TESTS_CALL_MATRIX_TEST(float, TestNegate);
-	CUMAT_TESTS_CALL_MATRIX_TEST(double, TestNegate);
+	CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(int, TestNegate);
+	CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(long, TestNegate);
+	CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(float, TestNegate);
+	CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(double, TestNegate);
 }
 
-#define UNARY_OP_HELPER(cuMatFn, eigenFn) \
+#define UNARY_OP_HELPER(cuMatFn, eigenFn, min, max) \
 	template<typename _Scalar, int _Rows, int _Cols, int _Batches, int _Flags> \
 	void unaryOpHelper_ ## cuMatFn (cuMat::Index rows, cuMat::Index cols, cuMat::Index batches) \
 	{ \
 		std::vector<Eigen::Matrix<_Scalar, Eigen::Dynamic, Eigen::Dynamic, cuMat::eigen::StorageCuMatToEigen<_Flags>::value >> m_host(batches); \
-		for (cuMat::Index i = 0; i < batches; ++i) m_host[i].setRandom(rows, cols); \
+		for (cuMat::Index i = 0; i < batches; ++i) { \
+			m_host[i].setRandom(rows, cols); \
+			m_host[i] = _Scalar((min) + ((max)-(min))/2) + _Scalar(((max)-(min))/2) * m_host[i].array();\
+		} \
 	 \
 		cuMat::Matrix<_Scalar, _Rows, _Cols, _Batches, _Flags> m_device(rows, cols, batches); \
 		for (cuMat::Index i = 0; i < batches; ++i) { \
@@ -65,27 +68,43 @@ TEST_CASE("cwiseNegate", "[unary]")
 	 \
 		for (cuMat::Index i = 0; i<batches; ++i) \
 		{ \
-			REQUIRE(m_host[i]. eigenFn () == m_host1[i]); \
+			INFO("Input: " << m_host[i]); \
+			auto lhs = m_host[i].array(). eigenFn .matrix().eval(); \
+			auto rhs = m_host1[i]; \
+			INFO("Expected: " << lhs); \
+			INFO("Actual: " << rhs); \
+			REQUIRE(lhs.isApprox(rhs)); \
 		} \
 	}
 
-#define UNARY_TEST_CASE_ALL(fn) \
-	UNARY_OP_HELPER(fn, fn) \
+#define UNARY_TEST_CASE_ALL(fn, efn, min, max) \
+	UNARY_OP_HELPER(fn, efn, min, max) \
 	TEST_CASE(CUMAT_STR(fn), "[unary]") \
 	{ \
-		CUMAT_TESTS_CALL_MATRIX_TEST(int, unaryOpHelper_ ## fn); \
-		CUMAT_TESTS_CALL_MATRIX_TEST(long, unaryOpHelper_ ## fn); \
-		CUMAT_TESTS_CALL_MATRIX_TEST(float, unaryOpHelper_ ## fn); \
-		CUMAT_TESTS_CALL_MATRIX_TEST(double, unaryOpHelper_ ## fn); \
+		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(int, unaryOpHelper_ ## fn); \
+		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(long, unaryOpHelper_ ## fn); \
+		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(float, unaryOpHelper_ ## fn); \
+		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(double, unaryOpHelper_ ## fn); \
 	}
 
-#define UNARY_TEST_CASE_FLOAT(fn) \
-	UNARY_OP_HELPER(fn, fn) \
+#define UNARY_TEST_CASE_FLOAT(fn, efn, min, max) \
+	UNARY_OP_HELPER(fn, efn, min, max) \
 	TEST_CASE(CUMAT_STR(fn), "[unary]") \
 	{ \
-		CUMAT_TESTS_CALL_MATRIX_TEST(float, unaryOpHelper_ ## fn); \
-		CUMAT_TESTS_CALL_MATRIX_TEST(double, unaryOpHelper_ ## fn); \
+		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(float, unaryOpHelper_ ## fn); \
+		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(double, unaryOpHelper_ ## fn); \
 	}
 
-UNARY_TEST_CASE_ALL(cwiseAbs);
-UNARY_TEST_CASE_FLOAT(cwiseInverse);
+
+UNARY_TEST_CASE_ALL(cwiseAbs, abs(), -10, 10);
+UNARY_TEST_CASE_FLOAT(cwiseInverse, inverse(), -10, 10);
+
+UNARY_TEST_CASE_FLOAT(cwiseExp, exp(), -10, 10);
+UNARY_TEST_CASE_FLOAT(cwiseLog, log(), 0.001, 100);
+UNARY_TEST_CASE_FLOAT(cwiseLog1p, log1p(), 0.001, 100);
+UNARY_TEST_CASE_FLOAT(cwiseLog10, log10(), 0.001, 100);
+
+UNARY_TEST_CASE_FLOAT(cwiseSqrt, sqrt(), 0.0, 100);
+UNARY_TEST_CASE_FLOAT(cwiseRsqrt, rsqrt(), 0.0001, 100);
+UNARY_TEST_CASE_FLOAT(cwiseCbrt, pow(1.0/3.0), 0.0, 100);
+UNARY_TEST_CASE_FLOAT(cwiseRcbrt, pow(-1.0 / 3.0), 0.0001, 100);

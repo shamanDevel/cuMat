@@ -75,7 +75,7 @@ namespace functor
 	class UnaryMathFunctor_ ## Name \
 	{ \
 	public: \
-		__device__ CUMAT_STRONG_INLINE const _Scalar& operator()(const _Scalar& x, Index row, Index col, Index batch) const \
+		__device__ CUMAT_STRONG_INLINE _Scalar operator()(const _Scalar& x, Index row, Index col, Index batch) const \
 		{ \
 			return Fn; \
 		} \
@@ -86,7 +86,7 @@ namespace functor
 	class UnaryMathFunctor_ ## Name <Scalar> \
 	{ \
 	public: \
-		__device__ CUMAT_STRONG_INLINE const _Scalar& operator()(const _Scalar& x, Index row, Index col, Index batch) const \
+		__device__ CUMAT_STRONG_INLINE Scalar operator()(const Scalar& x, Index row, Index col, Index batch) const \
 		{ \
 			return Fn; \
 		} \
@@ -101,6 +101,18 @@ namespace functor
 	DEFINE_GENERAL_FUNCTOR(cwiseNegate, (-x));
 	DEFINE_GENERAL_FUNCTOR(cwiseAbs, abs(x));
 	DEFINE_GENERAL_FUNCTOR(cwiseInverse, 1/x);
+
+	DEFINE_FUNCTOR_FLOAT(cwiseExp, exp(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseLog, log(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseLog1p, log1p(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseLog10, log10(x));
+
+	DEFINE_FUNCTOR_FLOAT(cwiseSqrt, sqrt(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseRsqrt, rsqrt(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseCbrt, cbrt(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseRcbrt, rcbrt(x));
+	
+	//TODO: trigonometry, rounding, special functions
 
 #undef DECLARE_FUNCTOR
 #undef DEFINE_GENERAL_FUNCTOR
