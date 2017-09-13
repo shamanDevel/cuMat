@@ -65,7 +65,7 @@ struct KernelLaunchConfig
 };
 
 #define CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, axis) \
-	for (Index i = blockIdx.axis * blockDim.axis + threadIdx.axis; \
+	for (CUMAT_NAMESPACE Index i = blockIdx.axis * blockDim.axis + threadIdx.axis; \
 		 i < virtual_size.axis; \
 		 i += blockDim.axis * gridDim.axis)
 

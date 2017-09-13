@@ -2,8 +2,23 @@
 #define __CUMAT_FORWARD_DECLARATIONS_H__
 
 #include "Macros.h"
+#include <cuComplex.h>
 
 CUMAT_NAMESPACE_BEGIN
+
+/**
+* \brief complex float type
+*/
+typedef cuFloatComplex cfloat;
+/**
+* \brief complex double type
+*/
+typedef cuDoubleComplex cdouble;
+
+/**
+* \brief The datatype used for matrix indexing
+*/
+typedef ptrdiff_t Index;
 
 //Declares, not defines all types
 

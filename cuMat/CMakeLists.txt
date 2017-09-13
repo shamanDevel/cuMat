@@ -20,6 +20,7 @@ set(CUMAT_HEADERS
   src/NullaryOps.h
   src/UnaryOps.h
   src/UnaryOpsPlugin.h
+  src/CudaUtils.h
 
   Core
   )

@@ -6,6 +6,7 @@
 #include "Constants.h"
 
 #if CUMAT_EIGEN_SUPPORT==1
+#include <complex>
 #include <Eigen/Core>
 
 CUMAT_NAMESPACE_BEGIN
@@ -74,12 +75,46 @@ namespace eigen
 		enum{size = ::cuMat::Dynamic};
 	};
 
+	//Type conversion
+	template<typename T>
+	struct TypeCuMatToEigen
+	{
+		typedef T type;
+	};
+	template<>
+	struct TypeCuMatToEigen<cfloat>
+	{
+		typedef std::complex<float> type;
+	};
+	template<>
+	struct TypeCuMatToEigen<cdouble>
+	{
+		typedef std::complex<double> type;
+	};
+
+	template<typename T>
+	struct TypeEigenToCuMat
+	{
+		typedef T type;
+	};
+	template<>
+	struct TypeEigenToCuMat<std::complex<float> >
+	{
+		typedef cfloat type;
+	};
+	template<>
+	struct TypeEigenToCuMat<std::complex<double> >
+	{
+		typedef cdouble type;
+	};
+
 	//Matrix type conversion
 
 	template<typename _CuMatMatrixType>
 	struct MatrixCuMatToEigen
 	{
 		using type = ::Eigen::Matrix<
+			//typename TypeCuMatToEigen<typename _CuMatMatrixType::Scalar>::type,
 			typename _CuMatMatrixType::Scalar,
 			SizeCuMatToEigen<_CuMatMatrixType::Rows>::size,
 			SizeCuMatToEigen<_CuMatMatrixType::Columns>::size,
@@ -90,6 +125,7 @@ namespace eigen
 	struct MatrixEigenToCuMat
 	{
 		using type = ::cuMat::Matrix<
+			//typename TypeEigenToCuMat<typename _EigenMatrixType::Scalar>::type,
 			typename _EigenMatrixType::Scalar,
 			SizeEigenToCuMat<_EigenMatrixType::RowsAtCompileTime>::size,
 			SizeEigenToCuMat<_EigenMatrixType::ColsAtCompileTime>::size,

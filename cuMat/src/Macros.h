@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <exception>
+#include <cuda_runtime.h>
 
 /*
  * This file contains global macros and type definitions used everywhere
@@ -87,7 +88,7 @@
  */
 #define CUMAT_STATIC_ASSERT(exp, msg) static_assert(exp, msg);
 
-#define CUMAT_STRONG_INLINE inline
+#define CUMAT_STRONG_INLINE __inline__
 
 
 /**
@@ -96,10 +97,5 @@
  */
 #define CUMAT_DIV_UP(x, y) (((x) + (y) - 1) / (y))
 
-
-/**
- * \brief The datatype used for matrix indexing
- */
-typedef ptrdiff_t Index;
 
 #endif

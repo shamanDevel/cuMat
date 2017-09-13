@@ -9,6 +9,7 @@ set(CUMAT_TEST_FILES
   TestContext.cu
   TestDevicePointer.cu
   TestMatrix.cu
+  TestEigenInterop.cu
   TestNullaryOps.cu
   TestMatrixBlock.cu
   TestUnaryOps.cu

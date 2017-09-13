@@ -1,7 +1,6 @@
 #include <catch/catch.hpp>
 
 #include <cuMat/src/Matrix.h>
-#include <cuMat/src/EigenInteropHelpers.h>
 
 #define TEST_SIZE_F1(type, flags, rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime) \
 	do{ \
@@ -147,16 +146,16 @@ TEST_CASE("instantiation_throws", "[matrix]")
 TEST_CASE("index_computations_rowMajor", "[matrix]")
 {
 	cuMat::Matrix<int, 5, 16, 7, cuMat::RowMajor> m;
-	for (Index i=0; i<m.rows(); ++i)
+	for (cuMat::Index i=0; i<m.rows(); ++i)
 	{
-		for (Index j=0; j<m.cols(); ++j)
+		for (cuMat::Index j=0; j<m.cols(); ++j)
 		{
-			for (Index k=0; k<m.batches(); ++k)
+			for (cuMat::Index k=0; k<m.batches(); ++k)
 			{
-				Index index = m.index(i, j, k);
+				cuMat::Index index = m.index(i, j, k);
 				REQUIRE(index >= 0);
 				REQUIRE(index < m.size());
-				Index i2, j2, k2;
+				cuMat::Index i2, j2, k2;
 				m.index(index, i2, j2, k2);
 				REQUIRE(i2 == i);
 				REQUIRE(j2 == j);
@@ -168,16 +167,16 @@ TEST_CASE("index_computations_rowMajor", "[matrix]")
 TEST_CASE("index_computations_columnMajor", "[matrix]")
 {
 	cuMat::Matrix<int, 5, 16, 7, cuMat::ColumnMajor> m;
-	for (Index i = 0; i<m.rows(); ++i)
+	for (cuMat::Index i = 0; i<m.rows(); ++i)
 	{
-		for (Index j = 0; j<m.cols(); ++j)
+		for (cuMat::Index j = 0; j<m.cols(); ++j)
 		{
-			for (Index k = 0; k<m.batches(); ++k)
+			for (cuMat::Index k = 0; k<m.batches(); ++k)
 			{
-				Index index = m.index(i, j, k);
+				cuMat::Index index = m.index(i, j, k);
 				REQUIRE(index >= 0);
 				REQUIRE(index < m.size());
-				Index i2, j2, k2;
+				cuMat::Index i2, j2, k2;
 				m.index(index, i2, j2, k2);
 				REQUIRE(i2 == i);
 				REQUIRE(j2 == j);
@@ -323,108 +322,6 @@ TEST_CASE("write_coeff_rowMajor", "[matrix]")
 				i++;
 			}
 		}
-	}
-}
-
-// EIGEN INTEROP
-
-template<typename _Matrix>
-void testMatrixToEigen(const _Matrix& m)
-{
-	cuMat::Context& ctx = cuMat::Context::current();
-	int sx = m.rows();
-	int sy = m.cols();
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, 1);
-	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
-		(cfg.virtual_size, m);
-	CUMAT_CHECK_ERROR();
-
-	auto host = m.toEigen();
-	for (int y = 0; y<sy; ++y)
-	{
-		for (int x = 0; x<sx; ++x)
-		{
-			REQUIRE(host(x, y) == x + y * 100);
-		}
-	}
-}
-
-TEST_CASE("matrix_to_eigen", "[matrix]")
-{
-	testMatrixToEigen(cuMat::Matrix<float, 4, 8, 1, cuMat::ColumnMajor>(4, 8, 1));
-	testMatrixToEigen(cuMat::Matrix<int, 16, 8, 1, cuMat::ColumnMajor>(16, 8, 1));
-	testMatrixToEigen(cuMat::Matrix<float, cuMat::Dynamic, cuMat::Dynamic, 1, cuMat::ColumnMajor>(32, 6, 1));
-
-	testMatrixToEigen(cuMat::Matrix<float, 4, 8, 1, cuMat::RowMajor>(4, 8, 1));
-	testMatrixToEigen(cuMat::Matrix<int, 16, 8, 1, cuMat::RowMajor>(16, 8, 1));
-	testMatrixToEigen(cuMat::Matrix<float, cuMat::Dynamic, cuMat::Dynamic, 1, cuMat::RowMajor>(32, 6, 1));
-}
-
-template<typename MatrixType>
-__global__ void TestMatrixWriteCoeffKernel(dim3 virtual_size, MatrixType matrix, int* failure)
-{
-	CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size)
-	{
-		if (matrix.coeff(i, j, k) != i + j * 100 + k * 100 * 100)
-			failure[0] = 1;
-	}
-}
-template <typename _Matrix>
-void testMatrixFromEigen(const _Matrix& m)
-{
-	int sx = m.rows();
-	int sy = m.cols();
-	_Matrix host = m;
-
-	for (int y = 0; y<sy; ++y)
-	{
-		for (int x = 0; x<sx; ++x)
-		{
-			host(x, y) = x + y * 100;
-		}
-	}
-
-	cuMat::Context& ctx = cuMat::Context::current();
-
-	typedef typename cuMat::eigen::MatrixEigenToCuMat<_Matrix>::type matrix_t;
-	matrix_t mat = matrix_t::fromEigen(host);
-
-	cuMat::DevicePointer<int> successFlag(1);
-	CUMAT_SAFE_CALL(cudaMemset(successFlag.pointer(), 0, sizeof(int)));
-
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, 1);
-	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
-		(cfg.virtual_size, mat, successFlag.pointer());
-	CUMAT_CHECK_ERROR();
-
-	int successFlagHost;
-	cudaMemcpy(&successFlagHost, successFlag.pointer(), sizeof(int), cudaMemcpyDeviceToHost);
-	REQUIRE(successFlagHost == 0);
-}
-TEST_CASE("matrix_from_eigen", "[matrix]")
-{
-	testMatrixFromEigen(Eigen::Matrix<float, 8, 6, Eigen::RowMajor>());
-	{
-		auto m = Eigen::Matrix<float, Eigen::Dynamic, 6, Eigen::RowMajor>();
-		m.resize(12, 6);
-		testMatrixFromEigen(m);
-	}
-	{
-		auto m = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>();
-		m.resize(12, 24);
-		testMatrixFromEigen(m);
-	}
-
-	testMatrixFromEigen(Eigen::Matrix<float, 8, 6, Eigen::ColMajor>());
-	{
-		auto m = Eigen::Matrix<float, 16, Eigen::Dynamic, Eigen::ColMajor>();
-		m.resize(16, 8);
-		testMatrixFromEigen(m);
-	}
-	{
-		auto m = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>();
-		m.resize(12, 24);
-		testMatrixFromEigen(m);
 	}
 }
 

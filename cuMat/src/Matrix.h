@@ -3,6 +3,8 @@
 
 #include "Macros.h"
 #include "ForwardDeclarations.h"
+#include "NumTraits.h"
+#include "CudaUtils.h"
 #include "Constants.h"
 #include "Context.h"
 #include "DevicePointer.h"
@@ -615,11 +617,7 @@ public:
 	*/
 	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch) const
 	{
-#if __CUDA_ARCH__ >= 350
-		return __ldg(data_.data() + index(row, col, batch));
-#else
-		return data_.data()[index(row, col, batch)];
-#endif
+		return cuda::load(data_.data() + index(row, col, batch));
 	}
 
 	/**
@@ -647,11 +645,7 @@ public:
 	{
 		CUMAT_ASSERT_CUDA(index >= 0);
 		CUMAT_ASSERT_CUDA(index < size());
-#if __CUDA_ARCH__ >= 350
-		return __ldg(data_.data() + index);
-#else
-		return data_.data()[index];
-#endif
+		return cuda::load(data_.data() + index);
 	}
 
 	/**
@@ -772,7 +766,7 @@ public:
 	//TODO: once expression templates are implemented,
 	// move them upward to work on the expression templates directly
 	// (issue an evaluation in between)
-	template<typename T = std::enable_if<_Batches == 1 || _Batches == Dynamic, EigenMatrix_t>>
+	template<typename T = std::enable_if<(_Batches == 1 || _Batches == Dynamic), EigenMatrix_t>>
 	typename T::type toEigen() const
 	{
 		if (_Batches == Dynamic) CUMAT_ASSERT_ARGUMENT(batches() == 1);
@@ -788,11 +782,11 @@ public:
 	static typename T::type fromEigen(const EigenMatrix_t& mat)
 	{
 		Type m(mat.rows(), mat.cols());
-		m.copyFromHost(mat.data());
+		m.copyFromHost(reinterpret_cast<const _Scalar*>(mat.data()));
 		return m;
 	}
 #endif
-	
+#endif
 
 	// ASSIGNMENT
 
@@ -981,7 +975,6 @@ public:
 
 	// TODO: specializations for batch==1, vectors, slices
 
-#endif
 };
 
 CUMAT_NAMESPACE_END
