@@ -71,6 +71,21 @@ namespace functor
 	template<typename _Scalar> class UnaryMathFunctor_cwiseRsqrt;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseCbrt;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseRcbrt;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseSin;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseCos;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseTan;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseAsin;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseAcos;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseAtan;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseSinh;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseCosh;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseTanh;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseAsinh;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseAcosh;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseAtanh;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseCeil;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseFloor;
+	template<typename _Scalar> class UnaryMathFunctor_cwiseRound;
 }
 
 CUMAT_NAMESPACE_END

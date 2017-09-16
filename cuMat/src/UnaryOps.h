@@ -95,6 +95,9 @@ namespace functor
 #define DEFINE_FUNCTOR_FLOAT(Name, Fn) \
 	DEFINE_FUNCTOR(Name, float, Fn);   \
 	DEFINE_FUNCTOR(Name, double, Fn);
+#define DEFINE_FUNCTOR_INT(Name, Fn) \
+	DEFINE_FUNCTOR(Name, int, Fn);   \
+	DEFINE_FUNCTOR(Name, long, Fn);
 
 	//DECLARE_FUNCTOR(negate); //this is already done in ForwardDeclarations.h
 
@@ -112,7 +115,27 @@ namespace functor
 	DEFINE_FUNCTOR_FLOAT(cwiseCbrt, cbrt(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseRcbrt, rcbrt(x));
 	
-	//TODO: trigonometry, rounding, special functions
+	DEFINE_FUNCTOR_FLOAT(cwiseSin, sin(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseCos, cos(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseTan, tan(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseAsin, asin(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseAcos, acos(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseAtan, atan(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseSinh, sinh(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseCosh, cosh(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseTanh, tanh(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseAsinh, asinh(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseAcosh, acosh(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseAtanh, atanh(x));
+
+	DEFINE_FUNCTOR_FLOAT(cwiseFloor, floor(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseCeil, ceil(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseRound, round(x));
+	DEFINE_FUNCTOR_INT(cwiseFloor, x);
+	DEFINE_FUNCTOR_INT(cwiseCeil, x);
+	DEFINE_FUNCTOR_INT(cwiseRound, x);
+
+	//TODO: special functions
 
 #undef DECLARE_FUNCTOR
 #undef DEFINE_GENERAL_FUNCTOR

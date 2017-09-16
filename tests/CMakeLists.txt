@@ -12,7 +12,10 @@ set(CUMAT_TEST_FILES
   TestEigenInterop.cu
   TestNullaryOps.cu
   TestMatrixBlock.cu
-  TestUnaryOps.cu
+  TestUnaryOps.cuh
+  TestUnaryOps1.cu
+  TestUnaryOps2.cu
+  TestUnaryOps3.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug -Xcompiler /bigobj)

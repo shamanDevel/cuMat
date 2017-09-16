@@ -52,6 +52,73 @@ UNARY_OP_ACCESSOR(cwiseCbrt);
 */
 UNARY_OP_ACCESSOR(cwiseRcbrt);
 
+/**
+* \brief computes the component-wise value of (x -> sin(x))
+*/
+UNARY_OP_ACCESSOR(cwiseSin);
+/**
+* \brief computes the component-wise value of (x -> cos(x))
+*/
+UNARY_OP_ACCESSOR(cwiseCos);
+/**
+* \brief computes the component-wise value of (x -> tan(x))
+*/
+UNARY_OP_ACCESSOR(cwiseTan);
+/**
+* \brief computes the component-wise value of (x -> asin(x))
+*/
+UNARY_OP_ACCESSOR(cwiseAsin);
+/**
+* \brief computes the component-wise value of (x -> acos(x))
+*/
+UNARY_OP_ACCESSOR(cwiseAcos);
+/**
+* \brief computes the component-wise value of (x -> atan(x))
+*/
+UNARY_OP_ACCESSOR(cwiseAtan);
+/**
+* \brief computes the component-wise value of (x -> sinh(x))
+*/
+UNARY_OP_ACCESSOR(cwiseSinh);
+/**
+* \brief computes the component-wise value of (x -> cosh(x))
+*/
+UNARY_OP_ACCESSOR(cwiseCosh);
+/**
+* \brief computes the component-wise value of (x -> tanh(x))
+*/
+UNARY_OP_ACCESSOR(cwiseTanh);
+/**
+* \brief computes the component-wise value of (x -> asinh(x))
+*/
+UNARY_OP_ACCESSOR(cwiseAsinh);
+/**
+* \brief computes the component-wise value of (x -> acosh(x))
+*/
+UNARY_OP_ACCESSOR(cwiseAcosh);
+/**
+* \brief computes the component-wise value of (x -> atanh(x))
+*/
+UNARY_OP_ACCESSOR(cwiseAtanh);
+/**
+* \brief Component-wise rounds up the entries to the next larger integer.
+* For an integer matrix, this does nothing
+*/
+UNARY_OP_ACCESSOR(cwiseCeil);
+/**
+* \brief Component-wise rounds down the entries to the next smaller integer.
+* For an integer matrix, this does nothing
+*/
+UNARY_OP_ACCESSOR(cwiseFloor);
+/**
+* \brief Component-wise rounds the entries to the next integer.
+* For an integer matrix, this does nothing
+*/
+UNARY_OP_ACCESSOR(cwiseRound);
+
+/**
+ * \brief Negates this matrix
+ */
 UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() {
 	return UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate <Scalar> >(derived());
 }
