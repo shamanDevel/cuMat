@@ -63,3 +63,10 @@
 		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(float, unaryOpHelper_ ## fn); \
 		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(double, unaryOpHelper_ ## fn); \
 	}
+
+#define UNARY_TEST_CASE_DOUBLE(fn, efn, min, max) \
+	UNARY_OP_HELPER(fn, efn, min, max) \
+	TEST_CASE(CUMAT_STR(fn), "[unary]") \
+	{ \
+		CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(double, unaryOpHelper_ ## fn); \
+	}

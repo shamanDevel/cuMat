@@ -115,6 +115,18 @@ UNARY_OP_ACCESSOR(cwiseFloor);
 * For an integer matrix, this does nothing
 */
 UNARY_OP_ACCESSOR(cwiseRound);
+/**
+* \brief Calculate the error function of the input argument component-wise (x -> erf(x))
+*/
+UNARY_OP_ACCESSOR(cwiseErf);
+/**
+* \brief Calculate the complementary error function of the input argument component-wise (x -> erfc(x))
+*/
+UNARY_OP_ACCESSOR(cwiseErfc);
+/**
+* \brief Calculate the natural logarithm of the absolute value of the gamma function of the input argument component-wise (x -> lgamma(x))
+*/
+UNARY_OP_ACCESSOR(cwiseLgamma);
 
 /**
  * \brief Negates this matrix

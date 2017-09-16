@@ -135,7 +135,9 @@ namespace functor
 	DEFINE_FUNCTOR_INT(cwiseCeil, x);
 	DEFINE_FUNCTOR_INT(cwiseRound, x);
 
-	//TODO: special functions
+	DEFINE_FUNCTOR_FLOAT(cwiseErf, erf(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseErfc, erfc(x));
+	DEFINE_FUNCTOR_FLOAT(cwiseLgamma, lgamma(x));
 
 #undef DECLARE_FUNCTOR
 #undef DEFINE_GENERAL_FUNCTOR

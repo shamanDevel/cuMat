@@ -16,6 +16,7 @@ set(CUMAT_TEST_FILES
   TestUnaryOps1.cu
   TestUnaryOps2.cu
   TestUnaryOps3.cu
+  TestUnaryOps4.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug -Xcompiler /bigobj)
