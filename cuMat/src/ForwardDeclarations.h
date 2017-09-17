@@ -57,9 +57,10 @@ template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, t
 template<typename _Derived> class CwiseOp;
 template<typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, typename _NullaryFunctor> class NullaryOp;
 template<typename _Child, typename _UnaryFunctor> class UnaryOp;
-
+template<typename _Child, typename _Target> class CastingOp;
 namespace functor
 {
+	//component-wise functors
 	template<typename _Scalar> class UnaryMathFunctor_cwiseNegate;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseAbs;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseInverse;
@@ -89,6 +90,8 @@ namespace functor
 	template<typename _Scalar> class UnaryMathFunctor_cwiseErf;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseErfc;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseLgamma;
+	//casting
+	template<typename _Source, typename _Target> struct CastFunctor;
 }
 
 CUMAT_NAMESPACE_END

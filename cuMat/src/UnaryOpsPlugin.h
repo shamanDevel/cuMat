@@ -135,4 +135,14 @@ UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() {
 	return UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate <Scalar> >(derived());
 }
 
+/**
+ * \brief Casts this matrix into a matrix of the target datatype
+ * \tparam _Target the target type
+ */
+template<typename _Target>
+CastingOp<_Derived, _Target> cast()
+{
+	return CastingOp<_Derived, _Target>(derived());
+}
+
 #undef UNARY_OP_ACCESSOR

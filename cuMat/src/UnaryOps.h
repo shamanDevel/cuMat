@@ -65,6 +65,7 @@ public:
 	}
 };
 
+// GENERAL UNARY OPERATIONS
 namespace functor
 {
 #define DECLARE_FUNCTOR(Name) \
@@ -143,7 +144,84 @@ namespace functor
 #undef DEFINE_GENERAL_FUNCTOR
 #undef DEFINE_FUNCTOR
 #undef DEFINE_FUNCTOR_FLOAT
+} //end namespace functor
+
+// CASTING
+
+namespace functor {
+	/**
+	 * \brief Cast a scalar of type _Source to a scalar of type _Target.
+	 * The functor provides a function <code>static __device__ _Target cast(_Source source)</code>
+	 * for casting.
+	 * \tparam _Source the source type 
+	 * \tparam _Target the target type
+	 */
+	template<typename _Source, typename _Target>
+	struct CastFunctor
+	{
+		static __device__ CUMAT_STRONG_INLINE _Target cast(const _Source& source)
+		{
+			//general implementation
+			return _Target(source);
+		}
+	};
+	//TODO: specializations for complex
+} //end namespace functor
+
+namespace internal {
+	template<typename _Child, typename _Target>
+	struct traits<CastingOp<_Child, _Target> >
+	{
+		using Scalar = _Target;
+		enum
+		{
+			Flags = internal::traits<_Child>::Flags,
+			RowsAtCompileTime = internal::traits<_Child>::RowsAtCompileTime,
+			ColsAtCompileTime = internal::traits<_Child>::ColsAtCompileTime,
+			BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime
+		};
+	};
 }
+
+/**
+ * \brief Casting operator from the type of the matrix _Child to the datatype _Target.
+ * It uses functor::CastFunctor for the casting
+ * \tparam _Child the child expression
+ * \tparam _Target the target type
+ */
+template<typename _Child, typename _Target>
+class CastingOp : public CwiseOp<CastingOp<_Child, _Target> >
+{
+public:
+	typedef CwiseOp<CastingOp<_Child, _Target> > Base;
+	using SourceType = typename internal::traits<_Child>::Scalar;
+	using TargetType = _Target;
+	using Scalar = TargetType;
+	enum
+	{
+		Flags = internal::traits<_Child>::Flags,
+		Rows = internal::traits<_Child>::RowsAtCompileTime,
+		Columns = internal::traits<_Child>::ColsAtCompileTime,
+		Batches = internal::traits<_Child>::BatchesAtCompileTime
+	};
+
+protected:
+	const _Child child_;
+
+public:
+	CastingOp(const MatrixBase<_Child>& child)
+		: child_(child.derived())
+	{}
+
+	__host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return child_.rows(); }
+	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return child_.cols(); }
+	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
+
+	__device__ CUMAT_STRONG_INLINE const Scalar& coeff(Index row, Index col, Index batch) const
+	{
+		return functor::CastFunctor<SourceType, TargetType>::cast(child_.derived().coeff(row, col, batch));
+	}
+};
 
 CUMAT_NAMESPACE_END
 
