@@ -5,6 +5,7 @@
 set(CUMAT_HEADERS
   src/Macros.h 
   src/ForwardDeclarations.h
+  src/Profiling.h
   src/Logging.h
   src/Errors.h
   src/Constants.h
@@ -21,6 +22,7 @@ set(CUMAT_HEADERS
   src/UnaryOps.h
   src/UnaryOpsPlugin.h
   src/CudaUtils.h
+  src/TransposeOp.h
 
   Core
   )

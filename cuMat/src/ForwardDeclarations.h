@@ -58,6 +58,7 @@ template<typename _Derived> class CwiseOp;
 template<typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, typename _NullaryFunctor> class NullaryOp;
 template<typename _Child, typename _UnaryFunctor> class UnaryOp;
 template<typename _Child, typename _Target> class CastingOp;
+template<typename _Derived> class TransposeOp;
 namespace functor
 {
 	//component-wise functors

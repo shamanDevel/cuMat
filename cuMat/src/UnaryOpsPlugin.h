@@ -1,7 +1,7 @@
 //Included inside MatrixBase, define the accessors
 
 #define UNARY_OP_ACCESSOR(Name) \
-	UnaryOp<_Derived, functor::UnaryMathFunctor_ ## Name <Scalar> > Name () { \
+	UnaryOp<_Derived, functor::UnaryMathFunctor_ ## Name <Scalar> > Name () const { \
 		return UnaryOp<_Derived, functor::UnaryMathFunctor_ ## Name <Scalar> >(derived()); \
 	}
 
@@ -131,8 +131,16 @@ UNARY_OP_ACCESSOR(cwiseLgamma);
 /**
  * \brief Negates this matrix
  */
-UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() {
+UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() const {
 	return UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate <Scalar> >(derived());
+}
+
+/**
+ * \brief Transposes this matrix
+ */
+TransposeOp<_Derived> transpose() const
+{
+	return TransposeOp<_Derived>(derived());
 }
 
 /**

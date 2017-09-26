@@ -513,7 +513,7 @@ public:
 #endif
 
 	/**
-	 * \brief Constructs a matrix
+	 * \brief Constructs a matrix.
 	 * If the number of rows, cols and batches are fixed on compile-time, they 
 	 * must coincide with the sizes passed as arguments
 	 * \param rows the number of rows
@@ -523,6 +523,18 @@ public:
 	Matrix(Index rows, Index cols, Index batches)
 		: data_(rows, cols, batches)
 	{}
+
+    /**
+    * \brief Constructs a matrix with the given data.
+    * If the number of rows, cols and batches are fixed on compile-time, they
+    * must coincide with the sizes passed as arguments
+    * \param rows the number of rows
+    * \param cols the number of cols
+    * \param batches the number of batches
+    */
+    Matrix(const DevicePointer<_Scalar>& ptr, Index rows, Index cols, Index batches)
+        : data_(ptr, rows, cols, batches)
+    {}
 
 	/**
 	 * \brief Returns the number of rows of this matrix.
@@ -847,14 +859,6 @@ public:
 		expr.evalTo(*this);
 		return *this;
 	}
-
-	/*
-	template<typename Derived>
-	void evalTo(MatrixBase<Derived>& m) const
-	{
-		CUMAT_ASSERT_ERROR("evalTo should never be called on Matrix! There should be specializations for that");
-	}
-	*/
 
 	// STATIC METHODS AND OTHER HELPERS
 

@@ -9,6 +9,7 @@
 #include "Macros.h"
 #include "Errors.h"
 #include "Logging.h"
+#include "Profiling.h"
 
 #ifndef CUMAT_CONTEXT_DEBUG_MEMORY
 /**
@@ -167,6 +168,7 @@ public:
 	 */
 	void* mallocHost(size_t size)
 	{
+        CUMAT_PROFILING_INC(HostMemAlloc);
 		//TODO: add a plugin-mechanism for custom allocators
 		if (size == 0) return nullptr;
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
@@ -192,6 +194,7 @@ public:
 	*/
 	void* mallocDevice(size_t size)
 	{
+        CUMAT_PROFILING_INC(DeviceMemAlloc);
 		//TODO: add a plugin-mechanism for custom allocators
 		if (size == 0) return nullptr;
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
@@ -209,6 +212,7 @@ public:
 	 */
 	void freeHost(void* memory)
 	{
+        CUMAT_PROFILING_INC(HostMemFree);
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
 		if (memory != nullptr) {
 			allocationsHost_--;
@@ -226,6 +230,7 @@ public:
 	*/
 	void freeDevice(void* memory)
 	{
+        CUMAT_PROFILING_INC(DeviceMemFree);
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
 		if (memory != nullptr) {
 			allocationsDevice_--;

@@ -6,6 +6,7 @@
 #include "MatrixBase.h"
 #include "Context.h"
 #include "Logging.h"
+#include "Profiling.h"
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -68,6 +69,8 @@ public:
 	template<typename Derived>
 	void evalTo(MatrixBase<Derived>& m) const
 	{
+        CUMAT_PROFILING_INC(EvalCwise);
+        CUMAT_PROFILING_INC(EvalAny);
 		if (size() == 0) return;
 		CUMAT_ASSERT(rows() == m.rows());
 		CUMAT_ASSERT(cols() == m.cols());

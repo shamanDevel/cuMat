@@ -11,7 +11,7 @@ namespace internal {
 	template<typename _Child, typename _UnaryFunctor>
 	struct traits<UnaryOp<_Child, _UnaryFunctor> >
 	{
-		using Scalar = internal::traits<_Child>::Scalar;
+		using Scalar = typename internal::traits<_Child>::Scalar;
 		enum
 		{
 			Flags = internal::traits<_Child>::Flags,
@@ -59,7 +59,7 @@ public:
 	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return child_.cols(); }
 	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
 
-	__device__ CUMAT_STRONG_INLINE const Scalar& coeff(Index row, Index col, Index batch) const
+	__device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
 	{
 		return functor_(child_.derived().coeff(row, col, batch), row, col, batch);
 	}
