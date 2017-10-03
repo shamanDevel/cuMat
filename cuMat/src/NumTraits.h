@@ -15,7 +15,32 @@ namespace internal
 	{
 		typedef T Type;
 		typedef T RealType;
+        enum
+        {
+            IsCudaNumeric = 0
+        };
 	};
+
+    template <>
+    struct NumTraits<float>
+    {
+        typedef float Type;
+        typedef float RealType;
+        enum
+        {
+            IsCudaNumeric = 1
+        };
+    };
+    template <>
+    struct NumTraits<double>
+    {
+        typedef double Type;
+        typedef double RealType;
+        enum
+        {
+            IsCudaNumeric = 1
+        };
+    };
 
 	template <>
 	struct NumTraits<cfloat>

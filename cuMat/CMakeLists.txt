@@ -24,6 +24,8 @@ set(CUMAT_HEADERS
   src/CudaUtils.h
   src/TransposeOp.h
 
+  src/CublasApi.h
+
   Core
   )
 

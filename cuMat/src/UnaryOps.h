@@ -217,7 +217,7 @@ public:
 	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return child_.cols(); }
 	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
 
-	__device__ CUMAT_STRONG_INLINE const Scalar& coeff(Index row, Index col, Index batch) const
+	__device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
 	{
 		return functor::CastFunctor<SourceType, TargetType>::cast(child_.derived().coeff(row, col, batch));
 	}

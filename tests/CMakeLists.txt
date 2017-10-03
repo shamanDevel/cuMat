@@ -23,6 +23,7 @@ set(CUMAT_TEST_FILES
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug -Xcompiler /bigobj)
 cuda_add_executable(cuMat_tests ${CUMAT_TEST_FILES})
+cuda_add_cublas_to_target(cuMat_tests)
 set_target_properties(cuMat_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(cuMat_tests Catch)
 target_link_libraries(cuMat_tests cuMat)
