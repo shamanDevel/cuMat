@@ -118,6 +118,7 @@ private:
         Scalar* C = mat.data();
         int ldc = m;
         size_t batch_offset = size_t(m) * n;
+        //TODO: parallelize over multiple streams
         for (size_t batch = 0; batch < batches(); ++batch) {
             internal::CublasApi::current().cublasGeam(
                 transA, transB, m, n,

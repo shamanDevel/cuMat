@@ -327,7 +327,9 @@ PREDEFINED             = CUMAT_PARSED_BY_DOXYGEN \
 EXPAND_AS_DEFINED      = CUMAT_NAMESPACE_BEGIN \
                          CUMAT_NAMESPACE_END \
                          CUMAT_NAMESPACE \
-                         UNARY_OP_ACCESSOR
+                         UNARY_OP_ACCESSOR \
+                         CUMAT_DEF_MATRIX2 \
+                         CUMAT_DEF_MATRIX1
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 # Configuration options related to external references

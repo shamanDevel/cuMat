@@ -981,6 +981,77 @@ public:
 
 };
 
+
+//Common typedefs
+
+/** \defgroup matrixtypedefs Global matrix typedefs
+*
+* cuMat defines several typedef shortcuts for most common matrix and vector types.
+*
+* The general patterns are the following:
+*
+* \c MatrixSizeType where \c Size can be \c 2,\c 3,\c 4 for fixed size square matrices or \c X for dynamic size,
+* and where \c Type can be \c b for boolean, \c i for integer, \c f for float, \c d for double, \c cf for complex float, \c cd
+* for complex double.
+* Further, the suffix \c C indicates ColumnMajor storage, \c R RowMajor storage. The default (no suffix) is ColumnMajor.
+* The prefix \c B indicates batched matrices of dynamic batch size. Typedefs without this prefix have a compile-time batch size of 1.
+*
+* For example, \c BMatrix3dC is a fixed-size 3x3 matrix type of doubles but with dynamic batch size,
+*  and \c MatrixXf is a dynamic-size matrix of floats, non-batched.
+*
+* There are also \c VectorSizeType and \c RowVectorSizeType which are self-explanatory. For example, \c Vector4cf is
+* a fixed-size vector of 4 complex floats.
+*
+* \sa class Matrix
+*/
+
+#define CUMAT_DEF_MATRIX1(scalar1, scalar2, order1, order2) \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, 1, 1, order1> Scalar ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, 1, Dynamic, order1> BScalar ## scalar2 ## order2; \
+    \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 2, 1, 1, order1> Vector2 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 2, 1, Dynamic, order1> BVector2 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 3, 1, 1, order1> Vector3 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 3, 1, Dynamic, order1> BVector3 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 4, 1, 1, order1> Vector4 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 4, 1, Dynamic, order1> BVector4 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, Dynamic, 1, 1, order1> VectorX ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, Dynamic, 1, Dynamic, order1> BVectorX ## scalar2 ## order2; \
+    \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, 2, 1, order1> RowVector2 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, 2, Dynamic, order1> BRowVector2 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, 3, 1, order1> RowVector3 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, 3, Dynamic, order1> BRowVector3 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, 4, 1, order1> RowVector4 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, 4, Dynamic, order1> BRowVector4 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, Dynamic, 1, order1> RowVectorX ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 1, Dynamic, Dynamic, order1> BRowVectorX ## scalar2 ## order2; \
+    \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 2, 2, 1, order1> Matrix2 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 2, 2, Dynamic, order1> BMatrix2 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 3, 3, 1, order1> Matrix3 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 3, 3, Dynamic, order1> BMatrix3 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 4, 4, 1, order1> Matrix4 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, 4, 4, Dynamic, order1> BMatrix4 ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, Dynamic, Dynamic, 1, order1> MatrixX ## scalar2 ## order2; \
+    /** \ingroup matrixtypedefs */ typedef Matrix<scalar1, Dynamic, Dynamic, Dynamic, order1> BMatrixX ## scalar2 ## order2; \
+
+#define CUMAT_DEF_MATRIX2(scalar1, scalar2) \
+    CUMAT_DEF_MATRIX1(scalar1, scalar2, ColumnMajor, C) \
+    CUMAT_DEF_MATRIX1(scalar1, scalar2, RowMajor, R) \
+    CUMAT_DEF_MATRIX1(scalar1, scalar2, ColumnMajor, )
+
+CUMAT_DEF_MATRIX2(bool, b)
+CUMAT_DEF_MATRIX2(int, i)
+CUMAT_DEF_MATRIX2(float, f)
+CUMAT_DEF_MATRIX2(double, d)
+CUMAT_DEF_MATRIX2(cfloat, cf)
+CUMAT_DEF_MATRIX2(cdouble, cd)
+
+#undef CUMAT_DEF_MATRIX2
+#undef CUMAT_DEF_MATRIX1
+
+
 CUMAT_NAMESPACE_END
 
 #endif
