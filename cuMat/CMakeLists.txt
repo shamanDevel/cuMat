@@ -23,6 +23,8 @@ set(CUMAT_HEADERS
   src/UnaryOpsPlugin.h
   src/CudaUtils.h
   src/TransposeOp.h
+  src/BinaryOps.h
+  src/BinaryOpsPlugin.h
 
   src/CublasApi.h
 

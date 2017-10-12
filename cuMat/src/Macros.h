@@ -30,6 +30,22 @@
 #define CUMAT_NAMESPACE_END }
 #endif
 
+#ifndef CUMAT_FUNCTION_NAMESPACE_BEGIN
+/**
+ * \brief Defines the namespace in which overloaed math functions are defined.
+ * Examples are 'sin(x)' and 'pow(a,b)'.
+ * This defaults to the global namespace, but can be changed if needed.
+ */
+#define CUMAT_FUNCTION_NAMESPACE_BEGIN
+#endif
+
+#ifndef CUMAT_FUNCTION_NAMESPACE_END
+/**
+ * \brief Closes the namespace openeded with CUMAT_FUNCTION_NAMESPACE_BEGIN
+ */
+#define CUMAT_FUNCTION_NAMESPACE_END
+#endif
+
 #ifdef _MSC_VER
 //running under MS Visual Studio -> no thread_local
 #define CUMAT_THREAD_LOCAL __declspec( thread )

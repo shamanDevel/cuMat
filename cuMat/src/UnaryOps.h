@@ -144,6 +144,7 @@ namespace functor
 #undef DEFINE_GENERAL_FUNCTOR
 #undef DEFINE_FUNCTOR
 #undef DEFINE_FUNCTOR_FLOAT
+#undef DEFINE_FUNCTOR_INT
 } //end namespace functor
 
 // CASTING

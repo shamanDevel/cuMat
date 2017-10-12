@@ -81,9 +81,9 @@ public:
 	void evalTo(MatrixBase<Derived>& m) const { derived().evalTo(m); }
 
 
-	// CWISE UNARY EXPRESSIONS
+	// CWISE EXPRESSIONS
 #include "UnaryOpsPlugin.h"
-
+#include "BinaryOpsPlugin.h"
 };
 
 CUMAT_NAMESPACE_END
