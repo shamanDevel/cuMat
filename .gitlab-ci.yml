@@ -1,17 +1,17 @@
 image: nvidia/cuda:9.0-devel
 
 stages:
- - make
+ - prepare
  - docs
+ - test
  
-make:
-  stage: make
+prepare:
+  stage: prepare
   script:
-  - apt-get update && apt-get install -y --no-install-recommends cmake
+  - apt-get update && apt-get install -y --no-install-recommends cmake doxygen
   - mkdir build
   - cd build/
   - cmake ..
-  - make
   artifacts:
     paths:
     - build
@@ -19,7 +19,6 @@ make:
 docs:
   stage: docs
   script:
-  - apt-get update && apt-get install -y --no-install-recommends doxygen
   - doxygen build/docs/Doxyfile
   - mv build/docs/doc_doxygen/html/ public/
   artifacts:
@@ -27,3 +26,9 @@ docs:
     - public
   only:
   - master
+
+test:
+  stage: test
+  script:
+  - cd build/
+  - make
