@@ -19,6 +19,7 @@ prepare:
 docs:
   stage: docs
   script:
+  - apt-get update && apt-get install -y --no-install-recommends doxygen
   - doxygen build/docs/Doxyfile
   - mv build/docs/doc_doxygen/html/ public/
   artifacts:
