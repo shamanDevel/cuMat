@@ -1,0 +1,28 @@
+image: nvidia/cuda:9.0-devel
+
+stages:
+ - make
+ - docs
+ 
+make:
+  stage: make
+  script:
+  - mkdir build
+  - cd build/
+  - cmake ..
+  - make
+  artifacts:
+    paths:
+    - build
+
+docs:
+  stage: docs
+  script:
+  - apk update && apk add doxygen
+  - doxygen build/docs/Doxyfile
+  - mv build/docs/doc_doxygen/html/ public/
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
