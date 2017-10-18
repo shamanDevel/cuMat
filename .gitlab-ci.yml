@@ -7,6 +7,7 @@ stages:
 make:
   stage: make
   script:
+  - apt-get update && apt-get install -y --no-install-recommends cmake
   - mkdir build
   - cd build/
   - cmake ..
@@ -18,7 +19,7 @@ make:
 docs:
   stage: docs
   script:
-  - apk update && apk add doxygen
+  - apt-get update && apt-get install -y --no-install-recommends doxygen
   - doxygen build/docs/Doxyfile
   - mv build/docs/doc_doxygen/html/ public/
   artifacts:
