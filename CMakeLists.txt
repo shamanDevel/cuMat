@@ -24,7 +24,7 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11" )
-
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(third-party)
 add_subdirectory(cuMat)

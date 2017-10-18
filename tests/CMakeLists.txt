@@ -1,36 +1,55 @@
 # Tests
 
-set(CUMAT_TEST_FILES 
-  main.cpp
-  
+option(CUMAT_SEPARATE_TESTS "compile each test into a separate project / executable" OFF)
+
+set(CUMAT_TEST_HEADERS
   Barrier.h
   Utils.h
+  TestUnaryOps.cuh
+  TestBinaryOps.cuh
+  )
 
+set(CUMAT_TEST_FILES 
   TestContext.cu
   TestDevicePointer.cu
   TestMatrix.cu
   TestEigenInterop.cu
   TestNullaryOps.cu
   TestMatrixBlock.cu
-  TestUnaryOps.cuh
   TestUnaryOps1.cu
   TestUnaryOps2.cu
   TestUnaryOps3.cu
   TestUnaryOps4.cu
   TestCasting.cu
   TestTranspose.cu
-  TestBinaryOps.cuh
   TestBinaryOps1.cu
+  TestBinaryOps2.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug -Xcompiler /bigobj)
-cuda_add_executable(cuMat_tests ${CUMAT_TEST_FILES})
-cuda_add_cublas_to_target(cuMat_tests)
-set_target_properties(cuMat_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_link_libraries(cuMat_tests Catch)
-target_link_libraries(cuMat_tests cuMat)
-target_link_libraries(cuMat_tests ${CUDA_LIBRARIES})
-target_compile_definitions(cuMat_tests PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_PROFILING=1)
-
 enable_testing()
-add_test(NAME cuMatTest COMMAND cuMat_tests)
+
+if(CUMAT_SEPARATE_TESTS)
+    # a separate project for each test file
+    foreach( testsourcefile ${CUMAT_TEST_FILES} )
+        string( REPLACE ".cpp" "" testname ${testsourcefile} )
+        cuda_add_executable(${testname} ${CUMAT_TEST_HEADERS} ${testsourcefile} main.cpp)
+        cuda_add_cublas_to_target(${testname})
+        set_target_properties(${testname} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+        set_target_properties(${testname} PROPERTIES FOLDER Tests)
+        target_link_libraries(${testname} Catch)
+        target_link_libraries(${testname} cuMat)
+        target_link_libraries(${testname} ${CUDA_LIBRARIES})
+        target_compile_definitions(${testname} PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_PROFILING=1)
+    endforeach(testsourcefile)
+else(CUMAT_SEPARATE_TESTS)
+    # only one project
+    cuda_add_executable(cuMat_tests ${CUMAT_TEST_HEADERS} ${CUMAT_TEST_FILES} main.cpp)
+    cuda_add_cublas_to_target(cuMat_tests)
+    set_target_properties(cuMat_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    target_link_libraries(cuMat_tests Catch)
+    target_link_libraries(cuMat_tests cuMat)
+    target_link_libraries(cuMat_tests ${CUDA_LIBRARIES})
+    target_compile_definitions(cuMat_tests PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_PROFILING=1)
+    add_test(NAME cuMatTest COMMAND cuMat_tests)
+endif(CUMAT_SEPARATE_TESTS)
