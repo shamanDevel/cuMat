@@ -5,8 +5,7 @@ before_script:
 
 stages:
   - prepare
-  - pages
-  - test
+  - build
 
 prepare:
   stage: prepare
@@ -19,7 +18,7 @@ prepare:
     - build
 
 pages:
-  stage: pages
+  stage: build
   script:
   - doxygen build/docs/Doxyfile
   - mv build/docs/doc_doxygen/html/ public/
@@ -29,8 +28,8 @@ pages:
   only:
   - master
 
-test:
-  stage: test
+test_compile:
+  stage: build
   script:
   - cd build/
   - make

@@ -9,4 +9,4 @@ Features:
  - BLAS 1-3
 
 ## Documentation
-TODO: Link to the generated documentation
+The documentation can be found under [https://shaman42.gitlab.io/cuMat/](https://shaman42.gitlab.io/cuMat/)
