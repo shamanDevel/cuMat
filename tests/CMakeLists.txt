@@ -26,7 +26,7 @@ set(CUMAT_TEST_FILES
   TestBinaryOps2.cu
   )
 
-list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug -Xcompiler -bigobj)
+list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
 enable_testing()
 
 if(CUMAT_SEPARATE_TESTS)

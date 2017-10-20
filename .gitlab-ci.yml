@@ -12,7 +12,8 @@ prepare:
   script:
   - mkdir build
   - cd build/
-  - cmake ..
+  - wget -O Eigen.tar.gz https://bitbucket.org/eigen/eigen/get/3.3.2.tar.gz && tar -xzf Eigen.tar.gz
+  - cmake -DCMAKE_MODULE_PATH=eigen-eigen-da9b4e14c255/cmake/ ..
   artifacts:
     paths:
     - build
