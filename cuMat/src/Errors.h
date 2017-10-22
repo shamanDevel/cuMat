@@ -92,7 +92,6 @@ namespace internal {
 
 		static void cudaSafeCall(cudaError err, const char *file, const int line)
 		{
-	#ifndef NDEBUG
 			if (cudaSuccess != err) {
 				std::string msg = format("cudaSafeCall() failed at %s:%i : %s\n",
 					file, line, cudaGetErrorString(err));
@@ -109,12 +108,10 @@ namespace internal {
 				throw cuda_error(msg);
 			}
 	#endif
-	#endif
 		}
 
 		static void cudaCheckError(const char *file, const int line)
 		{
-#ifndef NDEBUG
 			cudaError err = cudaGetLastError();
 			if (cudaSuccess != err) {
 				std::string msg = format("cudaCheckError() failed at %s:%i : %s\n",
@@ -132,7 +129,6 @@ namespace internal {
 				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
 				throw cuda_error(msg);
 			}
-#endif
 #endif
 		}
 	};

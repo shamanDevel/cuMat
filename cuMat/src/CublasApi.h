@@ -50,7 +50,6 @@ namespace internal
         }
         static void cublasSafeCall(cublasStatus_t status, const char *file, const int line)
         {
-#ifndef NDEBUG
             if (CUBLAS_STATUS_SUCCESS != status) {
                 std::string msg = ErrorHelpers::format("cublasSafeCall() failed at %s:%i : %s\n",
                     file, line, getErrorName(status));
@@ -66,7 +65,6 @@ namespace internal
                 CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
                 throw cuda_error(msg);
             }
-#endif
 #endif
         }
 #define CUBLAS_SAFE_CALL( err ) cublasSafeCall( err, __FILE__, __LINE__ )

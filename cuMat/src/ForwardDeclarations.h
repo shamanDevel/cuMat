@@ -63,6 +63,8 @@ template<typename _Derived> class TransposeOp;
 namespace functor
 {
 	//component-wise functors
+    //nullary
+    template<typename _Scalar> class ConstantFunctor;
     //unary
 	template<typename _Scalar> class UnaryMathFunctor_cwiseNegate;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseAbs;
@@ -103,6 +105,10 @@ namespace functor
     template<typename _Scalar> class BinaryMathFunctor_cwiseMod;
     template<typename _Scalar> class BinaryMathFunctor_cwisePow;
 }
+
+//other typedefs
+template<typename _Scalar>
+using HostScalar = NullaryOp<_Scalar, 1, 1, 1, 0, functor::ConstantFunctor<_Scalar> >;
 
 CUMAT_NAMESPACE_END
 

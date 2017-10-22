@@ -6,4 +6,6 @@
 #include "Utils.h"
 #include "TestBinaryOps.cuh"
 
+// Test for broadcasting
+// TODO
 

@@ -211,33 +211,55 @@ namespace functor
 #undef DEFINE_FUNCTOR_INT
 } //end namespace functor
 
-
-
-//Operator overloading
-
-template<typename _Left, typename _Right>
-BinaryOp<_Left, _Right, functor::BinaryMathFunctor_cwiseAdd<typename internal::traits<_Left>::Scalar>>
-operator+(const MatrixBase<_Left>& left, const MatrixBase<_Right>& right) 
-{
-    return BinaryOp<_Left, _Right, functor::BinaryMathFunctor_cwiseAdd<typename internal::traits<_Left>::Scalar>>(left, right);
-}
-
-template<typename _Left, typename _Right>
-BinaryOp<_Left, _Right, functor::BinaryMathFunctor_cwiseSub<typename internal::traits<_Left>::Scalar>>
-operator-(const MatrixBase<_Left>& left, const MatrixBase<_Right>& right)
-{
-    return BinaryOp<_Left, _Right, functor::BinaryMathFunctor_cwiseSub<typename internal::traits<_Left>::Scalar>>(left, right);
-}
-
-template<typename _Left, typename _Right>
-BinaryOp<_Left, _Right, functor::BinaryMathFunctor_cwiseMod<typename internal::traits<_Left>::Scalar>>
-operator%(const MatrixBase<_Left>& left, const MatrixBase<_Right>& right)
-{
-    return BinaryOp<_Left, _Right, functor::BinaryMathFunctor_cwiseMod<typename internal::traits<_Left>::Scalar>>(left, right);
-}
-
 CUMAT_NAMESPACE_END
 
+#define BINARY_OP_SCALAR(Name, Op) \
+    template<typename _Left, typename _Right, \
+        typename S = typename CUMAT_NAMESPACE internal::traits<_Right>::Scalar, \
+        typename T = std::enable_if<std::is_convertible<_Left, S>::value, \
+            CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>> >::type>\
+    T Name(const _Left& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
+    { \
+        return CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>>(CUMAT_NAMESPACE HostScalar<S>(left), right); \
+    } \
+    template<typename _Left, typename _Right, \
+        typename S = typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar, \
+        typename T = std::enable_if<std::is_convertible<_Right, S>::value, \
+            CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>> >::type>\
+    T Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const _Right& right) \
+    { \
+        return CUMAT_NAMESPACE BinaryOp<_Right, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>>(left, CUMAT_NAMESPACE HostScalar<S>(right)); \
+    }
+#define BINARY_OP(Name, Op) \
+    template<typename _Left, typename _Right> \
+    CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE Op<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>> \
+    Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
+    { \
+        return CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE Op<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>>(left, right); \
+    } \
+    BINARY_OP_SCALAR(Name, Op)
+
+//Operator overloading
+CUMAT_NAMESPACE_BEGIN
+
+    template <typename _Left, typename _Right>
+    ::cuMat::BinaryOp<_Left, _Right, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<typename ::cuMat::internal::traits<_Left>::Scalar>> operator+(const ::cuMat::MatrixBase<_Left>& left, const ::cuMat::MatrixBase<_Right>& right) { return ::cuMat::BinaryOp<_Left, _Right, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<typename ::cuMat::internal::traits<_Left>::Scalar>>(left, right); }
+
+    template <typename _Left, typename _Right, 
+        typename S = typename ::cuMat::internal::traits<_Right>::Scalar>
+    ::cuMat::BinaryOp<::cuMat::HostScalar<S>, _Right, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<S>> operator+(const std::enable_if<std::is_convertible<_Left, S>::value, _Left>::type& left, const ::cuMat::MatrixBase<_Right>& right) {
+        return ::cuMat::BinaryOp<::cuMat::HostScalar<S>, _Right, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<S>>(::cuMat::HostScalar<S>(left), right); 
+    }
+
+    template <typename _Left, typename _Right, typename S = typename ::cuMat::internal::traits<_Left>::Scalar, typename T = std::enable_if<std::is_convertible<_Right, S>::value, ::cuMat::BinaryOp<_Left, ::cuMat::HostScalar<S>, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<S>>>::type>
+    T operator+(const ::cuMat::MatrixBase<_Left>& left, const _Right& right) { return ::cuMat::BinaryOp<_Right, ::cuMat::HostScalar<S>, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<S>>(left, ::cuMat::HostScalar<S>(right)); }
+
+    //BINARY_OP(operator+, functor::BinaryMathFunctor_cwiseAdd)
+    BINARY_OP(operator-, functor::BinaryMathFunctor_cwiseSub)
+    BINARY_OP(operator%, functor::BinaryMathFunctor_cwiseMod)
+    BINARY_OP_SCALAR(operator*, functor::BinaryMathFunctor_cwiseMul)
+    BINARY_OP_SCALAR(operator/, functor::BinaryMathFunctor_cwiseDiv)
+CUMAT_NAMESPACE_END
 
 //Global binary functions
 CUMAT_FUNCTION_NAMESPACE_BEGIN
@@ -250,15 +272,10 @@ CUMAT_FUNCTION_NAMESPACE_BEGIN
  * \param right the right matrix
  * \return The expression computing the cwise exponent
  */
-template<typename _Left, typename _Right>
-CUMAT_NAMESPACE BinaryOp<_Left, _Right, 
-    CUMAT_NAMESPACE functor::BinaryMathFunctor_cwisePow<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>>
-pow(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right)
-{
-    return CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE functor::BinaryMathFunctor_cwisePow<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>>(left, right);
-}
+BINARY_OP(pow, functor::BinaryMathFunctor_cwisePow)
 
 CUMAT_FUNCTION_NAMESPACE_END
 
+#undef BINARY_OP
 
 #endif
