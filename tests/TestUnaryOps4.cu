@@ -1,6 +1,6 @@
 #include <catch/catch.hpp>
 #include <vector>
-#include <unsupported/Eigen/SpecialFunctions>
+//#include <unsupported/Eigen/SpecialFunctions>
 
 #include <cuMat/Core>
 

@@ -3,7 +3,7 @@
 
 #include <catch/catch.hpp>
 #include <cuMat/src/Matrix.h>
-
+#include <Eigen/Core>
 
 #define __CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, _scalar, _rows, _cols, _batches, _flags, rows, cols, batches) \
 	{ \
