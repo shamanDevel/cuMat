@@ -37,9 +37,13 @@ if(CUMAT_SEPARATE_TESTS)
         cuda_add_cublas_to_target(${testname})
         set_target_properties(${testname} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
         set_target_properties(${testname} PROPERTIES FOLDER Tests)
-        target_link_libraries(${testname} Eigen3)
-        target_link_libraries(${testname} Catch)
-        target_link_libraries(${testname} cuMat)
+        
+        # Somehow, the CI does not understand the include paths if using target_link_libraries
+        #target_link_libraries(${testname} Eigen3)
+        #target_link_libraries(${testname} Catch)
+        #target_link_libraries(${testname} cuMat)
+        target_include_directories(${testname} PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
+        
         target_link_libraries(${testname} ${CUDA_LIBRARIES})
         target_compile_definitions(${testname} PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
     endforeach(testsourcefile)
@@ -48,9 +52,13 @@ else(CUMAT_SEPARATE_TESTS)
     cuda_add_executable(cuMat_tests ${CUMAT_TEST_HEADERS} ${CUMAT_TEST_FILES} main.cpp)
     cuda_add_cublas_to_target(cuMat_tests)
     set_target_properties(cuMat_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-    target_link_libraries(cuMat_tests Eigen3)
-    target_link_libraries(cuMat_tests Catch)
-    target_link_libraries(cuMat_tests cuMat)
+    
+    # Somehow, the CI does not understand the include paths if using target_link_libraries
+    #target_link_libraries(cuMat_tests Eigen3)
+    #target_link_libraries(cuMat_tests Catch)
+    #target_link_libraries(cuMat_tests cuMat)
+    target_include_directories(cuMat_tests PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
+    
     target_link_libraries(cuMat_tests ${CUDA_LIBRARIES})
     target_compile_definitions(cuMat_tests PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
     add_test(NAME cuMatTest COMMAND cuMat_tests)
