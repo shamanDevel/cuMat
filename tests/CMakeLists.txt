@@ -58,7 +58,7 @@ else(CUMAT_SEPARATE_TESTS)
     #target_link_libraries(cuMat_tests Eigen3)
     #target_link_libraries(cuMat_tests Catch)
     #target_link_libraries(cuMat_tests cuMat)
-    include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
+    #include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
     
     target_link_libraries(cuMat_tests ${CUDA_LIBRARIES})
     target_compile_definitions(cuMat_tests PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)

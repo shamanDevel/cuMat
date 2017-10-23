@@ -8,6 +8,9 @@ find_package(CUDA REQUIRED)
 # Eigen is not required by default,
 # but the tests depend on it -> use bundled Eigen for tests
 
+# Hack: try globally
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11" )
