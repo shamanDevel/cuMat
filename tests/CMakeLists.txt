@@ -50,7 +50,7 @@ if(CUMAT_SEPARATE_TESTS)
 else(CUMAT_SEPARATE_TESTS)
     # only one project
     #cuda_add_executable(cuMat_tests ${CUMAT_TEST_HEADERS} ${CUMAT_TEST_FILES} main.cpp)
-    cuda_add_executable(cuMat_tests TestBinaryOps2.cpp main.cpp)
+    cuda_add_executable(cuMat_tests TestBinaryOps2.cu main.cpp)
     cuda_add_cublas_to_target(cuMat_tests)
     set_target_properties(cuMat_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     

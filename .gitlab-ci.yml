@@ -12,7 +12,7 @@ prepare:
   script:
   - mkdir build
   - cd build/
-  - cmake ..
+  - cmake -DCUDA_VERBOSE_BUILD=ON ..
   artifacts:
     paths:
     - build
