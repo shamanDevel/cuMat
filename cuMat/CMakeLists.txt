@@ -43,6 +43,9 @@ target_include_directories(cuMat INTERFACE ${CUDA_INCLUDE_DIRS})
 #
 #  HACK: have the files showing in the IDE, under the name 'moduleA_ide'
 #
+option(CUMAT_SOURCE_LIBRARY "show the source headers as a library in the IDE" OFF)
+if(CUMAT_SOURCE_LIBRARY)
 cuda_add_library(cuMat_ide ${CUMAT_HEADERS})
 target_include_directories(cuMat_ide INTERFACE ${CMAKE_SOURCE_DIR}) # Transitively forwarded
 target_include_directories(cuMat_ide INTERFACE ${CUDA_INCLUDE_DIRS})
+endif(CUMAT_SOURCE_LIBRARY)
