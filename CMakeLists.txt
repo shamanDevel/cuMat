@@ -8,7 +8,9 @@ find_package(CUDA REQUIRED)
 # Eigen is not required by default,
 # but the tests depend on it -> use bundled Eigen for tests
 
-# Hack: try globally
+# Hack: The FindCUDA that is used by the CI does not correctly support target_include_directories,
+#  it does not forward the include paths.
+#  Hence I have to include the paths globally.
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
 
 set(CMAKE_CXX_STANDARD 11)

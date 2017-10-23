@@ -54,7 +54,7 @@ public:
 
 	// EVALUATION
 
-	typedef typename Matrix<
+	typedef Matrix<
 		typename internal::traits<_Derived>::Scalar,
 		internal::traits<_Derived>::RowsAtCompileTime,
 		internal::traits<_Derived>::ColsAtCompileTime,

@@ -23,7 +23,7 @@ set(CUMAT_TEST_FILES
   TestCasting.cu
   TestTranspose.cu
   TestBinaryOps1.cu
-  TestBinaryOps2.cpp
+  TestBinaryOps2.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
@@ -39,26 +39,25 @@ if(CUMAT_SEPARATE_TESTS)
         set_target_properties(${testname} PROPERTIES FOLDER Tests)
         
         # Somehow, the CI does not understand the include paths if using target_link_libraries
+        #  -> I have to set the globally in the root folder
         #target_link_libraries(${testname} Eigen3)
         #target_link_libraries(${testname} Catch)
         #target_link_libraries(${testname} cuMat)
-        target_include_directories(${testname} PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
         
         target_link_libraries(${testname} ${CUDA_LIBRARIES})
         target_compile_definitions(${testname} PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
     endforeach(testsourcefile)
 else(CUMAT_SEPARATE_TESTS)
     # only one project
-    #cuda_add_executable(cuMat_tests ${CUMAT_TEST_HEADERS} ${CUMAT_TEST_FILES} main.cpp)
-    cuda_add_executable(cuMat_tests TestBinaryOps2.cu main.cpp)
+    cuda_add_executable(cuMat_tests ${CUMAT_TEST_HEADERS} ${CUMAT_TEST_FILES} main.cpp)
     cuda_add_cublas_to_target(cuMat_tests)
     set_target_properties(cuMat_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     
     # Somehow, the CI does not understand the include paths if using target_link_libraries
+    #  -> I have to set the globally in the root folder
     #target_link_libraries(cuMat_tests Eigen3)
     #target_link_libraries(cuMat_tests Catch)
     #target_link_libraries(cuMat_tests cuMat)
-    #include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
     
     target_link_libraries(cuMat_tests ${CUDA_LIBRARIES})
     target_compile_definitions(cuMat_tests PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
