@@ -690,6 +690,51 @@ public:
 
 	// COPY CALLS
 
+    /**
+     * \brief Initializes a matrix from the given fixed-size 3d array.
+     * This is intended to be used for small tests.
+     * 
+     * Example:
+     \code
+     int data[2][4][3] = {
+        {
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 9},
+            {10,11,12}
+        },
+        {
+            {13,14,15},
+            {16,17,18},
+            {19,20,21},
+            {22,23,24}
+        }
+    };
+    cuMat::BMatrixXiR m = cuMat::BMatrixXiR::fromArray(data);
+    REQUIRE(m.rows() == 4);
+    REQUIRE(m.cols() == 3);
+    REQUIRE(m.batches() == 2);
+    \endcode
+     * 
+     * Note that the returned matrix is always of row-major storage.
+     * (This is how arrays are stored in C++)
+     * 
+     * \tparam Rows the number of rows, infered from the passed argument
+     * \tparam Cols the number of columns, infered from the passed argument
+     * \tparam Batches the number of batches, infered from the passed argument
+     * \param a the fixed-side 3d array used to initialize the matrix
+     * \return A row-major matrix with the specified contents
+     */
+    template<int Rows, int Cols, int Batches>
+    static Matrix<_Scalar, (Rows>1) ? Dynamic : 1, (Cols>1) ? Dynamic : 1, (Batches>1) ? Dynamic : 1, RowMajor>
+        fromArray(const _Scalar (&a)[Batches][Rows][Cols])
+    {
+        typedef Matrix<_Scalar, (Rows > 1) ? Dynamic : Rows, (Cols > 1) ? Dynamic : Cols, (Batches > 1) ? Dynamic : Batches, RowMajor> mt;
+        mt m(Rows, Cols, Batches);
+        m.copyFromHost((const _Scalar*)a);
+        return m;
+    }
+
 	/**
 	 * \brief Performs a sychronous copy from host data into the
 	 * device memory of this matrix.

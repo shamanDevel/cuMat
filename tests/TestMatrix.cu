@@ -325,6 +325,45 @@ TEST_CASE("write_coeff_rowMajor", "[matrix]")
 	}
 }
 
+
+TEST_CASE("from_array", "[matrix]")
+{
+    int data[2][4][3] = {
+        {
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 9},
+            {10,11,12}
+        },
+        {
+            {13,14,15},
+            {16,17,18},
+            {19,20,21},
+            {22,23,24}
+        }
+    };
+    cuMat::BMatrixXiR m = cuMat::BMatrixXiR::fromArray(data);
+    REQUIRE(m.rows() == 4);
+    REQUIRE(m.cols() == 3);
+    REQUIRE(m.batches() == 2);
+    std::vector<int> mem(24);
+    m.copyToHost(&mem[0]);
+    int i = 0;
+    for (int z = 0; z<m.batches(); ++z)
+    {
+        for (int x = 0; x<m.rows(); ++x)
+        {
+            for (int y = 0; y<m.cols(); ++y)
+            {
+                INFO("x=" << x << ", y=" << y << ", z=" << z);
+                REQUIRE(mem[i] == y + x * 3 + z * 3 * 4 + 1);
+                i++;
+            }
+        }
+    }
+}
+
+
 // Matrix assignments
 
 TEST_CASE("assign", "[matrix]")
