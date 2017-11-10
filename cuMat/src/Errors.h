@@ -133,7 +133,14 @@ namespace internal {
 		}
 	};
 
+/**
+ * \brief Tests if the cuda library call wrapped inside the bracets was executed successfully, aka returned cudaSuccess
+ * \param err the error code
+ */
 #define CUMAT_SAFE_CALL( err ) CUMAT_NAMESPACE internal::ErrorHelpers::cudaSafeCall( err, __FILE__, __LINE__ )
+/**
+ * \brief Issue this after kernel launches to check for errors in the kernel.
+ */
 #define CUMAT_CHECK_ERROR()    CUMAT_NAMESPACE internal::ErrorHelpers::cudaCheckError( __FILE__, __LINE__ )
 
 }

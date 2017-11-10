@@ -34,6 +34,7 @@ namespace internal {
 		DevicePointer<_Scalar> data_;
 	public:
 		DenseStorage() : data_(Index(_Rows) * _Columns * _Batches) {}
+        __host__ __device__
 		DenseStorage(const DenseStorage& other) : data_(other.data_) {}
 		DenseStorage& operator=(const DenseStorage& other)
 		{
@@ -72,7 +73,9 @@ namespace internal {
 		Index rows_;
 	public:
 		DenseStorage() : data_(), rows_(0) {}
+        __host__ __device__
 		DenseStorage(const DenseStorage& other) : data_(other.data_), rows_(other.rows_) {}
+        __host__ __device__
 		DenseStorage& operator=(const DenseStorage& other)
 		{
 			if (this != &other) {
@@ -117,7 +120,9 @@ namespace internal {
 		Index cols_;
 	public:
 		DenseStorage() : data_(), cols_(0) {}
+        __host__ __device__
 		DenseStorage(const DenseStorage& other) : data_(other.data_), cols_(other.cols_) {}
+        __host__ __device__
 		DenseStorage& operator=(const DenseStorage& other)
 		{
 			if (this != &other) {
@@ -162,7 +167,9 @@ namespace internal {
 		Index batches_;
 	public:
 		DenseStorage() : data_(), batches_(0) {}
+        __host__ __device__
 		DenseStorage(const DenseStorage& other) : data_(other.data_), batches_(other.batches_) {}
+        __host__ __device__
 		DenseStorage& operator=(const DenseStorage& other)
 		{
 			if (this != &other) {
@@ -208,7 +215,9 @@ namespace internal {
 		Index cols_;
 	public:
 		DenseStorage() : data_(), rows_(0), cols_(0) {}
+        __host__ __device__
 		DenseStorage(const DenseStorage& other) : data_(other.data_), rows_(other.rows_), cols_(other.cols_) {}
+        __host__ __device__
 		DenseStorage& operator=(const DenseStorage& other)
 		{
 			if (this != &other) {
@@ -260,7 +269,9 @@ namespace internal {
 		Index batches_;
 	public:
 		DenseStorage() : data_(), rows_(0), batches_(0) {}
+        __host__ __device__
 		DenseStorage(const DenseStorage& other) : data_(other.data_), rows_(other.rows_), batches_(other.batches_) {}
+        __host__ __device__
 		DenseStorage& operator=(const DenseStorage& other)
 		{
 			if (this != &other) {
@@ -312,7 +323,9 @@ namespace internal {
 		Index batches_;
 	public:
 		DenseStorage() : data_(), cols_(0), batches_(0) {}
+        __host__ __device__
 		DenseStorage(const DenseStorage& other) : data_(other.data_), cols_(other.cols_), batches_(other.batches_) {}
+        __host__ __device__
 		DenseStorage& operator=(const DenseStorage& other)
 		{
 			if (this != &other) {
@@ -365,12 +378,14 @@ namespace internal {
 		Index batches_;
 	public:
 		DenseStorage() : data_(), rows_(0), cols_(0), batches_(0) {}
+        __host__ __device__
 		DenseStorage(const DenseStorage& other) 
 			: data_(other.data_)
 			, rows_(other.rows_)
 			, cols_(other.cols_)
 			, batches_(other.batches_)
 		{}
+        __host__ __device__
 		DenseStorage& operator=(const DenseStorage& other)
 		{
 			if (this != &other) {
@@ -481,6 +496,7 @@ public:
 	 * For completely fixed-size matrices, this creates a matrix of that size.
 	 * For (fully or partially) dynamic matrices, creates a matrix of size 0.
 	 */
+    __host__ __device__
 	Matrix() {}
 
 #ifdef CUMAT_PARSED_BY_DOXYGEN

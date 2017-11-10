@@ -25,7 +25,8 @@ set(CUMAT_HEADERS
   src/TransposeOp.h
   src/BinaryOps.h
   src/BinaryOpsPlugin.h
-
+  src/ReductionOps.h
+  src/Iterator.h
   src/CublasApi.h
 
   Core

@@ -18,7 +18,9 @@ This enables all BLAS-related modules
 #include "src/MatrixBlock.h"
 #include "src/EigenInteropHelpers.h"
 
+#include "src/Iterator.h"
 #include "src/NullaryOps.h"
 #include "src/UnaryOps.h"
 #include "src/TransposeOp.h"
 #include "src/BinaryOps.h"
+#include "src/ReductionOps.h"

@@ -5,6 +5,8 @@
 #include "ForwardDeclarations.h"
 
 #include <array>
+#include <iterator>
+#include <thrust/tuple.h>
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -23,20 +25,23 @@ public:
     typedef StridedMatrixIterator<_Derived> self_type; ///< My own type
     typedef Index difference_type; ///< Type to express the result of subtracting one iterator from another
     using ValueType = typename internal::traits<_Derived>::Scalar;
-    typedef ValueType value_type; ///< The type of the element the iterator can point to
-    typedef ValueType* pointer; ///< The type of a pointer to an element the iterator can point to
-    typedef ValueType reference; ///< The type of a reference to an element the iterator can point to
+    using value_type = ValueType; ///< The type of the element the iterator can point to
+    using pointer = ValueType*; ///< The type of a pointer to an element the iterator can point to
+    using reference = ValueType&; ///< The type of a reference to an element the iterator can point to
+    using iterator_category = std::random_access_iterator_tag;
+
+    typedef thrust::tuple<Index, Index, Index> Index3;
 
 protected:
     _Derived mat_;
-    std::array<Index, 3> dims_;
-    std::array<Index, 3> stride_;
+    Index3 dims_;
+    Index3 stride_;
     Index index_;
 
 public:
     /// Constructor
     __host__ __device__
-    StridedMatrixIterator(const MatrixBase<_Derived>& mat, std::array<Index, 3> stride)
+    StridedMatrixIterator(const MatrixBase<_Derived>& mat, const Index3& stride)
         : mat_(mat.derived())
         , dims_{mat.rows(), mat.cols(), mat.batches()}
         , stride_(stride)
@@ -44,27 +49,32 @@ public:
     {}
 
     __host__ __device__
-    static Index toLinear(const std::array<Index, 3> coords, const std::array<Index, 3> stride)
+    static Index toLinear(const Index3& coords, const Index3& stride)
     {
         Index l = 0;
         //for (int i = 0; i < 3; ++i) l += coords[i] * stride[i];
         //manual loop unrolling
-        l += coords[0] * stride[0];
-        l += coords[1] * stride[1];
-        l += coords[2] * stride[2];
+        l += coords.get<0>() * stride.get<0>();
+        l += coords.get<1>() * stride.get<1>();
+        l += coords.get<2>() * stride.get<2>();
         return l;
     }
 
     __host__ __device__
-    static std::array<Index, 3> fromLinear(Index linear, const std::array<Index, 3>& dims, const std::array<Index, 3>& stride)
+    static Index3 fromLinear(Index linear, const Index3& dims, const Index3& stride)
     {
         //for (int i = 0; i < 3; ++i) outCoords[i] = (linear / stride[i]) % dims[i];
         //manual loop unrolling
-        return {
-            (linear / stride[0]) % dims[0],
-            (linear / stride[1]) % dims[1],
-            (linear / stride[2]) % dims[2]
+        Index3 coords = {
+            (linear / stride.get<0>()) % dims.get<0>(),
+            (linear / stride.get<1>()) % dims.get<1>(),
+            (linear / stride.get<2>()) % dims.get<2>()
         };
+        //printf("index: %d; stride: %d,%d,%d  -> coords: %d,%d,%d\n",
+        //    (int)linear,
+        //    (int)stride.get<0>(), (int)stride.get<1>(), (int)stride.get<2>(),
+        //    (int)coords.get<0>(), (int)coords.get<1>(), (int)coords.get<2>());
+        return coords;
     }
 
     /// Postfix increment
@@ -76,17 +86,23 @@ public:
     }
 
     /// Prefix increment
-    __host__ __device__ CUMAT_STRONG_INLINE self_type operator++()
+    __host__ __device__ CUMAT_STRONG_INLINE self_type& operator++()
     {
         index_++;
         return *this;
     }
 
     /// Indirection
-    __device__ CUMAT_STRONG_INLINE reference operator*() const
+    __device__ CUMAT_STRONG_INLINE value_type operator*() const
     {
-        std::array<Index, 3> coords = fromLinear(index_, dims_, stride_);
-        return mat_.coeff(coords[0], coords[1], coords[2]);
+        Index3 coords = fromLinear(index_, dims_, stride_);
+        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
+    }
+
+    __device__ CUMAT_STRONG_INLINE reference operator*()
+    {
+        Index3 coords = fromLinear(index_, dims_, stride_);
+        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
     }
 
     /// Addition
@@ -131,10 +147,17 @@ public:
 
     /// Array subscript
     template <typename Distance>
-    __device__ __forceinline__ reference operator[](Distance n) const
+    __device__ __forceinline__ value_type operator[](Distance n) const
     {
-        std::array<Index, 3> coords = fromLinear(index_ + n, dims_, stride_);
-        return mat_.coeff(coords[0], coords[1], coords[2]);
+        Index3 coords = fromLinear(index_+n, dims_, stride_);
+        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
+    }
+
+    template <typename Distance>
+    __device__ __forceinline__ reference operator[](Distance n)
+    {
+        Index3 coords = fromLinear(index_ + n, dims_, stride_);
+        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
     }
 
     /// Equal to
@@ -168,6 +191,7 @@ public:
     typedef ValueType                           value_type;             ///< The type of the element the iterator can point to
     typedef ValueType*                          pointer;                ///< The type of a pointer to an element the iterator can point to
     typedef ValueType                           reference;              ///< The type of a reference to an element the iterator can point to
+    using iterator_category = std::random_access_iterator_tag;
 
 private:
 

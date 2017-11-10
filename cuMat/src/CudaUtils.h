@@ -19,11 +19,11 @@ namespace cuda
 	template<typename T>
 	__device__ CUMAT_STRONG_INLINE const T& load(T* ptr)
 	{
-//#if __CUDA_ARCH__ >= 350
-//		return __ldg(ptr);
-//#else
+#if __CUDA_ARCH__ >= 350
+		return __ldg(ptr);
+#else
 		return *ptr;
-//#endif
+#endif
 	}
 }
 

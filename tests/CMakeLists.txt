@@ -24,6 +24,8 @@ set(CUMAT_TEST_FILES
   TestTranspose.cu
   TestBinaryOps1.cu
   TestBinaryOps2.cu
+  TestReductionOps.cu
+  TestIterator.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)

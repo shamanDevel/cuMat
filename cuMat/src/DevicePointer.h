@@ -16,13 +16,17 @@ private:
 	size_t* counter_;
 	cuMat::Context* context_;
 
+    __host__ __device__
 	void release()
 	{
+#ifndef __CUDA_ARCH__
+        //no decrement of the counter in CUDA-code, counter is in host-memory
 		if ((counter_) && (--(*counter_) == 0))
 		{
 			delete counter_;
 			context_->freeDevice(pointer_);
 		}
+#endif
 	}
 
 public:
@@ -42,40 +46,51 @@ public:
 		}
 	}
 
+    __host__ __device__
 	DevicePointer()
 		: pointer_(nullptr)
 		, counter_(nullptr)
 		, context_(nullptr)
 	{}
 
+    __host__ __device__
 	DevicePointer(const DevicePointer<T>& rhs)
 		: pointer_(rhs.pointer_)
 		, counter_(rhs.counter_)
 		, context_(rhs.context_)
 	{
+#ifndef __CUDA_ARCH__
+        //no increment of the counter in CUDA-code, counter is in host-memory
 		if (counter_) {
 			++(*counter_);
 		}
+#endif
 	}
 
+    __host__ __device__
 	DevicePointer(DevicePointer<T>&& rhs) noexcept
 		: pointer_(std::move(rhs.pointer_))
 		, counter_(std::move(rhs.counter_))
 		, context_(std::move(rhs.context_))
 	{}
 
+    __host__ __device__
 	DevicePointer<T>& operator=(const DevicePointer<T>& rhs)
 	{
 		release();
 		pointer_ = rhs.pointer_;
 		counter_ = rhs.counter_;
 		context_ = rhs.context_;
+#ifndef __CUDA_ARCH__
+        //no increment of the counter in CUDA-code, counter is in host-memory
 		if (counter_) {
 			++(*counter_);
 		}
+#endif
 		return *this;
 	}
 
+    __host__ __device__
 	DevicePointer<T>& operator=(DevicePointer<T>&& rhs) noexcept
 	{
 		release();
@@ -85,6 +100,7 @@ public:
 		return *this;
 	}
 
+    __host__ __device__
 	void swap(DevicePointer<T>& rhs) throw()
 	{
 		std::swap(pointer_, rhs.pointer_);
@@ -92,6 +108,7 @@ public:
 		std::swap(context_, rhs.context_);
 	}
 
+    __host__ __device__
 	~DevicePointer()
 	{
 		release();
