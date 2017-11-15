@@ -45,6 +45,10 @@ public:
          * \brief Special transposition operation
          */
         EvalTranspose,
+        /**
+         * \brief Reduction operation with CUB
+         */
+        EvalReduction,
 
         _NumCounter_
     };

@@ -974,33 +974,41 @@ public:
 	//most general version, static size
 	template<int NRows, int NColumns, int NBatches>
 	MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, Type>
-		block(Index start_row, Index start_column, Index start_batch)
+		block(Index start_row, Index start_column, Index start_batch, Index num_rows = NRows, 
+            Index num_columns = NColumns, Index num_batches = NBatches)
 	{
-		CUMAT_STATIC_ASSERT(NRows > 0, "number of rows must be positive");
-		CUMAT_STATIC_ASSERT(NColumns > 0, "number of columns must be positive");
-		CUMAT_STATIC_ASSERT(NBatches > 0, "number of batches must be positive");
+        CUMAT_ASSERT_ARGUMENT(NRows > 0 ? NRows == num_rows : true);
+        CUMAT_ASSERT_ARGUMENT(NColumns > 0 ? NColumns == num_columns : true);
+        CUMAT_ASSERT_ARGUMENT(NBatches > 0 ? NBatches == num_batches : true);
+        CUMAT_ASSERT_ARGUMENT(num_rows >= 0);
+        CUMAT_ASSERT_ARGUMENT(num_columns >= 0);
+        CUMAT_ASSERT_ARGUMENT(num_batches >= 0);
 		CUMAT_ASSERT_ARGUMENT(start_row >= 0);
 		CUMAT_ASSERT_ARGUMENT(start_column >= 0);
 		CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
-		CUMAT_ASSERT_ARGUMENT(start_row + NRows <= rows());
-		CUMAT_ASSERT_ARGUMENT(start_column + NColumns <= cols());
-		CUMAT_ASSERT_ARGUMENT(start_batch + NBatches <= batches());
+		CUMAT_ASSERT_ARGUMENT(start_row + num_rows <= rows());
+		CUMAT_ASSERT_ARGUMENT(start_column + num_columns <= cols());
+		CUMAT_ASSERT_ARGUMENT(start_batch + num_batches <= batches());
 		return MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, Type>(
 			*this, NRows, NColumns, NBatches, start_row, start_column, start_batch);
 	}
 	template<int NRows, int NColumns, int NBatches>
 	MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, const Type>
-		block(Index start_row, Index start_column, Index start_batch) const
+		block(Index start_row, Index start_column, Index start_batch, Index num_rows = NRows,
+            Index num_columns = NColumns, Index num_batches = NBatches) const
 	{
-		CUMAT_STATIC_ASSERT(NRows > 0, "number of rows must be positive");
-		CUMAT_STATIC_ASSERT(NColumns > 0, "number of columns must be positive");
-		CUMAT_STATIC_ASSERT(NBatches > 0, "number of batches must be positive");
-		CUMAT_ASSERT_ARGUMENT(start_row >= 0);
-		CUMAT_ASSERT_ARGUMENT(start_column >= 0);
-		CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
-		CUMAT_ASSERT_ARGUMENT(start_row + NRows <= rows());
-		CUMAT_ASSERT_ARGUMENT(start_column + NColumns <= cols());
-		CUMAT_ASSERT_ARGUMENT(start_batch + NBatches <= batches());
+        CUMAT_ASSERT_ARGUMENT(NRows > 0 ? NRows == num_rows : true);
+        CUMAT_ASSERT_ARGUMENT(NColumns > 0 ? NColumns == num_columns : true);
+        CUMAT_ASSERT_ARGUMENT(NBatches > 0 ? NBatches == num_batches : true);
+        CUMAT_ASSERT_ARGUMENT(num_rows >= 0);
+        CUMAT_ASSERT_ARGUMENT(num_columns >= 0);
+        CUMAT_ASSERT_ARGUMENT(num_batches >= 0);
+        CUMAT_ASSERT_ARGUMENT(start_row >= 0);
+        CUMAT_ASSERT_ARGUMENT(start_column >= 0);
+        CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
+        CUMAT_ASSERT_ARGUMENT(start_row + num_rows <= rows());
+        CUMAT_ASSERT_ARGUMENT(start_column + num_columns <= cols());
+        CUMAT_ASSERT_ARGUMENT(start_batch + num_batches <= batches());
 		return MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, const Type>(
 			*this, NRows, NColumns, NBatches, start_row, start_column, start_batch);
 	}

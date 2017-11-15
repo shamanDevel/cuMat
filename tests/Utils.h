@@ -53,4 +53,25 @@
 	__CUMAT_TESTS_CALL_SINGLE_MATRIX_TEST(Test, Scalar, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor, 10, 3, 4); \
 }
 
+
+template<typename Derived, typename Scalar, int Rows, int Cols, int Batches>
+void assertMatrixEquality(const Scalar(&expected)[Batches][Rows][Cols], const cuMat::MatrixBase<Derived>& actual)
+{
+    const auto mat = actual.derived().eval();
+    REQUIRE(Rows == mat.rows());
+    REQUIRE(Cols == mat.cols());
+    REQUIRE(Batches == mat.batches());
+    for (int batch=0; batch<Batches; ++batch)
+    {
+        const auto emat = mat.template block<Rows, Cols, 1>(0, 0, batch).eval().toEigen();
+        for (int column = 0; column < mat.cols(); ++column) {
+            for (int row = 0; row < mat.rows(); ++row) {
+                INFO("row=" << row << ", column=" << column << ", batch=" << batch);
+                REQUIRE(expected[batch][row][column] == emat(row, column));
+            }
+        }
+    }
+}
+
+
 #endif

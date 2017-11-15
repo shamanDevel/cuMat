@@ -51,7 +51,7 @@ protected:
 	const _UnaryFunctor functor_;
 
 public:
-	UnaryOp(const MatrixBase<_Child>& child, const _UnaryFunctor& functor = _UnaryFunctor())
+	explicit UnaryOp(const MatrixBase<_Child>& child, const _UnaryFunctor& functor = _UnaryFunctor())
 		: child_(child.derived()), functor_(functor)
 	{}
 

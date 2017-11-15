@@ -67,7 +67,7 @@ public:
 	 * This evaluates any expression template. If this is already a matrix, it is returned unchanged.
 	 * \return the evaluated matrix
 	 */
-	eval_t eval()
+	eval_t eval() const
 	{
 		return eval_t(derived());
 	}
@@ -84,6 +84,44 @@ public:
 	// CWISE EXPRESSIONS
 #include "UnaryOpsPlugin.h"
 #include "BinaryOpsPlugin.h"
+#include "ReductionOpsPlugin.h"
+};
+
+
+
+template <typename _Derived, int _AccessFlags>
+struct MatrixReadWrapper
+{
+private:
+    enum
+    {
+        //the existing access flags
+        flags = internal::traits<_Derived>::AccessFlags,
+        //boolean if the access is sufficient
+        sufficient = (flags & _AccessFlags)
+    };
+public:
+    /**
+     * \brief The wrapped type: either the type itself, if the access is sufficient,
+     * or the evaluated type if not.
+     */
+    using type = std::conditional<sufficient, _Derived, typename _Derived::eval_t>;
+
+    /*
+    template<typename T = typename std::enable_if<sufficient, MatrixBase<_Derived>>::type>
+    static type wrap(const T& m)
+    {
+        return m.derived();
+    }
+    template<typename T = typename std::enable_if<!sufficient, MatrixBase<_Derived>>::type>
+    static type wrap(const T& m)
+    {
+        return m.derived().eval();
+    }
+    */
+
+private:
+    MatrixReadWrapper(){} //not constructible
 };
 
 CUMAT_NAMESPACE_END

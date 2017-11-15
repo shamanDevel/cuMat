@@ -118,7 +118,10 @@ namespace eigen
 			typename _CuMatMatrixType::Scalar,
 			SizeCuMatToEigen<_CuMatMatrixType::Rows>::size,
 			SizeCuMatToEigen<_CuMatMatrixType::Columns>::size,
-			StorageCuMatToEigen<_CuMatMatrixType::Flags>::value
+            //Eigen requires specific storage types for vector sizes
+			(_CuMatMatrixType::Rows==1) ? ::Eigen::StorageOptions::RowMajor  
+            : (_CuMatMatrixType::Columns==1) ? ::Eigen::StorageOptions::ColMajor
+	        : StorageCuMatToEigen<_CuMatMatrixType::Flags>::value
 		>;
 	};
 	template<typename _EigenMatrixType>

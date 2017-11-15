@@ -34,6 +34,7 @@ namespace internal {
 	*	RowsAtCompileTime = ...;
 	*	ColsAtCompileTime = ...;
 	*	BatchesAtCompileTime = ...;
+	*	AccessFlags = ...; //access flags, see \ref AccessFlags
 	* };
 	* \endcode
 	*
@@ -60,6 +61,8 @@ template<typename _Child, typename _UnaryFunctor> class UnaryOp;
 template<typename _Left, typename _Right, typename _BinaryFunctor> class BinaryOp;
 template<typename _Child, typename _Target> class CastingOp;
 template<typename _Derived> class TransposeOp;
+template<typename _Child, typename _ReductionOp> class ReductionOp_DynamicSwitched;
+template<typename _Child, typename _ReductionOp, int _Axis> class ReductionOp_StaticSwitched;
 namespace functor
 {
 	//component-wise functors
@@ -104,6 +107,15 @@ namespace functor
     template<typename _Scalar> class BinaryMathFunctor_cwiseDiv;
     template<typename _Scalar> class BinaryMathFunctor_cwiseMod;
     template<typename _Scalar> class BinaryMathFunctor_cwisePow;
+    //for reductions
+    template<typename _Scalar> struct Sum;
+    template<typename _Scalar> struct Prod;
+    template<typename _Scalar> struct Min;
+    template<typename _Scalar> struct Max;
+    struct LogicalAnd;
+    struct LogicalOr;
+    template<typename _Scalar> struct BitwiseAnd;
+    template<typename _Scalar> struct BitwiseOr;
 }
 
 //other typedefs
