@@ -113,5 +113,10 @@
  */
 #define CUMAT_DIV_UP(x, y) (((x) + (y) - 1) / (y))
 
+/**
+ * \brief Computes the logical implication (a -> b)
+ */
+#define CUMAT_IMPLIES(a,b) (!(a) || (b))
+
 
 #endif

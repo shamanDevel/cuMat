@@ -112,8 +112,8 @@ namespace functor
     template<typename _Scalar> struct Prod;
     template<typename _Scalar> struct Min;
     template<typename _Scalar> struct Max;
-    struct LogicalAnd;
-    struct LogicalOr;
+    template<typename _Scalar> struct LogicalAnd;
+    template<typename _Scalar> struct LogicalOr;
     template<typename _Scalar> struct BitwiseAnd;
     template<typename _Scalar> struct BitwiseOr;
 }

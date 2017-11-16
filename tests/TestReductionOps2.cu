@@ -8,9 +8,9 @@
 
 using namespace cuMat;
 
-// high-level test
+// high-level test, tests reductions over the axis using 'sum'
 
-TEST_CASE("reduce_sum", "[reduce]")
+TEST_CASE("axis", "[reduce]")
 {
     int data[2][3][4] = {
         {

@@ -26,6 +26,7 @@ set(CUMAT_TEST_FILES
   TestBinaryOps2.cu
   TestReductionOps1.cu
   TestReductionOps2.cu
+  TestReductionOps3.cu
   TestIterator.cu
   )
 

@@ -422,10 +422,11 @@ namespace functor
     /**
     * \brief Default logical AND functor, only works on booleans
     */
+    template <typename T>
     struct LogicalAnd
     {
         /// Boolean AND operator, returns <tt>a && b</tt>
-        __host__ __device__ __forceinline__ bool operator()(const bool &a, const bool &b) const
+        __host__ __device__ __forceinline__ bool operator()(const T &a, const T &b) const
         {
             return a && b;
         }
@@ -434,10 +435,11 @@ namespace functor
     /**
     * \brief Default logical OR functor, only works on booleans
     */
+    template <typename T>
     struct LogicalOr
     {
         /// Boolean OR operator, returns <tt>a || b</tt>
-        __host__ __device__ __forceinline__ bool operator()(const bool &a, const bool &b) const
+        __host__ __device__ __forceinline__ bool operator()(const T &a, const T &b) const
         {
             return a || b;
         }
