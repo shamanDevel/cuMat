@@ -87,6 +87,12 @@ namespace functor
 	};
 }
 
+template<typename _Scalar>
+HostScalar<_Scalar> make_host_scalar(const _Scalar& value)
+{
+    return HostScalar<_Scalar>(1, 1, 1, functor::ConstantFunctor<_Scalar>(value));
+}
+
 CUMAT_NAMESPACE_END
 
 #endif

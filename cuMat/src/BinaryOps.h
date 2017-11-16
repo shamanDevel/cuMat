@@ -111,17 +111,17 @@ public:
         CUMAT_STATIC_ASSERT((std::is_same<typename internal::traits<_Left>::Scalar, typename internal::traits<_Right>::Scalar>::value),
             "No implicit casting is allowed in binary operations.");
 
-        if (RowsLeft == Dynamic || RowsRight == Dynamic) {
+        if (RowsLeft == Dynamic && RowsRight == Dynamic) {
             CUMAT_ASSERT_ARGUMENT(left.rows() == right.rows());
         }
         CUMAT_STATIC_ASSERT(!(RowsLeft > 1 && RowsRight > 1) || (RowsLeft == RowsRight), "matrix sizes don't match");
 
-        if (ColumnsLeft == Dynamic || ColumnsRight == Dynamic) {
+        if (ColumnsLeft == Dynamic && ColumnsRight == Dynamic) {
             CUMAT_ASSERT_ARGUMENT(left.cols() == right.cols());
         }
         CUMAT_STATIC_ASSERT(!(ColumnsLeft > 1 && ColumnsRight > 1) || (ColumnsLeft == ColumnsRight), "matrix sizes don't match");
 
-        if (BatchesLeft == Dynamic || BatchesRight == Dynamic) {
+        if (BatchesLeft == Dynamic && BatchesRight == Dynamic) {
             CUMAT_ASSERT_ARGUMENT(left.batches() == right.batches());
         }
         CUMAT_STATIC_ASSERT(!(BatchesLeft > 1 && BatchesRight > 1) || (BatchesLeft == BatchesRight), "matrix sizes don't match");
@@ -220,7 +220,7 @@ CUMAT_NAMESPACE_END
             CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>> >::type>\
     T Name(const _Left& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
     { \
-        return CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>>(CUMAT_NAMESPACE HostScalar<S>(left), right); \
+        return CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>>(CUMAT_NAMESPACE make_host_scalar<S>(left), right); \
     } \
     template<typename _Left, typename _Right, \
         typename S = typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar, \
@@ -228,7 +228,7 @@ CUMAT_NAMESPACE_END
             CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>> >::type>\
     T Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const _Right& right) \
     { \
-        return CUMAT_NAMESPACE BinaryOp<_Right, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>>(left, CUMAT_NAMESPACE HostScalar<S>(right)); \
+        return CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>>(left, CUMAT_NAMESPACE make_host_scalar<S>(right)); \
     }
 #define BINARY_OP(Name, Op) \
     template<typename _Left, typename _Right> \
@@ -241,20 +241,7 @@ CUMAT_NAMESPACE_END
 
 //Operator overloading
 CUMAT_NAMESPACE_BEGIN
-
-    template <typename _Left, typename _Right>
-    ::cuMat::BinaryOp<_Left, _Right, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<typename ::cuMat::internal::traits<_Left>::Scalar>> operator+(const ::cuMat::MatrixBase<_Left>& left, const ::cuMat::MatrixBase<_Right>& right) { return ::cuMat::BinaryOp<_Left, _Right, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<typename ::cuMat::internal::traits<_Left>::Scalar>>(left, right); }
-
-    template <typename _Left, typename _Right, 
-        typename S = typename ::cuMat::internal::traits<_Right>::Scalar>
-    ::cuMat::BinaryOp<::cuMat::HostScalar<S>, _Right, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<S>> operator+(const std::enable_if<std::is_convertible<_Left, S>::value, _Left>::type& left, const ::cuMat::MatrixBase<_Right>& right) {
-        return ::cuMat::BinaryOp<::cuMat::HostScalar<S>, _Right, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<S>>(::cuMat::HostScalar<S>(left), right); 
-    }
-
-    template <typename _Left, typename _Right, typename S = typename ::cuMat::internal::traits<_Left>::Scalar, typename T = std::enable_if<std::is_convertible<_Right, S>::value, ::cuMat::BinaryOp<_Left, ::cuMat::HostScalar<S>, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<S>>>::type>
-    T operator+(const ::cuMat::MatrixBase<_Left>& left, const _Right& right) { return ::cuMat::BinaryOp<_Right, ::cuMat::HostScalar<S>, ::cuMat::functor::BinaryMathFunctor_cwiseAdd<S>>(left, ::cuMat::HostScalar<S>(right)); }
-
-    //BINARY_OP(operator+, functor::BinaryMathFunctor_cwiseAdd)
+    BINARY_OP(operator+, functor::BinaryMathFunctor_cwiseAdd)
     BINARY_OP(operator-, functor::BinaryMathFunctor_cwiseSub)
     BINARY_OP(operator%, functor::BinaryMathFunctor_cwiseMod)
     BINARY_OP_SCALAR(operator*, functor::BinaryMathFunctor_cwiseMul)

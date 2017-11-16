@@ -990,7 +990,7 @@ public:
 		CUMAT_ASSERT_ARGUMENT(start_column + num_columns <= cols());
 		CUMAT_ASSERT_ARGUMENT(start_batch + num_batches <= batches());
 		return MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, Type>(
-			*this, NRows, NColumns, NBatches, start_row, start_column, start_batch);
+			*this, num_rows, num_columns, num_batches, start_row, start_column, start_batch);
 	}
 	template<int NRows, int NColumns, int NBatches>
 	MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, const Type>
@@ -1010,7 +1010,7 @@ public:
         CUMAT_ASSERT_ARGUMENT(start_column + num_columns <= cols());
         CUMAT_ASSERT_ARGUMENT(start_batch + num_batches <= batches());
 		return MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, const Type>(
-			*this, NRows, NColumns, NBatches, start_row, start_column, start_batch);
+			*this, num_rows, num_columns, num_batches, start_row, start_column, start_batch);
 	}
 
 	//most general version, dynamic size
