@@ -81,6 +81,27 @@ public:
 	void evalTo(MatrixBase<Derived>& m) const { derived().evalTo(m); }
 
 
+    /**
+     * \brief Conversion: Matrix of size 1-1-1 (scalar) in device memory to the host memory scalar.
+     * 
+     * This is expecially usefull to directly use the results of full reductions in host code.
+     * 
+     * \tparam T 
+     */
+    explicit operator Scalar ()
+    {
+        CUMAT_STATIC_ASSERT(
+            internal::traits<_Derived>::RowsAtCompileTime == 1 &&
+            internal::traits<_Derived>::ColsAtCompileTime == 1 &&
+            internal::traits<_Derived>::BatchesAtCompileTime == 1,
+            "Conversion only possible for compile-time scalars");
+        eval_t m = eval();
+        Scalar v;
+        m.copyToHost(&v);
+        return v;
+    }
+
+
 	// CWISE EXPRESSIONS
 #include "UnaryOpsPlugin.h"
 #include "BinaryOpsPlugin.h"

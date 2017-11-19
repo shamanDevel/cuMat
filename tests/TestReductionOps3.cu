@@ -32,8 +32,10 @@ TEST_CASE("reduce_sum", "[reduce]")
     INFO("reduce: all");
     int expected[1][1][1] = { {{37}} };
     assertMatrixEquality(expected, m1.sum());
+    REQUIRE(37 == (int)m1.sum());
     assertMatrixEquality(expected, m1.sum(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
     assertMatrixEquality(expected, m2.sum());
+    REQUIRE(37 == (int)m2.sum());
     assertMatrixEquality(expected, m2.sum(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
 }
 
@@ -58,8 +60,10 @@ TEST_CASE("reduce_prod", "[reduce]")
     INFO("reduce: all");
     int expected[1][1][1] = { { { -240 } } };
     assertMatrixEquality(expected, m1.prod());
+    REQUIRE(-240 == (int)m1.prod());
     assertMatrixEquality(expected, m1.prod(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
     assertMatrixEquality(expected, m2.prod());
+    REQUIRE(-240 == (int)m2.prod());
     assertMatrixEquality(expected, m2.prod(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
 }
 
@@ -84,8 +88,10 @@ TEST_CASE("reduce_min", "[reduce]")
     INFO("reduce: all");
     int expected[1][1][1] = { { { -9 } } };
     assertMatrixEquality(expected, m1.minCoeff());
+    REQUIRE(-9 == (int)m1.minCoeff());
     assertMatrixEquality(expected, m1.minCoeff(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
     assertMatrixEquality(expected, m2.minCoeff());
+    REQUIRE(-9 == (int)m2.minCoeff());
     assertMatrixEquality(expected, m2.minCoeff(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
 }
 
@@ -110,8 +116,10 @@ TEST_CASE("reduce_max", "[reduce]")
     INFO("reduce: all");
     int expected[1][1][1] = { { { 11 } } };
     assertMatrixEquality(expected, m1.maxCoeff());
+    REQUIRE(11 == (int)m1.maxCoeff());
     assertMatrixEquality(expected, m1.maxCoeff(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
     assertMatrixEquality(expected, m2.maxCoeff());
+    REQUIRE(11 == (int)m2.maxCoeff());
     assertMatrixEquality(expected, m2.maxCoeff(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
 }
 
