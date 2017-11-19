@@ -24,6 +24,7 @@ set(CUMAT_TEST_FILES
   TestTranspose.cu
   TestBinaryOps1.cu
   TestBinaryOps2.cu
+  TestBinaryOps3.cu
   TestReductionOps1.cu
   TestReductionOps2.cu
   TestReductionOps3.cu

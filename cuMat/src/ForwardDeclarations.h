@@ -58,7 +58,7 @@ template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, t
 template<typename _Derived> class CwiseOp;
 template<typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, typename _NullaryFunctor> class NullaryOp;
 template<typename _Child, typename _UnaryFunctor> class UnaryOp;
-template<typename _Left, typename _Right, typename _BinaryFunctor> class BinaryOp;
+template<typename _Left, typename _Right, typename _BinaryFunctor, bool _IsLogic> class BinaryOp;
 template<typename _Child, typename _Target> class CastingOp;
 template<typename _Derived> class TransposeOp;
 template<typename _Child, typename _ReductionOp> class ReductionOp_DynamicSwitched;
@@ -107,6 +107,12 @@ namespace functor
     template<typename _Scalar> class BinaryMathFunctor_cwiseDiv;
     template<typename _Scalar> class BinaryMathFunctor_cwiseMod;
     template<typename _Scalar> class BinaryMathFunctor_cwisePow;
+    template<typename _Scalar> class BinaryLogicFunctor_cwiseEqual;
+    template<typename _Scalar> class BinaryLogicFunctor_cwiseNequal;
+    template<typename _Scalar> class BinaryLogicFunctor_cwiseLess;
+    template<typename _Scalar> class BinaryLogicFunctor_cwiseGreater;
+    template<typename _Scalar> class BinaryLogicFunctor_cwiseLessEq;
+    template<typename _Scalar> class BinaryLogicFunctor_cwiseGreaterEq;
     //for reductions
     template<typename _Scalar> struct Sum;
     template<typename _Scalar> struct Prod;

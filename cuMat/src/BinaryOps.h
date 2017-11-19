@@ -11,10 +11,10 @@ CUMAT_NAMESPACE_BEGIN
 
 
 namespace internal {
-    template<typename _Left, typename _Right, typename _BinaryFunctor>
-    struct traits<BinaryOp<_Left, _Right, _BinaryFunctor> >
+    template<typename _Left, typename _Right, typename _BinaryFunctor, bool _IsLogic>
+    struct traits<BinaryOp<_Left, _Right, _BinaryFunctor, _IsLogic> >
     {
-        using Scalar = typename internal::traits<_Left>::Scalar;
+        using Scalar = typename std::conditional<_IsLogic, bool, typename internal::traits<_Left>::Scalar>::type;
         enum
         {
             BroadcastRowsLeft = (internal::traits<_Left>::RowsAtCompileTime == 1),
@@ -59,13 +59,15 @@ namespace internal {
 * \tparam _Left the matrix on the left hand side
 * \tparam _Right the matrix on the right hand side
 * \tparam _BinaryFunctor the binary functor
+* \tparam _IsLogic: true -> the op returns a bool matrix, false -> the same scalar is returned
 */
-template<typename _Left, typename _Right, typename _BinaryFunctor>
-class BinaryOp : public CwiseOp<BinaryOp<_Left, _Right, _BinaryFunctor> >
+template<typename _Left, typename _Right, typename _BinaryFunctor, bool _IsLogic>
+class BinaryOp : public CwiseOp<BinaryOp<_Left, _Right, _BinaryFunctor, _IsLogic> >
 {
 public:
-    typedef CwiseOp<BinaryOp<_Left, _Right, _BinaryFunctor>> Base;
-    using Scalar = typename internal::traits<_Left>::Scalar;
+    typedef CwiseOp<BinaryOp<_Left, _Right, _BinaryFunctor, _IsLogic>> Base;
+    using Scalar = typename std::conditional<_IsLogic, bool, typename internal::traits<_Left>::Scalar>::type;
+    using ArgScalar = typename internal::traits<_Left>::Scalar;
     enum
     {
         BroadcastRowsLeft = (internal::traits<_Left>::RowsAtCompileTime == 1),
@@ -140,14 +142,14 @@ public:
         return BroadcastBatchesRight ? left_.batches() : right_.batches();
     }
 
-    __device__ CUMAT_STRONG_INLINE Scalar getLeft(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE ArgScalar getLeft(Index row, Index col, Index batch) const
     {
         return left_.derived().coeff(
             BroadcastRowsLeft ? 0 : row,
             BroadcastColsLeft ? 0 : col,
             BroadcastBatchesLeft ? 0 : batch);
     }
-    __device__ CUMAT_STRONG_INLINE Scalar getRight(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE ArgScalar getRight(Index row, Index col, Index batch) const
     {
         return right_.derived().coeff(
             BroadcastRowsRight ? 0 : row,
@@ -161,6 +163,10 @@ public:
     }
 };
 
+
+//-----------------
+// Normal binary ops
+//-----------------
 
 namespace functor
 {
@@ -217,25 +223,25 @@ CUMAT_NAMESPACE_END
     template<typename _Left, typename _Right, \
         typename S = typename CUMAT_NAMESPACE internal::traits<_Right>::Scalar, \
         typename T = std::enable_if<std::is_convertible<_Left, S>::value, \
-            CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>> >::type>\
+            CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>, false> >::type>\
     T Name(const _Left& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
     { \
-        return CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>>(CUMAT_NAMESPACE make_host_scalar<S>(left), right); \
+        return CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>, false>(CUMAT_NAMESPACE make_host_scalar<S>(left), right); \
     } \
     template<typename _Left, typename _Right, \
         typename S = typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar, \
         typename T = std::enable_if<std::is_convertible<_Right, S>::value, \
-            CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>> >::type>\
+            CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>, false> >::type>\
     T Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const _Right& right) \
     { \
-        return CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>>(left, CUMAT_NAMESPACE make_host_scalar<S>(right)); \
+        return CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>, false>(left, CUMAT_NAMESPACE make_host_scalar<S>(right)); \
     }
 #define BINARY_OP(Name, Op) \
     template<typename _Left, typename _Right> \
-    CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE Op<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>> \
+    CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE Op<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>, false> \
     Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
     { \
-        return CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE Op<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>>(left, right); \
+        return CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE Op<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>, false>(left, right); \
     } \
     BINARY_OP_SCALAR(Name, Op)
 
@@ -264,5 +270,83 @@ BINARY_OP(pow, functor::BinaryMathFunctor_cwisePow)
 CUMAT_FUNCTION_NAMESPACE_END
 
 #undef BINARY_OP
+#undef BINARY_OP_SCALAR
+
+//-----------------
+// Logical binary ops
+//-----------------
+
+CUMAT_NAMESPACE_BEGIN
+
+namespace functor
+{
+#define DECLARE_FUNCTOR(Name) \
+	template<typename _Scalar> class BinaryLogicFunctor_ ## Name
+
+#define DEFINE_GENERAL_FUNCTOR(Name, Fn) \
+	template<typename _Scalar> \
+	class BinaryLogicFunctor_ ## Name \
+	{ \
+	public: \
+		__device__ CUMAT_STRONG_INLINE bool operator()(const _Scalar& x, const _Scalar& y, Index row, Index col, Index batch) const \
+		{ \
+			return Fn; \
+		} \
+	}
+
+    DEFINE_GENERAL_FUNCTOR(cwiseEqual, x == y);
+    DEFINE_GENERAL_FUNCTOR(cwiseNequal, x != y);
+    DEFINE_GENERAL_FUNCTOR(cwiseLess, x < y);
+    DEFINE_GENERAL_FUNCTOR(cwiseGreater, x > y);
+    DEFINE_GENERAL_FUNCTOR(cwiseLessEq, x <= y);
+    DEFINE_GENERAL_FUNCTOR(cwiseGreaterEq, x >= y);
+
+#undef DECLARE_FUNCTOR
+#undef DEFINE_GENERAL_FUNCTOR
+#undef DEFINE_FUNCTOR
+#undef DEFINE_FUNCTOR_FLOAT
+#undef DEFINE_FUNCTOR_INT
+} //end namespace functor
+
+CUMAT_NAMESPACE_END
+
+#define BINARY_OP_SCALAR(Name, Op) \
+    template<typename _Left, typename _Right, \
+        typename S = typename CUMAT_NAMESPACE internal::traits<_Right>::Scalar, \
+        typename T = std::enable_if<std::is_convertible<_Left, S>::value, \
+            CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>, true> >::type>\
+    T Name(const _Left& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
+    { \
+        return CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>, true>(CUMAT_NAMESPACE make_host_scalar<S>(left), right); \
+    } \
+    template<typename _Left, typename _Right, \
+        typename S = typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar, \
+        typename T = std::enable_if<std::is_convertible<_Right, S>::value, \
+            CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>, true> >::type>\
+    T Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const _Right& right) \
+    { \
+        return CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>, true>(left, CUMAT_NAMESPACE make_host_scalar<S>(right)); \
+    }
+#define BINARY_OP(Name, Op) \
+    template<typename _Left, typename _Right> \
+    CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE Op<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>, true> \
+    Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
+    { \
+        return CUMAT_NAMESPACE BinaryOp<_Left, _Right, CUMAT_NAMESPACE Op<typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar>, true>(left, right); \
+    } \
+    BINARY_OP_SCALAR(Name, Op)
+
+//Operator overloading
+CUMAT_NAMESPACE_BEGIN
+BINARY_OP(operator==, functor::BinaryLogicFunctor_cwiseEqual)
+BINARY_OP(operator!=, functor::BinaryLogicFunctor_cwiseNequal)
+BINARY_OP(operator<, functor::BinaryLogicFunctor_cwiseLess)
+BINARY_OP(operator>, functor::BinaryLogicFunctor_cwiseGreater)
+BINARY_OP(operator<=, functor::BinaryLogicFunctor_cwiseLessEq)
+BINARY_OP(operator>=, functor::BinaryLogicFunctor_cwiseGreaterEq)
+CUMAT_NAMESPACE_END
+
+#undef BINARY_OP
+#undef BINARY_OP_SCALAR
 
 #endif

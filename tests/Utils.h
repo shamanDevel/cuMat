@@ -67,7 +67,7 @@ void assertMatrixEquality(const Scalar(&expected)[Batches][Rows][Cols], const cu
         for (int column = 0; column < mat.cols(); ++column) {
             for (int row = 0; row < mat.rows(); ++row) {
                 INFO("row=" << row << ", column=" << column << ", batch=" << batch);
-                REQUIRE(expected[batch][row][column] == emat(row, column));
+                CHECK(expected[batch][row][column] == emat(row, column));
             }
         }
     }
