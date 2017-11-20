@@ -17,6 +17,8 @@
 #include "EigenInteropHelpers.h"
 #endif
 
+#include <ostream>
+
 CUMAT_NAMESPACE_BEGIN
 
 namespace internal {
@@ -1050,6 +1052,34 @@ public:
 
 };
 
+/**
+ * \brief Custom operator<< that prints the matrix and additional information.
+ * First, information about the matrix like shape and storage options are printed,
+ * followed by the whole matrix batch-by-batch.
+ * 
+ * This operations involves copying the matrix from device to host.
+ * It is slow, use it only for debugging purpose.
+ * \param os the output stream
+ * \param m the matrix
+ * \return the output stream again
+ */
+template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags>
+__host__ std::ostream& operator<<(std::ostream& os, const Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>& m)
+{
+    os << "Matrix: ";
+    os << "rows=" << m.rows() << " (" << (_Rows == Dynamic ? "dynamic" : "compile-time") << ")";
+    os << ", cols=" << m.cols() << " (" << (_Columns == Dynamic ? "dynamic" : "compile-time") << ")";
+    os << ", batches=" << m.batches() << " (" << (_Batches == Dynamic ? "dynamic" : "compile-time") << ")";
+    os << ", storage=" << (CUMAT_IS_ROW_MAJOR(_Flags) ? "Row-Major" : "Column-Major") << std::endl;
+    for (int batch = 0; batch < m.batches(); ++batch)
+    {
+        const auto emat = m.template block<Dynamic, Dynamic, 1>(0, 0, batch, m.rows(), m.cols(), 1).eval().toEigen();
+        if (m.batches() > 1) os << "batch " << batch << std::endl;
+        os << emat << std::endl;
+    }
+    return os;
+}
+
 
 //Common typedefs
 
@@ -1112,6 +1142,8 @@ public:
 
 CUMAT_DEF_MATRIX2(bool, b)
 CUMAT_DEF_MATRIX2(int, i)
+CUMAT_DEF_MATRIX2(long, l)
+CUMAT_DEF_MATRIX2(long long, ll)
 CUMAT_DEF_MATRIX2(float, f)
 CUMAT_DEF_MATRIX2(double, d)
 CUMAT_DEF_MATRIX2(cfloat, cf)
