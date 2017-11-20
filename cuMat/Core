@@ -24,3 +24,5 @@ This enables all BLAS-related modules
 #include "src/TransposeOp.h"
 #include "src/BinaryOps.h"
 #include "src/ReductionOps.h"
+
+#include "src/SimpleRandom.h"

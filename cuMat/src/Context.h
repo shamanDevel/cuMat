@@ -253,11 +253,13 @@ public:
 	 * For details on how to use it, see the documentation of
 	 * KernelLaunchConfig.
 	 * \param size the size of the problem
+	 * \param maxBlockSize the maximal size of the block, must be a power of two
 	 * \return the launch configuration
 	 */
-	KernelLaunchConfig createLaunchConfig1D(unsigned int size) const
+	KernelLaunchConfig createLaunchConfig1D(unsigned int size, unsigned int maxBlockSize = 1<<15) const
 	{
 		CUMAT_ASSERT_ARGUMENT(size > 0);
+        unsigned int blockSize = std::min(maxBlockSize, 1024u);
 		//TODO: Very simplistic first version
 		//Later improve to read the actual pysical thread count per block and pysical block count
 		KernelLaunchConfig cfg = {

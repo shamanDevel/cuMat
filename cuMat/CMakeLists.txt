@@ -29,6 +29,7 @@ set(CUMAT_HEADERS
   src/ReductionOpsPlugin.h
   src/Iterator.h
   src/CublasApi.h
+  src/SimpleRandom.h
 
   Core
   )
