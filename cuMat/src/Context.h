@@ -5,6 +5,7 @@
 #include <device_launch_parameters.h>
 #include <thread>
 #include <mutex>
+#include <algorithm>
 
 #include "Macros.h"
 #include "Errors.h"
