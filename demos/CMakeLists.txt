@@ -2,6 +2,7 @@
 
 set(CUMAT_DEMO_FILES 
   Transposing.cu
+  Test.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017)
@@ -21,5 +22,5 @@ foreach( demosourcefile ${CUMAT_DEMO_FILES} )
     #target_link_libraries(${demoname} cuMat)
     
     target_link_libraries(${demoname} ${CUDA_LIBRARIES})
-    target_compile_definitions(${demoname} PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
+    target_compile_definitions(${demoname} PRIVATE CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
 endforeach(demosourcefile)

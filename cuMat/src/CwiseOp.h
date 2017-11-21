@@ -13,7 +13,7 @@ CUMAT_NAMESPACE_BEGIN
 namespace
 {
 	template <typename T, typename M>
-	__global__ void EvaluationKernel(dim3 virtual_size, const T expr, M matrix)
+	__global__ void CwiseEvaluationKernel(dim3 virtual_size, const T expr, M matrix)
 	{
 		//By using a 1D-loop over the linear index,
 		//the target matrix can determine the order of rows, columns and batches.
@@ -82,7 +82,7 @@ public:
 		//here is now the real logic
 		Context& ctx = Context::current();
 		KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.size());
-		EvaluationKernel<<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream()>>>(cfg.virtual_size, derived(), m.derived());
+        CwiseEvaluationKernel <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream()>>>(cfg.virtual_size, derived(), m.derived());
 		CUMAT_CHECK_ERROR();
 		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
 	}

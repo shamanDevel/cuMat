@@ -260,13 +260,13 @@ public:
 	KernelLaunchConfig createLaunchConfig1D(unsigned int size, unsigned int maxBlockSize = 1<<15) const
 	{
 		CUMAT_ASSERT_ARGUMENT(size > 0);
-        unsigned int blockSize = std::min(maxBlockSize, 1024u);
+        unsigned int blockSize = std::min(maxBlockSize, 256u);
 		//TODO: Very simplistic first version
 		//Later improve to read the actual pysical thread count per block and pysical block count
 		KernelLaunchConfig cfg = {
 			dim3(size, 1, 1),
-			dim3(1024, 1, 1),
-			dim3(CUMAT_DIV_UP(size, 1024), 1, 1)
+			dim3(blockSize, 1, 1),
+			dim3(CUMAT_DIV_UP(size, blockSize), 1, 1)
 		};
 		return cfg;
 	}

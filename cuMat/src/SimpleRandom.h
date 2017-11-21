@@ -72,7 +72,7 @@ namespace
     }
 
     template<typename M, typename S>
-    __global__ void EvaluationKernel(dim3 virtual_size, M matrix, S min, S max, state_t* seeds)
+    __global__ void RandomEvaluationKernel(dim3 virtual_size, M matrix, S min, S max, state_t* seeds)
     {
         state_t seed = seeds[threadIdx.x];
         CUMAT_KERNEL_1D_LOOP(index, virtual_size) {
@@ -149,7 +149,7 @@ public:
         if (m.size() == 0) return;
         Context& ctx = Context::current();
         KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.size(), numStates);
-        EvaluationKernel <<<1, cfg.thread_per_block.x, 0, ctx.stream() >>>(cfg.virtual_size, m.derived(), min, max, state_.pointer());
+        RandomEvaluationKernel <<<1, cfg.thread_per_block.x, 0, ctx.stream() >>>(cfg.virtual_size, m.derived(), min, max, state_.pointer());
         CUMAT_CHECK_ERROR();
     }
 };
