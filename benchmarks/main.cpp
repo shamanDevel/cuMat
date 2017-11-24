@@ -6,11 +6,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <array>
 
 #include "json_st.h"
 #include "Json.h"
 #include "benchmark.h"
 #include <cuMat/src/Macros.h>
+
+//https://stackoverflow.com/a/478960/4053176
+std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::shared_ptr<FILE> pipe(_popen(cmd, "r"), _pclose);
+    if (!pipe) throw std::runtime_error("popen() failed!");
+    while (!feof(pipe.get())) {
+        if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+            result += buffer.data();
+    }
+    return result;
+}
 
 int main(int argc, char* argv[])
 {
@@ -50,7 +67,24 @@ int main(int argc, char* argv[])
         Json::Array resultsEigen;
         benchmark_Eigen(parameterNames, params, returnNames, resultsEigen);
 
+        //numpy
+        std::cout << " Run Numpy" << std::endl;
+        std::string numpyFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_numpy.py";
+        std::string launchParams = "python3 " + numpyFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"";
+        std::cout << "  Args: " << launchParams << std::endl;
+        std::string resultsNumpyStr = exec(launchParams.c_str());
+        Json::Array resultsNumpy = Json::ParseString(resultsNumpyStr);
+
+        //tensorflow
+        std::cout << " Run Tensorflow" << std::endl;
+        std::string tfFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_tensorflow.py";
+        launchParams = "python3 " + tfFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"";
+        std::cout << "  Args: " << launchParams << std::endl;
+        std::string resultsTFStr = exec(launchParams.c_str());
+        Json::Array resultsTF = Json::ParseString(resultsTFStr);
+
         //TODO: write results
 
     }
+    std::cout << "DONE" << std::endl;
 }

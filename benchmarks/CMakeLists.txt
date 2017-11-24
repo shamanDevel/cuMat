@@ -1,8 +1,5 @@
 # Benchmarks
 
-# Needed by VexCL
-find_package(Boost REQUIRED)
-
 set(CUMAT_BENCHMARK_COMMON
   json_st.h
   json_st.cpp
@@ -31,11 +28,11 @@ foreach( benchmark ${CUMAT_BENCHMARKS} )
     cuda_add_cublas_to_target(${benchmark})
     set_target_properties(${benchmark} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     set_target_properties(${benchmark} PROPERTIES FOLDER Benchmarks)
-    target_include_directories(${benchmark} PRIVATE vexcl ${Boost_INCLUDE_DIR})
-    target_link_libraries(${benchmark} ${CUDA_LIBRARIES} ${Boost_LIBRARIES})
+    target_link_libraries(${benchmark} ${CUDA_LIBRARIES})
     target_compile_definitions(${benchmark} PRIVATE 
         CUMAT_EIGEN_SUPPORT=1 
         CUMAT_PROFILING=1 
         CONFIG_FILE=${CMAKE_CURRENT_SOURCE_DIR}/${benchmark}/configuration.json
+        PYTHON_FILES=${CMAKE_CURRENT_SOURCE_DIR}/${benchmark}/
     )
 endforeach(benchmark)
