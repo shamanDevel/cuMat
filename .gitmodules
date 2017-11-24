@@ -1,0 +1,3 @@
+[submodule "benchmarks/vexcl"]
+	path = benchmarks/vexcl
+	url = git@github.com:ddemidov/vexcl.git
