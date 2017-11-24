@@ -11,7 +11,7 @@ void benchmark_cuMat(
     Json::Array& returnValues)
 {
     //number of runs for time measures
-    const int runs = 1;
+    const int runs = 10;
 
     //test if the config is valid
     assert(parameterNames.size() == 2);
