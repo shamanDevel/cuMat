@@ -24,7 +24,8 @@ foreach( benchmark ${CUMAT_BENCHMARKS} )
         ${benchmark}/Implementation_Eigen.cpp
         ${benchmark}/Implementation_cuMat.cu
         ${benchmark}/Implementation_numpy.py
-        ${benchmark}/Implementation_tensorflow.py)
+        ${benchmark}/Implementation_tensorflow.py
+        ${benchmark}/MakePlots.py)
     cuda_add_cublas_to_target(${benchmark})
     set_target_properties(${benchmark} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     set_target_properties(${benchmark} PROPERTIES FOLDER Benchmarks)

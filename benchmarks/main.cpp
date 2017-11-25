@@ -10,6 +10,7 @@
 #include <memory>
 #include <stdexcept>
 #include <array>
+#include <fstream>
 
 #include "json_st.h"
 #include "Json.h"
@@ -83,8 +84,17 @@ int main(int argc, char* argv[])
         std::string resultsTFStr = exec(launchParams.c_str());
         Json::Array resultsTF = Json::ParseString(resultsTFStr);
 
-        //TODO: write results
-
+        //write results
+        Json::Object resultAssembled;
+        resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
+        resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
+        resultAssembled.Insert(std::make_pair("Numpy", resultsNumpy));
+        resultAssembled.Insert(std::make_pair("Tensorflow", resultsTF));
+        std::ofstream outStream(setName + ".json");
+        outStream << resultAssembled;
+        outStream.close();
+        launchParams = "python3 " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE));
+        system(launchParams.c_str());
     }
     std::cout << "DONE" << std::endl;
 }

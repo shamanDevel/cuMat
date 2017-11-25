@@ -47,11 +47,12 @@ for config in range(numConfigs):
                 totalTime += elapsed_time * 1000
 
         finalTime = totalTime / runs
-    except OSError:
+    except:
         sys.stderr.write("Error: {0}\n".format(sys.exc_info()[0]))
         finalTime = -1
 
     sys.stderr.write(' -> ' + str(finalTime) + 'ms\n')
-    results.append([finalTime])
+    if (finalTime >= 0):
+        results.append([finalTime])
 
 sys.stdout.write(json.dumps(results) + '\n')
