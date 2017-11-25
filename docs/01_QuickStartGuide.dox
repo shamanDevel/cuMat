@@ -1,0 +1,61 @@
+namespace cuMat {
+
+/** \page GettingStarted Getting started
+
+
+This is a very short guide on how to get started with cuMat.
+It first describes how to install cuMat, it then continues with a first simple example and then closes with an overview of the structure of the tutorial.
+
+\section GettingStartedInstallation How to install cuMat?
+
+cuMat is a header-only library. There are no precompiled libraries. Therefore, to use cuMat, you just need to download the source code (see <a href="https://gitlab.com/shaman42/cuMat">the Gitlab repository</a>). In fact, only the header files in the \c cuMat subdirectory are needed.
+cuMat has the following dependencies:
+ - CUDA SDK, tested against version 9, this also includes cuBLAS
+ - CUB (https://nvlabs.github.io/cub/), a header only library, which can also be found in the third-party subdirectory
+ - Eigen (http://eigen.tuxfamily.org), optional. Needed only for the Eigen-cuMat-Interop. A working version can also be found in the third-party subdirectory
+
+
+\section GettingStartedFirstProgram A simple first program
+
+Here is a rather simple program to get you started.
+
+\include QuickStart_example.cu
+
+We will explain the program after telling you how to compile it.
+
+
+\section GettingStartedCompiling Compiling and running your first program
+
+There is no library to link to. The only thing that you need to keep in mind when compiling the above program is that the compiler must be able to find the cuMat header files, the header files of the dependencies and the cuda libraries. Further, since every operation is executed with CUDA, the program must be compiled with the NVCC.
+Example:
+
+\code nvcc -I /path/to/cuMat/ -I /path/to/cub/ my_program.cu -o my_program \endcode
+
+When you run the program, it produces the following output:
+
+\include QuickStart_example.out
+
+
+\section GettingStartedExplanation Explanation of the first program
+
+The cuMat header files define many types, but for simple applications it may be enough to use only the \c BMatrixXf type. This represents a matrix of arbitrary size (hence the \c X in \c BMatrixXf), in which every entry is a \c float (hence the \c f in \c BMatrixXf). Note that in cuMat, all vectors and matrices are batched. Batched computation can speed up the execution time if applicable. If you don't need batches, you can also use \c MatrixXf (note, no prefix \c B). Further, if you have vectors, you can also use \c (B)VectorXf and \c (B)RowVectorXf. They provide additional runtime information that are important e.g. for broadcasting, see \ref Broadcasting "Broadcasting". For a list of all available typedefs, see \ref matrixtypedefs "Matrix Typedefs".
+
+The \c cuMat/Core header file defines all member functions for the \c BMatrixXf type and related types . All classes and functions defined in this header file (and other cuMat header files) are in the \c cuMat namespace. 
+
+The first line of the \c main function declares a variable of type \c BMatrixXf and specifies that it is a matrix with 3 rows, 3 columns and 1 batch (the entries are not initialized).
+The next line creates a random number generator with fixed seed (1), followed by filling the matrix with random numbers between 0 and 1.
+The fourth line evaluates the statement \c mat*2 into a new matrix \c result.
+Finally, the final line outputs the matrix \c result to the standard output stream.
+
+
+\section GettingStartedConclusion Where to go from here?
+
+It's worth taking the time to read the  \ref TutorialMatrixClass "long tutorial".
+
+However if you think you don't need it, you can directly use the classes documentation and our \ref QuickRefPage.
+
+\li \b Next: \ref TutorialMatrixClass
+
+*/
+
+}

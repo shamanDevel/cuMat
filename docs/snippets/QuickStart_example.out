@@ -1,0 +1,4 @@
+Matrix: rows=3 (dynamic), cols=3 (dynamic), batches=1 (dynamic), storage=Column-Major
+ 1.90496  1.68542 0.350798
+0.889641  1.03099  1.51812
+ 1.82895 0.225372  0.55568

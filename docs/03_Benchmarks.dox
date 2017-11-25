@@ -1,0 +1,47 @@
+namespace cuMat {
+
+/** \page Benchmarks Benchmarks
+
+To elaborate the execution time of the cuMat operations, we compare the implementations of the same algorithm in cuMat, Eigen, numpy and tensorflow.
+
+\section System System setup
+
+The operation system used to execute the benchmarks:
+ - Windows 10 Pro x64
+ - CPU: Intel(R) Core(TM) i7-3537U, 2.00GHZ, 2 physical cores
+ - 8.00GB RAM
+ - GPU: NVidia GeForce GT 735M
+ - Microsoft Visual Studio Enterprise 2017
+ - CUDA SDK 9.0 (V9.0.102)
+ - Python: Python 3.5.2, 64-bit
+ - Numpy version 1.12.0 with MKL
+ - Tensorflow version 1.0.1 with GPU
+
+\section LinearCombination Benchmark 1: linear combination
+
+The first benchmark measures the performance of a linear combination
+\f[
+    v = \sum_{i=1}^k \alpha_i v_i
+\f]
+with \f$\alpha_i \in \mathbb{R}\f$ and \f$v, v_i \in \mathbb{R}^n\f$. 
+The source code for the benchmarks can be found in the folder \c benchmarks/linear-combination.
+
+First test case: constant number of combinations (\f$k=2\f$), varying size of the vectors (\f$n\f$).
+
+\image html "Linear Combination - Constant Count.png" width=500
+\image latex "Linear Combination - Constant Count.png" width=10cm
+
+You can see that the CPU libraries (numpy+Eigen) are faster than cuMat for small vector sizes, smaller than 10000 entries.
+After that sweep spot, the GPU is fully saturated and the performance of cuMat is better than of Eigen or cuMat. For the largest case of 50000000 entries, cuMat is about twice as fast as Eigen.
+Note that Tensorflow is extremely slow compared to the other libraries in this simple example. Further, it runs out of memory for the largest test case, hence no timing is available for that.
+
+Second test case: constant size of the vectors (\f$n=1000000\f$), varying number of combinations (\f$k\f$)
+
+\image html "Linear Combination - Constant Size.png" width=500
+\image latex "Linear Combination - Constant Size.png" width=10cm
+
+Eigen and cuMat both show sublinear growth (it appears linear because of the log-scale on the time axis). This is due to faster memory reading than writing.
+
+*/
+
+}

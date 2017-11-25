@@ -1,0 +1,14 @@
+namespace cuMat {
+
+/** \mainpage notitle
+
+This is the API documentation for cuMat. A expression-template based linear algebra package for CUDA.
+
+For a first contact with cuMat, the best place is to have a look at the \link GettingStarted getting started \endlink page that show you how to write and compile your first program with cuMat. This documentation contains installation steps and first examples.
+
+The \b main \b documentation is organized into \em chapters covering different domains of features.
+They are themselves composed of \em user \em manual pages describing the different features in a comprehensive way, and \em reference pages that gives you access to the API documentation through the related cuMat's \em modules and \em classes.
+
+*/
+
+}
