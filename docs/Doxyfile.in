@@ -123,7 +123,8 @@ EXCLUDE_SYMBOLS        =
 EXAMPLE_PATH           = @CMAKE_CURRENT_SOURCE_DIR@/snippets
 EXAMPLE_PATTERNS       = *
 EXAMPLE_RECURSIVE      = NO
-IMAGE_PATH             = @CMAKE_BINARY_DIR@/benchmarks
+IMAGE_PATH             = @CMAKE_BINARY_DIR@/benchmarks \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../benchmarks
 INPUT_FILTER           = 
 FILTER_PATTERNS        = 
 FILTER_SOURCE_FILES    = NO

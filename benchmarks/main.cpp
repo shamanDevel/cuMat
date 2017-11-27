@@ -32,6 +32,8 @@ std::string exec(const char* cmd) {
 
 int main(int argc, char* argv[])
 {
+    std::string outputDir = CUMAT_STR(OUTPUT_DIR);
+
     //load json
     Json::Object config = Json::ParseFile(std::string(CUMAT_STR(CONFIG_FILE)));
     std::cout << "Start Benchmark '" << config["Title"].AsString() << "'" << std::endl;
@@ -90,10 +92,11 @@ int main(int argc, char* argv[])
         resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
         resultAssembled.Insert(std::make_pair("Numpy", resultsNumpy));
         resultAssembled.Insert(std::make_pair("Tensorflow", resultsTF));
-        std::ofstream outStream(setName + ".json");
+        std::ofstream outStream(outputDir + setName + ".json");
         outStream << resultAssembled;
         outStream.close();
-        launchParams = "python3 " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE));
+        launchParams = "python3 " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + outputDir + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE));
+        std::cout << launchParams << std::endl;
         system(launchParams.c_str());
     }
     std::cout << "DONE" << std::endl;

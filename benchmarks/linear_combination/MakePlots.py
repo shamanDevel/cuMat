@@ -3,9 +3,10 @@ import os
 import json
 import matplotlib.pyplot as plt
 
-setName = sys.argv[1]
+setPath = sys.argv[1]
+setName = setPath[setPath.rfind('/')+1:]
 
-resultFile = setName + ".json"
+resultFile = setPath + ".json"
 with open(resultFile, 'r') as f:
     results = json.load(f)
 
@@ -48,4 +49,4 @@ plt.legend()
 plt.xticks(xdata)
 
 #plt.show()
-plt.savefig(setName+'.png', bbox_inches='tight', dpi=300)
+plt.savefig(setPath+'.png', bbox_inches='tight', dpi=300)

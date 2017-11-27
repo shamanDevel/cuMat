@@ -35,5 +35,6 @@ foreach( benchmark ${CUMAT_BENCHMARKS} )
         CUMAT_PROFILING=1 
         CONFIG_FILE=${CMAKE_CURRENT_SOURCE_DIR}/${benchmark}/configuration.json
         PYTHON_FILES=${CMAKE_CURRENT_SOURCE_DIR}/${benchmark}/
+        OUTPUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/
     )
 endforeach(benchmark)
