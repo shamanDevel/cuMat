@@ -28,7 +28,8 @@ The source code for the benchmarks can be found in the folder \c benchmarks/line
 
 First test case: constant number of combinations (\f$k=2\f$), varying size of the vectors (\f$n\f$).
 
-\image html "Linear Combination - Constant Count.png" width=500
+\htmlonly <style>div.image img[src="Linear Combination - Constant Count.png"]{width:500px;}</style> \endhtmlonly
+\image html "Linear Combination - Constant Count.png"
 \image latex "Linear Combination - Constant Count.png" width=10cm
 
 You can see that the CPU libraries (numpy+Eigen) are faster than cuMat for small vector sizes, smaller than 10000 entries.
@@ -37,7 +38,8 @@ Note that Tensorflow is extremely slow compared to the other libraries in this s
 
 Second test case: constant size of the vectors (\f$n=1000000\f$), varying number of combinations (\f$k\f$)
 
-\image html "Linear Combination - Constant Size.png" width=500
+\htmlonly <style>div.image img[src="Linear Combination - Constant Size.png"]{width:500px;}</style> \endhtmlonly
+\image html "Linear Combination - Constant Size.png"
 \image latex "Linear Combination - Constant Size.png" width=10cm
 
 Eigen and cuMat both show sublinear growth (it appears linear because of the log-scale on the time axis). This is due to faster memory reading than writing.

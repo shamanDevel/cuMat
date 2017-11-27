@@ -18,6 +18,7 @@ prepare:
     - build
 
 pages:
+  image: aergus/latex
   stage: build
   script:
   - doxygen build/docs/Doxyfile
