@@ -1,0 +1,187 @@
+namespace cuMat {
+
+/** \page TutorialMatrixClass The Matrix Class
+
+
+In cuMat, the underlying workhorse for storing matrices and vectors is the Matrix class. Vectors are threaten only as matrices with one dimension set to one.
+
+All matrices, like with all other expressions in cuMat, are batched. Of course, a normal matrix is simply a batched matrix with exactly one batch.
+
+\section TutorialMatrixClass_TemplateParameters The template parameters
+
+The matrix class takes five template arguments:
+
+\code{.cpp} Matrix<typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags> \endcode
+
+  - \c _Scalar is the underlying scalar types. Supported types are \c bool, integral types (\c int, \c long, ...), floating point types (\c float, \c double), and complex types \c cfloat and \c cdouble.
+  - \c _Rows is the number of rows on compile time. More on that, see section \ref CompileTimeSize
+  - \c _Columns is the number of columns on compile time. More on that, see section \ref CompileTimeSize
+  - \c _Batches is the number of batches on compile time. More on that, see section \ref CompileTimeSize
+  - \c _Flags determines the storage order. It can be either Flags::ColumnMajor or Flags::RowMajor
+
+\section TutorialMatrixClass_CompileTimeSize Compile-time size vs. Dynamic
+
+The number of rows, columns and batches can either be specified as a positive integer or using the special value \ref Dynamic.
+In the first case, the size along that dimension is fixed at compile-time and can't be changed.
+In the second case, the size is dynamic and has to be specified in the constructor or by assignment.
+
+Example for a completely dynamically sized matrix: \code{.cpp} Matrix<float, Dynamic, Dynamic, Dynamic, ColumnMajor> \endcode
+
+Example for a non-batched column vector. Only dynamic along the rows: \code{.cpp} Matrix<float, Dynamic, 1, 1, ColumnMajor> \endcode
+
+Example for a batched 3x3 matrix: \code{.cpp} Matrix<float, 3, 3, Dynamic, ColumnMajor> \endcode
+
+Remark: Eigen advices you to use completely fixed size matrices since they are allocated on the stack. Huge stack allocations can cause problems.
+This is not the case in cuMat. Here, all the memory is allocated dynamically on the GPU. No stack overflow can occur when using large fixed size matrices.
+
+Remark: We encourage you to give cuMat as much information as possible: If you know anything about the size of a matrix on compile-time, use that information.
+For example, if you know that you'll never use batched matrices, then always fix the batch count to 1.
+This will help cuMat to pick the best algorithm.
+It also heavily influences the behavior in the case of broadcasting, see \ref TutorialCWise_Broadcasting.
+
+\section TutorialMatrixClass_ConvenienceTypeDefs Convenience Typedefs
+
+It is very cumbersome to spell out all the template parameters of the matrix class every time you use it.
+Therefore, cuMat provides several typedefs for common matrix types:
+
+Syntax: <tt> (B)? (Matrix|Vector|RowVector|Scalar) (2|3|4|X) (b|i|l|ll|f|d|cf|cd) (R|C)? </tt>
+
+In more detail, part by part:
+1. Optional prefix \c B indicates a batched matrix. If specified, \c _Batches==Dynamic , otherwise \c _Batches==1
+2. The type of the matrix:
+  - \c Matrix: a regular matrix
+  - \c Vector: a column vector, \c _Columns==1
+  - \c RowVector: a row vector, \c _Rows==1
+  - \c Scalar: a scalar, \c _Columns==1 and \c _Rows==1. Note, the following size parameter is not allowed here
+3. The size of the matrix / vector, specifies \c _Columns and \c _Rows:
+  - \c 2: a 2x2 matrix or a 2 dimensional vector
+  - \c 3: a 3x3 matrix or a 3 dimensional vector
+  - \c 4: a 4x4 matrix or a 4 dimensional vector
+  - \c X: a dynamic sized matrix or vector
+4. The data type, the following data types are predefined in the typedefs:
+  - \c b -> \c bool
+  - \c i -> \c int
+  - \c l -> \c long
+  - \c ll -> <tt> long long </tt>
+  - \c f -> \c float
+  - \c d -> \c double
+  - \c cf -> \c cfloat (alias of \c cuFloatComplex)
+  - \c df -> \c cdouble (alias of \c cuDoubleComplex)
+5. Optional suffix for the storage order. If no storage order is specified, the default value of \c ColumnMajor is used
+  - \c R -> \ref RowMajor
+  - \c C -> \ref ColumnMajor
+
+Examples:
+
+\code{.cpp} BMatrix4f m1; //Matrix<float, 4, 4, Dynamic, ColumnMajor>, a batched 4x4 matrix \endcode
+\code{.cpp} MatrixXcdR m2; //Matrix<cdouble, Dynamic, Dynamic, 1, RowMajor>, a non-batched, dynamic sized matrix with complex double values \endcode
+\code{.cpp} Vector2i v1; //Matrix<int, 2, 1, 1, ColumnMajor>, a two-dimensional column vector with integers \endcode
+\code{.cpp} BRowVectorXb v2; //Matrix<bool, 1, Dynamic, Dynamic, ColumnMajor>, a batched row vector of dynamic size containing booleans \endcode
+
+For a full list of all typedefs, see \ref matrixtypedefs
+
+\section TutorialMatrixClass_Constructors Constructors
+
+The matrix class supports the following five constructors:
+
+- <tt>Matrix()</tt>
+
+  Default constructor.
+  For completely fixed size matrices, it creates a matrix of the specified size.
+  Otherwise, creates an empty matrix with the size of the free dimensions set to zero. No memory is allocated in that case.
+
+- <tt>Matrix(Index rows, Index cols, Index batches)</tt>
+  
+  Creates a matrix with the given dimensions for rows, columns and batches.
+  Note that this constructor is always available, even if some of the dimensions are specified as compile-time constants in the template arguments.
+  In this case, the constructor will check if the parameters match the template parameters on runtime.
+  
+  Examples:
+  \code{.cpp} Matrix4i m(4,4,1); //ok, equal to Matrix4i m; \endcode
+  \code{.cpp} Matrix4i m(5,4,1); //error, will throw an exception at runtime \endcode
+  
+- <tt>Matrix(Index rows, Index cols)</tt>
+
+  This constructor is only available for non-batched matrices (\c _Batches==1).
+  It is equal to <tt>Matrix(rows, cols, 1)</tt>
+  
+- <tt>Matrix(Index size)</tt>
+
+  This constructor is only available for non-batched vectors (\c VectorN and \c RowVectorN with N being 2,3,4 or X).
+  It creates a vector of the specified size.
+  Again, if the size is fixed on compile time by the template parameters, this constructor will throw an exception on runtime if the dimension doesn't match.
+  
+- <tt>Matrix(const DevicePointer<_Scalar>& ptr, Index rows, Index cols, Index batches)</tt>
+
+  This constructor is an extension to <tt>Matrix(rows, cols, batches)</tt> in that way that it does not allocate new memory.
+  Instead, the matrix simply wraps the specified memory.
+  
+  Note: The user is responsible to ensure that the specified memory has at least enough space to store all matrix elements.
+  Otherwise, operations on that matrix lead to undefined behavior due to access violations
+
+\section TutorialMatrixClass_Assignment Assignment
+
+Matrix objects are very slim on the host side. They only store the dimension of the matrix and a reference-counted pointer to the underlying device memory.
+The copy and move constructors don't copy the underlying data, they only use the same data and increase the reference counter by one.
+
+Example:
+\code{.cpp}
+MatrixXf m1(5, 6); //allocate memory for 5*6 floats
+MatrixXf m2(m1); //copy constructor, data is shared
+MatrixXf m3 = m1; //copy constructor, data is shared
+MatrixXf m4; //no memory allocation, empty matrix
+MatrixXf m5(7, 8); //allocate memory for 7*8 floats
+m4 = m1; //assignment, data is shared
+m5 = m1; //assignment, reference counter to the old data is decrement (and deleted if not used otherwise),
+         //new data is shared, size of the matrix has changed
+\endcode
+
+A later section in the tutorial will explain operations, but as a preview, the following is completely fine:
+\code{.cpp}
+MatrixXf m1 = MatrixXf::Constant(5, 6, 42.0f); //initialize and fill a 5x6 matrix
+MatrixXf m2 = m1; //copy constructor, data is shared
+m1 = m1 * 2; //multiply every entry with 2
+//Now, m1 will contain 84.0 as values.
+//m2 will still contain the old value of 42.0
+\endcode
+This is due to the paradigm "Copy-On-Write" that is applied in all operations: Whenever data is changed, a new memory buffer is allocated and the results written into it.
+The old values are still preserved in other matrix instances that shared the data.
+This is based on the reference-counted device memory and therefore only works when the matrices are stored by value in other places.
+
+Further, it is also possible to "downcast" from constant size matrices to dynamic size matrices:
+\code{.cpp}
+VectorXi v1(5);
+MatrixXi m1 = v1; //ok, downcast, _Columns==1 converted to _Columns==Dynamic
+\endcode
+But the other way is not allowed implicitly:
+\code{.cpp}
+MatrixXi m1(5, 1);
+VectorXi v1 = m1; //error at compile-time
+\endcode
+For an explicit way to do this upcasting, see \ref TutorialBlockAccess.
+
+Lastly, implicit conversion of the storage order are not allowed.
+This decision was done to prevent hidden transpose operations that are very costly
+\code{.cpp}
+MatrixXfR m1(3, 3); //row-major
+MatrixXfC m2 = m1; //error at compile-time, attempt to assign a matrix of different storage order
+\endcode
+TODO: how to convert that explicitly?
+
+\section TutorialMatrixClass_Printing Printing
+
+The Matrix class supports printing to an output stream.
+It prints the dimensions, storage order and content of the matrix:
+
+\include QuickStart_example.cu
+
+This will print something like this:
+
+\include QuickStart_example.out
+
+Note that this requires a memory copy from the device to the host and is therefore slow.
+It should only be used on small matrices as a debugging and testing tool.
+
+*/
+
+}
