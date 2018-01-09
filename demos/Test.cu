@@ -23,4 +23,7 @@ Matrix: rows=3 (dynamic), cols=3 (dynamic), batches=1 (dynamic), storage=Column-
  1.88441 0.766545  1.83773
 0.696211 0.899099 0.773809
      */
+
+    cuMat::BMatrixXf m1, m2;
+    auto expr1 = 2 * m2;
 }

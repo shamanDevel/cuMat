@@ -46,6 +46,13 @@
 #define CUMAT_FUNCTION_NAMESPACE_END
 #endif
 
+#ifndef CUMAT_FUNCTION_NAMESPACE
+/**
+ * \brief The namespace in which overloaded math functions are defined.
+ */
+#define CUMAT_FUNCTION_NAMESPACE ::
+#endif
+
 #ifdef _MSC_VER
 //running under MS Visual Studio -> no thread_local
 #define CUMAT_THREAD_LOCAL __declspec( thread )

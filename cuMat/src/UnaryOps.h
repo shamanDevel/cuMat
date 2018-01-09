@@ -147,6 +147,7 @@ namespace functor
 #undef DEFINE_FUNCTOR_INT
 } //end namespace functor
 
+
 // CASTING
 
 namespace functor {
@@ -225,5 +226,61 @@ public:
 };
 
 CUMAT_NAMESPACE_END
+
+
+//Global binary functions
+CUMAT_FUNCTION_NAMESPACE_BEGIN
+
+#define UNARY_OP(Name, Op) \
+    template<typename _Derived> \
+    CUMAT_NAMESPACE UnaryOp<_Derived, CUMAT_NAMESPACE functor::UnaryMathFunctor_ ## Op <typename CUMAT_NAMESPACE internal::traits<_Derived>::Scalar>> \
+    Name(const CUMAT_NAMESPACE MatrixBase<_Derived>& mat) \
+    { \
+        return CUMAT_NAMESPACE UnaryOp<_Derived, CUMAT_NAMESPACE functor::UnaryMathFunctor_ ## Op <typename CUMAT_NAMESPACE internal::traits<_Derived>::Scalar>>(mat.derived()); \
+    }
+
+template <typename _Derived>
+::cuMat::UnaryOp<_Derived, ::cuMat::functor::UnaryMathFunctor_cwiseAbs<typename ::cuMat::internal::traits<_Derived>::Scalar>>
+abs(const ::cuMat::MatrixBase<_Derived>& mat)
+{
+    return ::cuMat::UnaryOp<_Derived, ::cuMat::functor::UnaryMathFunctor_cwiseAbs<typename ::cuMat::internal::traits<_Derived>::Scalar>>(mat.derived());
+};
+
+//UNARY_OP(abs, cwiseAbs);
+UNARY_OP(inverse, cwiseInverse);
+UNARY_OP(floor, cwiseFloor);
+UNARY_OP(ceil, cwiseCeil);
+UNARY_OP(round, cwiseRound);
+
+UNARY_OP(exp, cwiseExp);
+UNARY_OP(log, cwiseLog);
+UNARY_OP(log1p, cwiseLog1p);
+UNARY_OP(log10, cwiseLog10);
+UNARY_OP(sqrt, cwiseSqrt);
+UNARY_OP(rsqrt, cwiseRsqrt);
+UNARY_OP(cbrt, cwiseCbrt);
+UNARY_OP(rcbrt, cwiseRcbrt);
+
+UNARY_OP(sin, cwiseSin);
+UNARY_OP(cos, cwiseCos);
+UNARY_OP(tan, cwiseTan);
+UNARY_OP(asin, cwiseAsin);
+UNARY_OP(acos, cwiseAcos);
+UNARY_OP(atan, cwiseAtan);
+UNARY_OP(sinh, cwiseSinh);
+UNARY_OP(cosh, cwiseCosh);
+UNARY_OP(tanh, cwiseTanh);
+UNARY_OP(asinh, cwiseAsinh);
+UNARY_OP(acosh, cwiseAcosh);
+UNARY_OP(atanh, cwiseAtanh);
+
+UNARY_OP(erf, cwiseErf);
+UNARY_OP(erfc, cwiseErfc);
+UNARY_OP(lgamma, cwiseLgamma);
+
+#undef UNARY_OP
+
+CUMAT_FUNCTION_NAMESPACE_END
+
 
 #endif

@@ -43,9 +43,11 @@ TEST_CASE("cwiseNegate", "[unary]")
 	CUMAT_TESTS_CALL_SIMPLE_MATRIX_TEST(double, TestNegate);
 }
 
-UNARY_TEST_CASE_ALL(cwiseAbs, abs(), -10, 10);
-UNARY_TEST_CASE_FLOAT(cwiseInverse, inverse(), -10, 10);
 
-UNARY_TEST_CASE_ALL(cwiseFloor, floor(), -1000, 1000);
-UNARY_TEST_CASE_ALL(cwiseCeil, ceil(), -1000, 1000);
-UNARY_TEST_CASE_ALL(cwiseRound, round(), -1000, 1000);
+
+UNARY_TEST_CASE_ALL(cwiseAbs, abs, -10, 10);
+UNARY_TEST_CASE_FLOAT(cwiseInverse, inverse, -10, 10);
+
+UNARY_TEST_CASE_ALL(cwiseFloor, floor, -1000, 1000);
+UNARY_TEST_CASE_ALL(cwiseCeil, ceil, -1000, 1000);
+UNARY_TEST_CASE_ALL(cwiseRound, round, -1000, 1000);

@@ -22,21 +22,26 @@
 		} \
 	 \
 		cuMat::Matrix<_Scalar, _Rows, _Cols, _Batches, _Flags> m_device1 = m_device. cuMatFn (); \
+        cuMat::Matrix<_Scalar, _Rows, _Cols, _Batches, _Flags> m_device2 = CUMAT_FUNCTION_NAMESPACE eigenFn (m_device); \
 	 \
 		std::vector<Eigen::Matrix<_Scalar, Eigen::Dynamic, Eigen::Dynamic, cuMat::eigen::StorageCuMatToEigen<_Flags>::value>> m_host1(batches); \
+        std::vector<Eigen::Matrix<_Scalar, Eigen::Dynamic, Eigen::Dynamic, cuMat::eigen::StorageCuMatToEigen<_Flags>::value>> m_host2(batches); \
 		for (cuMat::Index i = 0; i<batches; ++i) \
 		{ \
 			m_host1[i] = m_device1.block(0, 0, i, rows, cols, 1).eval().toEigen(); \
+            m_host2[i] = m_device2.block(0, 0, i, rows, cols, 1).eval().toEigen(); \
 		} \
 	 \
 		for (cuMat::Index i = 0; i<batches; ++i) \
 		{ \
 			INFO("Input: " << m_host[i]); \
-			auto lhs = m_host[i].array(). eigenFn .matrix().eval(); \
-			auto rhs = m_host1[i]; \
+			auto lhs = m_host[i].array(). eigenFn () .matrix().eval(); \
+			auto rhs1 = m_host1[i]; \
+            auto rhs2 = m_host2[i]; \
 			INFO("Expected: " << lhs); \
-			INFO("Actual: " << rhs); \
-			REQUIRE(lhs.isApprox(rhs, Eigen::NumTraits<_Scalar>::dummy_precision() * rows * cols)); \
+			INFO("Actual: " << rhs1); \
+			REQUIRE(lhs.isApprox(rhs1, Eigen::NumTraits<_Scalar>::dummy_precision() * rows * cols)); \
+            REQUIRE(lhs.isApprox(rhs2, Eigen::NumTraits<_Scalar>::dummy_precision() * rows * cols)); \
 		} \
 	}
 
