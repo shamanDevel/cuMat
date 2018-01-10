@@ -63,6 +63,8 @@ template<typename _Child, typename _Target> class CastingOp;
 template<typename _Derived> class TransposeOp;
 template<typename _Child, typename _ReductionOp> class ReductionOp_DynamicSwitched;
 template<typename _Child, typename _ReductionOp, int _Axis> class ReductionOp_StaticSwitched;
+template<typename _Left, typename _Right, bool _TransposedLeft, bool _TransposedRight, bool _TransposedOutput> class MultOp;
+
 namespace functor
 {
 	//component-wise functors

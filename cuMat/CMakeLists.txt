@@ -30,7 +30,7 @@ set(CUMAT_HEADERS
   src/Iterator.h
   src/CublasApi.h
   src/SimpleRandom.h
-
+  src/MultOp.h
   Core
   )
 

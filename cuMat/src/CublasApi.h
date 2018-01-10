@@ -101,11 +101,19 @@ namespace internal
         // MAIN API
         //-------------------------------
 
+        //GEAM
+
 #define CUBLAS_MAKE_WRAPPER(name, factory) \
     void cublas ## name ## Impl \
     factory(float, cublasS ## name) \
     void cublas ## name ## Impl \
     factory(double, cublasD ## name) \
+    void cublas ## name ## Impl \
+    factory(cuComplex, cublasC ## name) \
+    void cublas ## name ## Impl \
+    factory(cuDoubleComplex, cublasZ ## name)
+
+#define CUBLAS_MAKE_WRAPPER_COMPLEX(name, factory) \
     void cublas ## name ## Impl \
     factory(cuComplex, cublasC ## name) \
     void cublas ## name ## Impl \
@@ -145,7 +153,130 @@ namespace internal
             cublasgeamImpl(transA, transB, m, n, alpha, A, lda, beta, B, ldb, C, ldc);
         }
 
+
+        //Normal GEMM
+
+    private:
+#define CUBLAS_GEMM_FACTORY(scalar, op) \
+        (cublasOperation_t transA, cublasOperation_t transB, \
+        int m, int n, int k,                                 \
+        const scalar* alpha,                                 \
+        const scalar* A, int lda,                            \
+        const scalar* B, int ldb,                            \
+        const scalar* beta,                                  \
+        scalar* C, int ldc) {                                \
+             CUBLAS_SAFE_CALL(op(handle_, transA, transB,    \
+                m, n, k, alpha, A, lda, B, ldb, beta, C, ldc)); \
+        }
+        CUBLAS_MAKE_WRAPPER(gemm, CUBLAS_GEMM_FACTORY)
+#undef CUBLAS_GEMM_FACTORY
+    public:
+        /**
+        * \brief Computes the matrix-matrix multiplication
+        *        C = alpha op(A) * op(B) + beta C.
+        * For details, see http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-gemm
+        * \tparam _Scalar the floating point scalar type
+        */
+        template <typename _Scalar>
+        void cublasGemm(
+            cublasOperation_t transA, cublasOperation_t transB,
+            int m, int n, int k,
+            const _Scalar* alpha,
+            const _Scalar* A, int lda,
+            const _Scalar* B, int ldb,
+            const _Scalar* beta,
+            _Scalar* C, int ldc)
+        {
+            cublasgemmImpl(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+        }
+
+    private:
+#define CUBLAS_GEMM3M_FACTORY(scalar, op) \
+        (cublasOperation_t transA, cublasOperation_t transB, \
+        int m, int n, int k,                                 \
+        const scalar* alpha,                                 \
+        const scalar* A, int lda,                            \
+        const scalar* B, int ldb,                            \
+        const scalar* beta,                                  \
+        scalar* C, int ldc) {                                \
+             CUBLAS_SAFE_CALL(op(handle_, transA, transB,    \
+                m, n, k, alpha, A, lda, B, ldb, beta, C, ldc)); \
+        }
+        CUBLAS_MAKE_WRAPPER_COMPLEX(gemm3m, CUBLAS_GEMM3M_FACTORY)
+#undef CUBLAS_GEMM3M_FACTORY
+    public:
+        /**
+        * \brief Computes the matrix-matrix multiplication using the Gauss-complexity reduction for complex matrices
+        *        C = alpha op(A) * op(B) + beta C.
+        * This is only supported on GPUs with architecture capabilities equal or greater than 5.0
+        * For details, see http://docs.nvidia.com/cuda/cublas/index.html#cublas-gemm3m
+        * \tparam _Scalar the complex floating point scalar type
+        */
+        template <typename _Scalar>
+        void cublasGemm3m(
+            cublasOperation_t transA, cublasOperation_t transB,
+            int m, int n, int k,
+            const _Scalar* alpha,
+            const _Scalar* A, int lda,
+            const _Scalar* B, int ldb,
+            const _Scalar* beta,
+            _Scalar* C, int ldc)
+        {
+            cublasgemm3mImpl(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+        }
+
+
+        //Batched GEMM
+
+    private:
+#define CUBLAS_BATCHED_GEMM_FACTORY(scalar, op) \
+        (cublasOperation_t transA, cublasOperation_t transB, \
+        int m, int n, int k,                                 \
+        const scalar* alpha,                                 \
+        const scalar* A, int lda,                            \
+        long long int strideA,                               \
+        const scalar* B, int ldb,                            \
+        long long int strideB,                               \
+        const scalar* beta,                                  \
+        scalar* C, int ldc,                                  \
+        long long int strideC,                               \
+        int batchCount)                                      \
+        {                                                    \
+             CUBLAS_SAFE_CALL(op(handle_, transA, transB,    \
+                m, n, k,                                     \
+                alpha, A, lda, strideA, B, ldb, strideB,     \
+                beta, C, ldc, strideC, batchCount));         \
+        }
+        CUBLAS_MAKE_WRAPPER(gemmStridedBatched, CUBLAS_BATCHED_GEMM_FACTORY)
+#undef CUBLAS_BATCHED_GEMM_FACTORY
+    public:
+        /**
+        * \brief Computes the batched matrix-matrix multiplication
+        *        C = alpha op(A) * op(B) + beta C.
+        * For details, see http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-gemmstridedbatched
+        * \tparam _Scalar the floating point scalar type
+        */
+        template <typename _Scalar>
+        void cublasGemmBatched(
+            cublasOperation_t transA, cublasOperation_t transB,
+            int m, int n, int k,
+            const _Scalar* alpha,
+            const _Scalar* A, int lda,
+            long long int strideA,
+            const _Scalar* B, int ldb,
+            long long int strideB,
+            const _Scalar* beta,
+            _Scalar* C, int ldc,
+            long long int strideC,
+            int batchCount)
+        {
+            cublasgemmStridedBatchedImpl(transA, transB, m, n, k, 
+                alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount);
+        }
+
+
 #undef CUBLAS_MAKE_WRAPPER
+#undef CUBLAS_MAKE_WRAPPER_COMPLEX
 #undef CUBLAS_SAFE_CALL
     };
 

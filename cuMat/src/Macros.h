@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <exception>
+#include <stdexcept>
 #include <cuda_runtime.h>
 
 /*
