@@ -25,6 +25,17 @@ TEST_CASE("direct_fixed", "[transpose]")
     math out22 = mdt2.block<6, 5, 1>(0, 0, 1).eval().toEigen();
     REQUIRE(in1.transpose() == out21);
     REQUIRE(in2.transpose() == out22);
+
+    //double-transpose
+    CUMAT_PROFILING_RESET();
+    matd2 md3 = md.transpose().transpose();
+    REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 0);
+    REQUIRE(CUMAT_PROFILING_GET(EvalTranspose) == 0);
+    //test
+    math out31 = md3.block<5, 6, 1>(0, 0, 0).eval().toEigen();
+    math out32 = md3.block<5, 6, 1>(0, 0, 1).eval().toEigen();
+    REQUIRE(in1 == out31);
+    REQUIRE(in2 == out32);
 }
 
 TEST_CASE("direct_dynamic1", "[transpose]")
@@ -175,4 +186,15 @@ TEST_CASE("cwise_dynamic", "[transpose]")
     math out12 = mdt1.block<6, 5, 1>(0, 0, 1).eval().toEigen();
     REQUIRE((-in1).transpose() == out11);
     REQUIRE((-in2).transpose() == out12);
+
+    //double transpose
+    CUMAT_PROFILING_RESET();
+    matd2 md3 = md.cwiseNegate().transpose().transpose();
+    REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
+    REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+    //test
+    math out31 = md3.block<5, 6, 1>(0, 0, 0).eval().toEigen();
+    math out32 = md3.block<5, 6, 1>(0, 0, 1).eval().toEigen();
+    REQUIRE((-in1) == out31);
+    REQUIRE((-in2) == out32);
 }

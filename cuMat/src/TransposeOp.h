@@ -75,7 +75,6 @@ public:
         return matrix_.coeff(col, row, batch);
     }
 
-    //TODO: overwrite eval() and evalTo() to optimize direct matrix-matrix transposition
 
 private:
 
@@ -158,6 +157,14 @@ public:
 		expr.evalTo(*this);
 		return *this;
 	}
+
+    //Overwrites transpose() to catch double transpositions
+    const _Derived& transpose() const
+    {
+        //return the original matrix
+        return matrix_;
+    }
+
 };
 
 CUMAT_NAMESPACE_END
