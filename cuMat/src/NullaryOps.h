@@ -85,6 +85,16 @@ namespace functor
 			return value_;
 		}
 	};
+
+    template<typename _Scalar>
+    class IdentityFunctor
+    {
+    public:
+        __device__ CUMAT_STRONG_INLINE const _Scalar& operator()(Index row, Index col, Index batch) const
+        {
+            return (row==col) ? _Scalar(1) : _Scalar(0);
+        }
+    };
 }
 
 template<typename _Scalar>

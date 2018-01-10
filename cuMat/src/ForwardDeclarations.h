@@ -68,6 +68,7 @@ namespace functor
 	//component-wise functors
     //nullary
     template<typename _Scalar> class ConstantFunctor;
+    template<typename _Scalar> class IdentityFunctor;
     //unary
 	template<typename _Scalar> class UnaryMathFunctor_cwiseNegate;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseAbs;

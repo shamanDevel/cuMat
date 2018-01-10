@@ -1,7 +1,8 @@
 #include <catch/catch.hpp>
 
-#include <cuMat/src/Matrix.h>
-#include <cuMat/src/EigenInteropHelpers.h>
+#include <cuMat/Core>
+
+#include "Utils.h"
 
 TEST_CASE("setZero", "[nullary]")
 {
@@ -107,4 +108,65 @@ TEST_CASE("ConstantOp5", "[nullary]")
 	matrix_t m2 = setTwoExpr;
 	auto m2_host = m2.toEigen();
 	REQUIRE(m2_host.isConstant(5));
+}
+
+TEST_CASE("IdentityOp1", "[nullary]")
+{
+    //general version, dynamic batch size
+    cuMat::BMatrixXi m1 = cuMat::BMatrixXi::Identity(3, 4, 2);
+    int exp1[2][3][4] = {
+        {
+            {1, 0, 0, 0},
+            {0, 1, 0, 0},
+            {0, 0, 1, 0}
+        },
+        {
+            { 1, 0, 0, 0 },
+            { 0, 1, 0, 0 },
+            { 0, 0, 1, 0 } 
+        }
+    };
+    assertMatrixEquality(exp1, m1);
+}
+
+TEST_CASE("IdentityOp2", "[nullary]")
+{
+    //general version, fixed batch size
+    cuMat::MatrixXi m1 = cuMat::MatrixXi::Identity(3, 4);
+    int exp1[1][3][4] = {
+        {
+            { 1, 0, 0, 0 },
+            { 0, 1, 0, 0 },
+            { 0, 0, 1, 0 }
+        }
+    };
+    assertMatrixEquality(exp1, m1);
+}
+
+TEST_CASE("IdentityOp3", "[nullary]")
+{
+    //square version, fixed batch size
+    cuMat::MatrixXi m1 = cuMat::MatrixXi::Identity(3);
+    int exp1[1][3][3] = {
+        {
+            { 1, 0, 0 },
+            { 0, 1, 0 },
+            { 0, 0, 1 }
+        }
+    };
+    assertMatrixEquality(exp1, m1);
+}
+
+TEST_CASE("IdentityOp4", "[nullary]")
+{
+    //everything is fixed
+    cuMat::Matrix3i m1 = cuMat::Matrix3i::Identity();
+    int exp1[1][3][3] = {
+        {
+            { 1, 0, 0 },
+            { 0, 1, 0 },
+            { 0, 0, 1 }
+        }
+    };
+    assertMatrixEquality(exp1, m1);
 }
