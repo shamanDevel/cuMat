@@ -1,0 +1,4 @@
+Broadcasting result:
+Matrix: rows=2 (dynamic), cols=4 (dynamic), batches=1 (compile-time), storage=Row-Major
+1 2 6 9
+4 2 8 3

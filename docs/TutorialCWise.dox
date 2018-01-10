@@ -2,15 +2,165 @@ namespace cuMat {
 
 /** \page TutorialCWise Component-wise expressions
 
+Component-wise expressions operate on the individual entries of a matrix.
+They are simple in structure and can be chained arbitrary and compile to only a single kernel invocation.
+For example, assume \f$ a, b, c, d, e, f \f$ are all matrices of the same size, then \f$ f = a + 2*b - sin(c) + pow(d, e) \f$ is evaluated in a single loop over all entries in a single kernel.
+
 \section TutorialCWise_Nullary Nullary operations
+
+Nullary operations are leaves in the evaluation tree, they don't take any matrix as input.
+
+All predefined nullary operations are available as static functions in the Matrix class. This allows to inherit the data type, storage order and the information about compile-time sizes.
+The following two operations are available:
+
+Constant matrix:
+\code{.cpp}
+BMatrixXf m = BMatrixXf::Constant(3, 4, 2, 0.5f);
+//create a 3x4 matrix with two batches filled completely with 0.5
+\endcode
+
+Identity matrix:
+\code{.cpp}
+BMatrixXf m = BMatrixXf::Identity(3, 4, 2);
+//create a 3x4 matrix with two batches that contains ones along the main diagonal and zeros everywhere else
+\endcode
+
+Overloaded versions of these functions are available in the case that sizes (e.g. the number of batches) are known on compile-time.
+See the documentation of the Matrix class for a list of those.
 
 \section TutorialCWise_Unary Unary operations
 
+Component-wise unary expression take a matrix as input, perform some transformation on each entry and return the modified matrix of the same size as the input.
+
+All operations are defined for \c float and \c double types (TODO: add complex support). Negation is additionally available on integer types and the rounding operations are no-ops on integers.
+
+For convenience, most of these operations are available both as a method (<tt>matrix.cwiseSin()</tt>) or as a function (<tt>sin(matrix)</tt>).
+The functions are defined by default in the global namespace, but this can be changed by specifying the macros \c CUMAT_FUNCTION_NAMESPACE_BEGIN and \c CUMAT_FUNCTION_NAMESPACE_END.
+
+<table>
+<caption id="unary_ops">Unary operations</caption>
+<tr><th>Function on element \f$ x \f$ </th>  <th>Method style on matrix \c m </th>  <th>Function style on matrix \c m </th> </tr>
+
+<tr><th> \f$ -x \f$ </th>  <th> \c m.negate() </th>  <th> \c -m </th> </tr>
+<tr><th>\f$ 1/x \f$</th>  <th>\c m.cwiseInverse() </th>  <th> \c inverse(m) </th></tr>
+<tr><th>\f$ \lceil x \rceil \f$</th>  <th>\c m.cwiseCeil() </th>  <th> \c ceil(m) </th></tr>
+<tr><th>\f$ \lfloor x \rfloor \f$</th>  <th>\c m.cwiseFloor() </th>  <th> \c floor(m) </th></tr>
+<tr><th>\f$ \lfloor x \rceil \f$</th>  <th>\c m.cwiseRound() </th>  <th> \c round(m) </th></tr>
+
+<tr><th>\f$ e^x \f$</th>  <th>\c m.cwiseExp() </th>  <th> \c exp(m) </th></tr>
+<tr><th>\f$ \log(x) \f$</th>  <th>\c m.cwiseLog() </th>  <th> \c log(m) </th></tr>
+<tr><th>\f$ \log(x+1) \f$</th>  <th>\c m.cwiseLog1p </th>  <th> \c log1p(m) </th></tr>
+<tr><th>\f$ \log_10(x) \f$</th>  <th>\c m.cwiseLog10 </th>  <th> \c log10(m) </th></tr>
+<tr><th>\f$ \sqrt{x} \f$</th>  <th>\c m.cwiseSqrt() </th>  <th> \c sqrt(m) </th></tr>
+<tr><th>\f$ \frac{1}{\sqrt{x}} \f$</th>  <th>\c m.cwiseRsqrt() </th>  <th> \c rsqrt(m) </th></tr>
+<tr><th>\f$ \sqrt[3]{x} \f$</th>  <th>\c m.cwiseCbrt() </th>  <th> \c cbrt(m) </th></tr>
+<tr><th>\f$ \frac{1}{\sqrt[3]{x}} \f$</th>  <th>\c m.cwiseRcbrt() </th>  <th> \c rcbrt(m) </th></tr>
+
+<tr><th>\f$ \sin(x) \f$</th>  <th>\c m.cwiseSin() </th>  <th> \c sin(m) </th></tr>
+<tr><th>\f$ \cos(x) \f$</th>  <th>\c m.cwiseCos() </th>  <th> \c cos(m) </th></tr>
+<tr><th>\f$ \tan(x) \f$</th>  <th>\c m.cwiseTan() </th>  <th> \c tan(m) </th></tr>
+<tr><th>\f$ \sin^{-1}(x) \f$</th>  <th>\c m.cwiseAsin() </th>  <th> \c asin(m) </th></tr>
+<tr><th>\f$ \cos^{-1}(x) \f$</th>  <th>\c m.cwiseAcos() </th>  <th> \c acos(m) </th></tr>
+<tr><th>\f$ \tan^{-1}(x) \f$</th>  <th>\c m.cwiseAtan() </th>  <th> \c atan(m) </th></tr>
+<tr><th>\f$ \sinh(x) \f$</th>  <th>\c m.cwiseSinh </th>  <th> \c sinh(m) </th></tr>
+<tr><th>\f$ \cosh(x) \f$</th>  <th>\c m.cwiseCosh </th>  <th> \c cosh(m) </th></tr>
+<tr><th>\f$ \tanh(x) \f$</th>  <th>\c m.cwiseTanh </th>  <th> \c tanh(m) </th></tr>
+<tr><th>\f$ \sinh^{-1}(x) \f$</th>  <th>\c m.cwiseAsinh </th>  <th> \c asinh(m) </th></tr>
+<tr><th>\f$ \cosh^{-1}(x) \f$</th>  <th>\c m.cwiseAcosh </th>  <th> \c acosh(m) </th></tr>
+<tr><th>\f$ \tanh^{-1}(x) \f$</th>  <th>\c m.cwiseAtanh </th>  <th> \c atanh(m) </th></tr>
+<tr><th>Error function \f$ \text{erf}(x) \f$</th>  <th>\c m.cwiseErf() </th>  <th> \c erf(m) </th></tr>
+<tr><th>Complementary error function \f$ \text{cerf}(x) \f$</th>  <th>\c m.cwiseCerf() </th>  <th> \c cerf(m) </th></tr>
+<tr><th>Log-gamma function \f$ \ln \Gamma(x) \f$</th>  <th>\c m.cwiseLgamma() </th>  <th> \c lgamma(m) </th></tr>
+</table>
+
 \section TutorialCWise_Binary Binary operations
+
+Component-wise binary expression take two matrices as input, perform some transformation on each entry and return the modified matrix of the same size as the input.
+This means, given the two entries \f$ x \f$ and \f$ y \f$, the operation computes \f$ f(x,y) \f$ for each entry.
+For now, assume that both input matrices have the same size.
+
+cuMat also supports broadcasting, e.g. combine a vector and a matrix by a binary expression. This is covered in the next chapter \ref TutorialCWise_Broadcasting.
+
+<table>
+<caption id="unary_ops">Unary operations</caption>
+<tr><th>Function on element \f$ x,x \f$ </th>  <th>Method style on matrix \c m1 and \c m2 </th>  <th>Function style on matrix \c m1 and \c m2 </th>  <th>Supported types</th></tr>
+
+<tr><th> \f$ x + y \f$ </th>  <th> \c m1.cwiseAdd(m2) </th>  <th> \c m1+m2 </th> <th>all</th></tr>
+<tr><th> \f$ x - y \f$ </th>  <th> \c m1.cwiseSub(m2) </th>  <th> \c m1-m2 </th> <th>all</th></tr>
+<tr><th> \f$ x * y \f$ </th>  <th> \c m1.cwiseMul(m2) </th>  <th> not available </th> <th>all</th></tr>
+<tr><th> \f$ x / y \f$ </th>  <th> \c m1.cwiseDiv(m2) </th>  <th> not available </th> <th>all</th></tr>
+<tr><th> \f$ x \% y \f$ </th>  <th> \c m1.cwiseMod(m2) </th>  <th> \c m1 \% \c m2 </th> <th>integer types</th></tr>
+<tr><th> \f$ x^y \f$ </th>  <th> \c m1.cwisePow(m2) </th>  <th> \c pow(m1,m2) </th> <th>float types</th></tr>
+
+</table>
+
+Note that there is no overloaded operator for component wise multiplication and division. This is because the multiplication operator is already used for matrix-matrix multiplication.
 
 \section TutorialCWise_Broadcasting Broadcasting
 
+The concept behind broadcasting is that a tensor of lower rank is interpreted as a tensor of higher rank by duplicating the entries along the missing dimension.
+
+A simple example is to add a column vector to each column in a matrix. This example is translated from the Eigen documentation and looks in cuMat as follows:
+
+Example:
+\include TutorialCWise_broadcasting.cu
+
+Output:
+\include TutorialCWise_broadcasting.out
+
+All broadcasting operations expand the dimensions (row, column or batch) of one argument to match the dimension of the other argument if the dimension if 1 at <b>compile time</b>.
+
+The extreme case is to expand a scalar (rank zero tensor) to a batched matrix (rank three tensor):
+\code{.cpp}
+BMatrixXi matrix(3, 5, 6); //dynamic 3x5 matrix with 6 batches
+Scalari scalar; //a single scalar in GPU memory, in other words, a statically sized 1x1 matrix
+BMatrixXi result = scalar + matrix; //adds the value of the scalar to every entry in the matrix
+\endcode
+
+The expansion from a scalar value has the special case that the scalar can also be provided from host memory.
+Further, the type of the scalar is automatically converted to the type of the matrix if the conversion can be done implicitly.
+\code{.cpp}
+BMatrixXd matrix(3, 5, 6); //dynamic 3x5 matrix with 6 batches of doubles
+float scalar = 5;
+BMatrixXi result = scalar + matrix; //float can be implicitly cast to double
+\endcode
+
+Further, overloads for multiplication and division are available for host scalars. In that case, there is no ambiguity with matrix-matrix multiplication
+\code{.cpp}
+BMatrixXd matrix(3, 5, 6);
+float scalar = 5;
+BMatrixXi result = scalar * matrix; //multiplies every element of the matrix with the scalar
+\endcode
+
+\section TutorialCWise_Comparison Comparison operations
+
+cuMat also provides overloads of the comparison operators <, >, <=, >=, == and !=.
+They act exactly like regular component-wise binary operations (including support for broadcasting), except that they return a boolean matrix.
+Example:
+\code{.cpp}
+MatrixXi m1(4, 5);
+MatrixXi m2(4, 5);
+//fill matrices
+MatrixXb result = m1 == m2;
+//The entries of this matrix are true iff the respective entry in m1 and m2 are equal
+\endcode
+
+If, for example, you want to test if a matrix only contains positive numbers, you have to use a reduction afterwards:
+\code{.cpp}
+MatrixXi m(4, 5);
+//fill the matrix
+bool is_all_positive = all(m > 0);
+\endcode
+
 \section TutorialCWise_Casting Type Casting
+
+cuMat does not perform implicit type conversion at binary operations. If you try to combine two matrices of different types e.g. by an addition, an error is thrown on compile-time.
+A manual casting is performed in the following way:
+\code{.cpp}
+MatrixXi m1(3, 3); //matrix of integers
+MatrixXf m2 = m1.cast<float>(); //casting to float
+\endcode
+Casting is also a component-wise operation, so it can be inserted in a chain of other component-wise expressions without overhead.
 
 */
 
