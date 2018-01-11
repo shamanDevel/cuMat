@@ -153,6 +153,8 @@ public:
         return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
     }
 
+    //template <typename Distance, typename T = typename std::enable_if<internal::traits<_Derived>::AccessFlags & AccessFlags::WriteDirect, reference>::type>
+    //__device__ __forceinline__ T operator[](Distance n)
     template <typename Distance>
     __device__ __forceinline__ reference operator[](Distance n)
     {

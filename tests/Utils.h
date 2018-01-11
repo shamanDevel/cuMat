@@ -73,5 +73,19 @@ void assertMatrixEquality(const Scalar(&expected)[Batches][Rows][Cols], const cu
     }
 }
 
+template<typename Left, typename Right>
+void assertMatrixEquality(const cuMat::MatrixBase<Left>& l, const cuMat::MatrixBase<Right>& r, double epsilon = 1e-10)
+{
+    auto left = l.eval();
+    auto right = r.eval();
+    INFO("left:\n" << left);
+    INFO("right:\n" << right);
+    REQUIRE(left.rows() == right.rows());
+    REQUIRE(left.cols() == right.cols());
+    REQUIRE(left.batches() == right.batches());
+    auto op = (abs(left - right) < epsilon).eval().all();
+    bool result = (bool)op;
+    CHECK(result);
+}
 
 #endif

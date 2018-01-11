@@ -44,7 +44,9 @@ namespace internal {
                 (BroadcastColsRight ? ColumnsLeft : ColumnsLeft),
             BatchesAtCompileTime = (BatchesLeft == Dynamic || BatchesRight == Dynamic) ?
                 Dynamic :
-                (BroadcastBatchesRight ? BatchesLeft : BatchesRight)
+                (BroadcastBatchesRight ? BatchesLeft : BatchesRight),
+
+            AccessFlags = AccessFlags::ReadCwise
         };
     };
 }

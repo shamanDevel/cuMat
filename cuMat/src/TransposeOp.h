@@ -21,7 +21,8 @@ namespace internal {
 			Flags = (internal::traits<_Derived>::Flags == Flags::RowMajor) ? Flags::ColumnMajor : Flags::RowMajor,
 			RowsAtCompileTime = internal::traits<_Derived>::ColsAtCompileTime,
 			ColsAtCompileTime = internal::traits<_Derived>::RowsAtCompileTime,
-			BatchesAtCompileTime = internal::traits<_Derived>::BatchesAtCompileTime
+			BatchesAtCompileTime = internal::traits<_Derived>::BatchesAtCompileTime,
+            AccessFlags = AccessFlags::ReadCwise | AccessFlags::WriteCwise
 		};
 	};
 
@@ -75,6 +76,10 @@ public:
         return matrix_.coeff(col, row, batch);
     }
 
+    const _Derived& getUnderlyingMatrix() const
+    {
+        return matrix_;
+    }
 
 private:
 

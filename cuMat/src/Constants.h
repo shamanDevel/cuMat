@@ -27,7 +27,7 @@ enum Flags
 	RowMajor = 0x01,
 
 };
-#define CUMAT_IS_COLUMN_MAJOR(flags) ((flags) & CUMAT_NAMESPACE Flags::RowMajor==0)
+#define CUMAT_IS_COLUMN_MAJOR(flags) (((flags) & CUMAT_NAMESPACE Flags::RowMajor)==0)
 #define CUMAT_IS_ROW_MAJOR(flags) ((flags) & CUMAT_NAMESPACE Flags::RowMajor)
 
 /**

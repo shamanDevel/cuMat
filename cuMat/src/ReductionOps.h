@@ -198,7 +198,7 @@ namespace internal {
             RowsAtCompileTime = Dynamic,
             ColsAtCompileTime = Dynamic,
             BatchesAtCompileTime = Dynamic,
-            AccessFlags = 0
+            AccessFlags = 0 //must be completely evaluated
         };
     };
 }

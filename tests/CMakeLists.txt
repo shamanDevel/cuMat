@@ -30,6 +30,7 @@ set(CUMAT_TEST_FILES
   TestReductionOps3.cu
   TestIterator.cu
   TestRandom.cu
+  TestMatrixMultOp.cu
   )
 
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)

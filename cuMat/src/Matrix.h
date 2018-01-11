@@ -443,7 +443,8 @@ namespace internal {
 			Flags = _Flags,
 			RowsAtCompileTime = _Rows,
 			ColsAtCompileTime = _Columns,
-			BatchesAtCompileTime = _Batches
+			BatchesAtCompileTime = _Batches,
+            AccessFlags = AccessFlags::ReadCwise | AccessFlags::ReadDirect | AccessFlags::WriteCwise | AccessFlags::WriteDirect
 		};
 	};
 

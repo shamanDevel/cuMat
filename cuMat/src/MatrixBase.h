@@ -126,7 +126,7 @@ public:
      * \brief The wrapped type: either the type itself, if the access is sufficient,
      * or the evaluated type if not.
      */
-    using type = std::conditional<sufficient, _Derived, typename _Derived::eval_t>;
+    using type = typename std::conditional<sufficient, _Derived, typename _Derived::eval_t>::type;
 
     /*
     template<typename T = typename std::enable_if<sufficient, MatrixBase<_Derived>>::type>
