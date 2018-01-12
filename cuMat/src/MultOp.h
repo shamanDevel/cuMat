@@ -170,12 +170,17 @@ private:
         } else
         {
             //C' = B'*A'
-            n = rows();
-            m = cols();
             A = right_.data();
             B = left_.data();
             transA = (_TransposedRight == CUMAT_IS_COLUMN_MAJOR(FlagsRight)) ? CUBLAS_OP_N : CUBLAS_OP_T;
             transB = (_TransposedLeft == CUMAT_IS_COLUMN_MAJOR(FlagsLeft)) ? CUBLAS_OP_N : CUBLAS_OP_T;
+        }
+
+        if (CUMAT_IS_ROW_MAJOR(_Flags))
+        {
+            //flip rows and cols
+            n = rows();
+            m = cols();
         }
 
         //compute strides
@@ -200,6 +205,9 @@ private:
             //single non-batched evaluation
             internal::CublasApi::current().cublasGemm(transA, transB, m, n, k, &alpha, A, lda, B, ldb, &beta, C, ldc);
         }
+
+        CUMAT_PROFILING_INC(EvalAny);
+        CUMAT_PROFILING_INC(EvalMatmul);
     }
 
 public:
@@ -210,8 +218,8 @@ public:
     }
 
     //Overwrites transpose()
-    typedef MultOp<_Left, _Right, _TransposedLeft, _TransposedRight, !_TransposedOutput> transposed_mult_t;
-    const transposed_mult_t& transpose() const
+    typedef MultOp<left_wrapped_t, right_wrapped_t, _TransposedLeft, _TransposedRight, !_TransposedOutput> transposed_mult_t;
+    transposed_mult_t transpose() const
     {
         //transposition just changes the _TransposedOutput-flag
         return transposed_mult_t(left_, right_);
@@ -222,6 +230,15 @@ public:
 
 //operator overloading, must handle all four cases of transposed inputs
 
+/**
+ * \brief Performs the matrix-matrix multiplication <tt>C = A' * B'<tt>.
+ * This is a specialization if both input matrices are transposed. This avoids the explicit evaluation of \c .transpose() .
+ * \tparam _Left the left type
+ * \tparam _Right the right type
+ * \param left the left matrix
+ * \param right the right matrix
+ * \return the result of the matrix-matrix multiplication
+ */
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, true, true, false>
 operator*(TransposeOp<_Left>& left, TransposeOp<_Right>& right)
@@ -229,6 +246,15 @@ operator*(TransposeOp<_Left>& left, TransposeOp<_Right>& right)
     return MultOp<_Left, _Right, true, true, false>(left.getUnderlyingMatrix(), right.getUnderlyingMatrix());
 }
 
+/**
+* \brief Performs the matrix-matrix multiplication <tt>C = A * B'<tt>.
+* This is a specialization if the right input matri is transposed. This avoids the explicit evaluation of \c .transpose() .
+* \tparam _Left the left type
+* \tparam _Right the right type
+* \param left the left matrix
+* \param right the right matrix
+* \return the result of the matrix-matrix multiplication
+*/
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, false, true, false>
 operator*(MatrixBase<_Left>& left, TransposeOp<_Right>& right)
@@ -236,6 +262,15 @@ operator*(MatrixBase<_Left>& left, TransposeOp<_Right>& right)
     return MultOp<_Left, _Right, false, true, false>(left, right.getUnderlyingMatrix());
 }
 
+/**
+* \brief Performs the matrix-matrix multiplication <tt>C = A' * B<tt>.
+* This is a specialization if the left input matri is transposed. This avoids the explicit evaluation of \c .transpose() .
+* \tparam _Left the left type
+* \tparam _Right the right type
+* \param left the left matrix
+* \param right the right matrix
+* \return the result of the matrix-matrix multiplication
+*/
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, true, false, false>
 operator*(TransposeOp<_Left>& left, MatrixBase<_Right>& right)
@@ -243,6 +278,14 @@ operator*(TransposeOp<_Left>& left, MatrixBase<_Right>& right)
     return MultOp<_Left, _Right, true, false, false>(left.getUnderlyingMatrix(), right);
 }
 
+/**
+* \brief Performs the matrix-matrix multiplication <tt>C = A * B<tt>.
+* \tparam _Left the left type
+* \tparam _Right the right type
+* \param left the left matrix
+* \param right the right matrix
+* \return the result of the matrix-matrix multiplication
+*/
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, false, false, false>
 operator*(MatrixBase<_Left>& left, MatrixBase<_Right>& right)

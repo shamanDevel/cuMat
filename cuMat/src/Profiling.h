@@ -49,6 +49,10 @@ public:
          * \brief Reduction operation with CUB
          */
         EvalReduction,
+        /**
+         * \brief Matrix-Matrix multiplication with cuBLAS
+         */
+        EvalMatmul,
 
         _NumCounter_
     };

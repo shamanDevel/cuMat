@@ -288,7 +288,10 @@ EXPAND_AS_DEFINED      = CUMAT_NAMESPACE_BEGIN \
                          CUMAT_NAMESPACE \
                          UNARY_OP_ACCESSOR \
                          CUMAT_DEF_MATRIX2 \
-                         CUMAT_DEF_MATRIX1
+                         CUMAT_DEF_MATRIX1 \
+                         BINARY_OP \
+                         BINARY_OP_SCALAR \
+                         UNARY_OP
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 # Configuration options related to external references
