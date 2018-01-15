@@ -72,7 +72,11 @@ public:
 		: pointer_(std::move(rhs.pointer_))
 		, counter_(std::move(rhs.counter_))
 		, context_(std::move(rhs.context_))
-	{}
+	{
+	    rhs.pointer_ = nullptr;
+		rhs.counter_ = nullptr;
+		rhs.context_ = nullptr;
+	}
 
     __host__ __device__
 	DevicePointer<T>& operator=(const DevicePointer<T>& rhs)
@@ -97,6 +101,9 @@ public:
 		pointer_ = std::move(rhs.pointer_);
 		counter_ = std::move(rhs.counter_);
 		context_ = std::move(rhs.context_);
+		rhs.pointer_ = nullptr;
+		rhs.counter_ = nullptr;
+		rhs.context_ = nullptr;
 		return *this;
 	}
 
