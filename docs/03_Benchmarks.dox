@@ -7,15 +7,15 @@ To elaborate the execution time of the cuMat operations, we compare the implemen
 \section System System setup
 
 The operation system used to execute the benchmarks:
- - Windows 10 Pro x64
- - CPU: Intel(R) Core(TM) i7-3537U, 2.00GHZ, 2 physical cores
- - 8.00GB RAM
- - GPU: NVidia GeForce GT 735M
- - Microsoft Visual Studio Enterprise 2017
- - CUDA SDK 9.0 (V9.0.102)
+ - Ubuntu 16.04.3 LTS
+ - CPU: Intel(R) Core(TM) i7-6700, 3.40GHz x 8
+ - 16.00GB RAM
+ - GPU: NVidia GeForce GTX 1060 6GB
+ - gcc 5.4.0
+ - CUDA SDK 8.0
  - Python: Python 3.5.2, 64-bit
- - Numpy version 1.12.0 with MKL
- - Tensorflow version 1.0.1 with GPU
+ - Numpy version 1.12.0
+ - Tensorflow version 1.2.0 with GPU
 
 \section LinearCombination Benchmark 1: linear combination
 
