@@ -29,9 +29,9 @@ pages:
   only:
   - master
 
-# Not enabled yet, gcc has many errors. I'll fix them once I get access to a Unix machine with a GPU.
-.test_compile:
+test_compile:
   stage: build
   script:
   - cd build/
   - make
+  
