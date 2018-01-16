@@ -1,6 +1,8 @@
+#include "Json.h"
+
 #include <fstream>
 #include <sstream>
-#include "Json.h"
+#include <string.h>
 
 namespace Json
 {

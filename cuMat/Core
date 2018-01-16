@@ -5,6 +5,9 @@ Specifies the core modules.
 This enables all BLAS-related modules
 */
 
+//first thing: tell the compiler to ignore some stuid warnings
+#include "src/DisableCompilerWarnings.h"
+
 #include "src/Macros.h"
 #include "src/ForwardDeclarations.h"
 #include "src/NumTraits.h"

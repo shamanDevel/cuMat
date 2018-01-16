@@ -12,14 +12,14 @@ namespace internal {
 	template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, typename _MatrixType>
 	struct traits<MatrixBlock<_Scalar, _Rows, _Columns, _Batches, _Flags, _MatrixType> >
 	{
-		typedef typename _Scalar Scalar;
+		typedef _Scalar Scalar;
 		enum
 		{
 			Flags = _Flags,
 			RowsAtCompileTime = _Rows,
 			ColsAtCompileTime = _Columns,
 			BatchesAtCompileTime = _Batches,
-            AccessFlags = AccessFlags::ReadCwise | AccessFlags::WriteCwise
+            AccessFlags = ReadCwise | WriteCwise
 		};
 	};
 

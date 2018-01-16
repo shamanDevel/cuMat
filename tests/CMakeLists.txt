@@ -2,6 +2,8 @@
 
 option(CUMAT_SEPARATE_TESTS "compile each test into a separate project / executable" OFF)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 set(CUMAT_TEST_HEADERS
   Barrier.h
   Utils.h
@@ -33,8 +35,12 @@ set(CUMAT_TEST_FILES
   TestMatrixMultOp.cu
   )
 
+if(MSYS)
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
+endif(MSYS)
 enable_testing()
+
+add_definitions(-DCUMAT_CONTEXT_DEBUG_MEMORY=1 -DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
 
 if(CUMAT_SEPARATE_TESTS)
     # a separate project for each test file
@@ -52,7 +58,7 @@ if(CUMAT_SEPARATE_TESTS)
         #target_link_libraries(${testname} cuMat)
         
         target_link_libraries(${testname} ${CUDA_LIBRARIES})
-        target_compile_definitions(${testname} PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
+        #target_compile_definitions(${testname} PUBLIC CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
     endforeach(testsourcefile)
 else(CUMAT_SEPARATE_TESTS)
     # only one project
@@ -67,6 +73,6 @@ else(CUMAT_SEPARATE_TESTS)
     #target_link_libraries(cuMat_tests cuMat)
     
     target_link_libraries(cuMat_tests ${CUDA_LIBRARIES})
-    target_compile_definitions(cuMat_tests PRIVATE CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
+    #target_compile_definitions(cuMat_tests PUBLIC CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
     add_test(NAME cuMatTest COMMAND cuMat_tests)
 endif(CUMAT_SEPARATE_TESTS)

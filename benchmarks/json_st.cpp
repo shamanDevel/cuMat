@@ -1,5 +1,7 @@
 #include "json_st.h"
 
+#include <cmath>
+
 namespace Json
 {
 	Value::Value () : type_ (NIL) {}

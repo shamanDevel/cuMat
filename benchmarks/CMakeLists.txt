@@ -13,7 +13,9 @@ set(CUMAT_BENCHMARKS
   linear_combination
   )
 
-list(APPEND CUDA_NVCC_FLAGS --cl-version=2017)
+if(MSYS)
+list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
+endif(MSYS)
 enable_testing()
 
 # create a separate project for each benchmark

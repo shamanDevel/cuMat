@@ -46,7 +46,7 @@ namespace internal {
                 Dynamic :
                 (BroadcastBatchesRight ? BatchesLeft : BatchesRight),
 
-            AccessFlags = AccessFlags::ReadCwise
+            AccessFlags = ReadCwise
         };
     };
 }
@@ -224,7 +224,7 @@ CUMAT_NAMESPACE_END
 #define BINARY_OP_SCALAR(Name, Op) \
     template<typename _Left, typename _Right, \
         typename S = typename CUMAT_NAMESPACE internal::traits<_Right>::Scalar, \
-        typename T = std::enable_if<std::is_convertible<_Left, S>::value, \
+        typename T = typename std::enable_if<std::is_convertible<_Left, S>::value, \
             CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>, false> >::type>\
     T Name(const _Left& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
     { \
@@ -232,7 +232,7 @@ CUMAT_NAMESPACE_END
     } \
     template<typename _Left, typename _Right, \
         typename S = typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar, \
-        typename T = std::enable_if<std::is_convertible<_Right, S>::value, \
+        typename T = typename std::enable_if<std::is_convertible<_Right, S>::value, \
             CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>, false> >::type>\
     T Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const _Right& right) \
     { \
@@ -315,7 +315,7 @@ CUMAT_NAMESPACE_END
 #define BINARY_OP_SCALAR(Name, Op) \
     template<typename _Left, typename _Right, \
         typename S = typename CUMAT_NAMESPACE internal::traits<_Right>::Scalar, \
-        typename T = std::enable_if<std::is_convertible<_Left, S>::value, \
+        typename T = typename std::enable_if<std::is_convertible<_Left, S>::value, \
             CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>, true> >::type>\
     T Name(const _Left& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
     { \
@@ -323,7 +323,7 @@ CUMAT_NAMESPACE_END
     } \
     template<typename _Left, typename _Right, \
         typename S = typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar, \
-        typename T = std::enable_if<std::is_convertible<_Right, S>::value, \
+        typename T = typename std::enable_if<std::is_convertible<_Right, S>::value, \
             CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>, true> >::type>\
     T Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const _Right& right) \
     { \

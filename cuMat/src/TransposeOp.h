@@ -1,6 +1,8 @@
 #ifndef __CUMAT_TRANSPOSE_OPS_H__
 #define __CUMAT_TRANSPOSE_OPS_H__
 
+#include <type_traits>
+
 #include "Macros.h"
 #include "ForwardDeclarations.h"
 #include "CwiseOp.h"
@@ -18,11 +20,11 @@ namespace internal {
 		using Scalar = typename internal::traits<_Derived>::Scalar;
 		enum
 		{
-			Flags = (internal::traits<_Derived>::Flags == Flags::RowMajor) ? Flags::ColumnMajor : Flags::RowMajor,
+			Flags = (internal::traits<_Derived>::Flags == RowMajor) ? ColumnMajor : RowMajor,
 			RowsAtCompileTime = internal::traits<_Derived>::ColsAtCompileTime,
 			ColsAtCompileTime = internal::traits<_Derived>::RowsAtCompileTime,
 			BatchesAtCompileTime = internal::traits<_Derived>::BatchesAtCompileTime,
-            AccessFlags = AccessFlags::ReadCwise | AccessFlags::WriteCwise
+            AccessFlags = ReadCwise | WriteCwise
 		};
 	};
 
@@ -37,14 +39,14 @@ template<typename _Derived>
 class TransposeOp : public CwiseOp<TransposeOp<_Derived>>
 {
 public:
-    typedef MatrixBase<TransposeOp<_Derived>> Base;
-    using Base::Scalar;
+    typedef CwiseOp<TransposeOp<_Derived>> Base;
+    typedef typename internal::traits<_Derived>::Scalar Scalar;
     using Type = TransposeOp<_Derived>;
 
     enum
     {
         OriginalFlags = internal::traits<_Derived>::Flags,
-        Flags = (internal::traits<_Derived>::Flags == Flags::RowMajor) ? Flags::ColumnMajor : Flags::RowMajor,
+        Flags = (internal::traits<_Derived>::Flags == RowMajor) ? ColumnMajor : RowMajor,
         Rows = internal::traits<_Derived>::ColsAtCompileTime,
         Columns = internal::traits<_Derived>::RowsAtCompileTime,
         Batches = internal::traits<_Derived>::BatchesAtCompileTime,
@@ -142,14 +144,14 @@ private:
     template<int _Rows, int _Columns, int _Batches>
     CUMAT_STRONG_INLINE void evalToImpl(Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>& mat, std::true_type) const
     {
-        evalToImplDirect(mat, std::bool_constant<internal::NumTraits<Scalar>::IsCudaNumeric>());
+        evalToImplDirect(mat, std::integral_constant<bool, internal::NumTraits<Scalar>::IsCudaNumeric>());
     }
 
 public:
     template<typename Derived>
     void evalTo(MatrixBase<Derived>& m) const
 	{
-        evalToImpl(m.derived(), std::bool_constant<IsMatrix>());
+        evalToImpl(m.derived(), std::integral_constant<bool, IsMatrix>());
 	}
 
 	//ASSIGNMENT

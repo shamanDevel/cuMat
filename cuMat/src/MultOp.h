@@ -10,7 +10,7 @@
 #include "MatrixBase.h"
 #include "Logging.h"
 #include "CublasApi.h"
-#include <thrust/detail/type_traits.h>
+
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -34,7 +34,7 @@ namespace internal {
             RowsNonT = _TransposedLeft ? ColumnsLeft : RowsLeft,
             ColumnsNonT = _TransposedRight ? RowsRight : ColumnsRight,
 
-            Flags = Flags::ColumnMajor, //TODO: pick best flag
+            Flags = ColumnMajor, //TODO: pick best flag
             RowsAtCompileTime = _TransposedOutput ? ColumnsNonT : RowsNonT,
             ColsAtCompileTime = _TransposedOutput ? RowsNonT : ColumnsNonT,
             BatchesAtCompileTime = BatchesLeft, //TODO: add broadcasting of batches
@@ -77,7 +77,7 @@ public:
         RowsNonT = _TransposedLeft ? ColumnsLeft : RowsLeft,
         ColumnsNonT = _TransposedRight ? RowsRight : ColumnsRight,
 
-        Flags = Flags::ColumnMajor, //TODO: pick best flag
+        Flags = ColumnMajor, //TODO: pick best flag
         Rows = _TransposedOutput ? ColumnsNonT : RowsNonT,
         Columns = _TransposedOutput ? RowsNonT : ColumnsNonT,
         Batches = BatchesLeft, //TODO: add broadcasting of batches
@@ -227,7 +227,6 @@ public:
 };
 
 
-
 //operator overloading, must handle all four cases of transposed inputs
 
 /**
@@ -241,7 +240,7 @@ public:
  */
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, true, true, false>
-operator*(TransposeOp<_Left>& left, TransposeOp<_Right>& right)
+operator*(const TransposeOp<_Left>& left, const TransposeOp<_Right>& right)
 {
     return MultOp<_Left, _Right, true, true, false>(left.getUnderlyingMatrix(), right.getUnderlyingMatrix());
 }
@@ -257,7 +256,7 @@ operator*(TransposeOp<_Left>& left, TransposeOp<_Right>& right)
 */
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, false, true, false>
-operator*(MatrixBase<_Left>& left, TransposeOp<_Right>& right)
+operator*(const MatrixBase<_Left>& left, const TransposeOp<_Right>& right)
 {
     return MultOp<_Left, _Right, false, true, false>(left, right.getUnderlyingMatrix());
 }
@@ -273,7 +272,7 @@ operator*(MatrixBase<_Left>& left, TransposeOp<_Right>& right)
 */
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, true, false, false>
-operator*(TransposeOp<_Left>& left, MatrixBase<_Right>& right)
+operator*(const TransposeOp<_Left>& left, const MatrixBase<_Right>& right)
 {
     return MultOp<_Left, _Right, true, false, false>(left.getUnderlyingMatrix(), right);
 }
@@ -288,13 +287,12 @@ operator*(TransposeOp<_Left>& left, MatrixBase<_Right>& right)
 */
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, false, false, false>
-operator*(MatrixBase<_Left>& left, MatrixBase<_Right>& right)
+operator*(const MatrixBase<_Left>& left, const MatrixBase<_Right>& right)
 {
     return MultOp<_Left, _Right, false, false, false>(left, right);
 }
 
 
 CUMAT_NAMESPACE_END
-
 
 #endif

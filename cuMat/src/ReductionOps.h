@@ -86,8 +86,8 @@ namespace internal
                 ? thrust::make_tuple(in.batches()*in.cols(), in.batches(), 1)
                 : thrust::make_tuple(in.batches(), in.batches()*in.rows(), 1));
             StridedMatrixIterator<_Output> iterOut(out, isRowMajor
-                ? thrust::make_tuple(in.cols(), 1, 1)
-                : thrust::make_tuple(1, in.rows(), 1));
+                ? thrust::make_tuple(in.cols(), Index(1), 1)
+                : thrust::make_tuple(Index(1), in.rows(), 1));
             CountingInputIterator<int> iterOffsets(0, in.batches());
             int num_segments = in.rows() * in.cols();
             //call cub
@@ -108,8 +108,8 @@ namespace internal
             //create iterators
             bool isRowMajor = CUMAT_IS_ROW_MAJOR(internal::traits<_Input>::Flags);
             StridedMatrixIterator<_Input> iterIn(in, isRowMajor
-                ? thrust::make_tuple(in.cols(), 1, in.cols()*in.rows())
-                : thrust::make_tuple(1, in.rows(), in.rows()*in.cols()));
+                ? thrust::make_tuple(in.cols(), Index(1), in.cols()*in.rows())
+                : thrust::make_tuple(Index(1), in.rows(), in.rows()*in.cols()));
             _Scalar* iterOut = out.data();
             CountingInputIterator<int> iterOffsets(0, in.rows()*in.cols());
             int num_segments = in.batches();
@@ -171,8 +171,8 @@ namespace internal
             //create iterators
             bool isRowMajor = CUMAT_IS_ROW_MAJOR(internal::traits<_Input>::Flags);
             StridedMatrixIterator<_Input> iterIn(in, isRowMajor 
-                ? thrust::make_tuple(in.cols(), 1, in.cols()*in.rows())
-                : thrust::make_tuple(1, in.rows(), in.rows()*in.cols()));
+                ? thrust::make_tuple(in.cols(), Index(1), in.cols()*in.rows())
+                : thrust::make_tuple(Index(1), in.rows(), in.rows()*in.cols()));
             _Scalar* iterOut = out.data();
             int num_items = in.rows() * in.cols() * in.batches();
             //call cub

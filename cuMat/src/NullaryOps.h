@@ -11,14 +11,14 @@ namespace internal {
 	template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, typename _NullaryFunctor>
 	struct traits<NullaryOp<_Scalar, _Rows, _Columns, _Batches, _Flags, _NullaryFunctor> >
 	{
-		typedef typename _Scalar Scalar;
+		typedef _Scalar Scalar;
 		enum
 		{
 			Flags = _Flags,
 			RowsAtCompileTime = _Rows,
 			ColsAtCompileTime = _Columns,
 			BatchesAtCompileTime = _Batches,
-            AccessFlags = AccessFlags::ReadCwise
+            AccessFlags = ReadCwise
 		};
 	};
 }
@@ -91,7 +91,7 @@ namespace functor
     class IdentityFunctor
     {
     public:
-        __device__ CUMAT_STRONG_INLINE const _Scalar& operator()(Index row, Index col, Index batch) const
+        __device__ CUMAT_STRONG_INLINE _Scalar operator()(Index row, Index col, Index batch) const
         {
             return (row==col) ? _Scalar(1) : _Scalar(0);
         }

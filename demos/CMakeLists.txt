@@ -5,7 +5,11 @@ set(CUMAT_DEMO_FILES
   Test.cu
   )
 
-list(APPEND CUDA_NVCC_FLAGS --cl-version=2017)
+if(MSYS)
+list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
+endif(MSYS)
+
+add_definitions(-DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
 
 # a separate project for each demo file
 foreach( demosourcefile ${CUMAT_DEMO_FILES} )
@@ -22,5 +26,5 @@ foreach( demosourcefile ${CUMAT_DEMO_FILES} )
     #target_link_libraries(${demoname} cuMat)
     
     target_link_libraries(${demoname} ${CUDA_LIBRARIES})
-    target_compile_definitions(${demoname} PRIVATE CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
+    #target_compile_definitions(${demoname} PRIVATE CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
 endforeach(demosourcefile)

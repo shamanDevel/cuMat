@@ -2,6 +2,7 @@
 #define __CUMAT_TESTS_BARRIER_H__
 
 #include <mutex>
+#include <condition_variable>
 
 //https://stackoverflow.com/a/24465624/4053176
 class Barrier

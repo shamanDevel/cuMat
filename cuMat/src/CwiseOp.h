@@ -53,7 +53,7 @@ class CwiseOp : public MatrixBase<_Derived>
 {
 public:
 	typedef MatrixBase<_Derived> Base;
-	using Base::Scalar;
+    typedef typename internal::traits<_Derived>::Scalar Scalar;
 	using Base::rows;
 	using Base::cols;
 	using Base::batches;

@@ -437,14 +437,14 @@ namespace internal {
 	template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags>
 	struct traits<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> >
 	{
-		typedef typename _Scalar Scalar;
+		typedef _Scalar Scalar;
 		enum
 		{
 			Flags = _Flags,
 			RowsAtCompileTime = _Rows,
 			ColsAtCompileTime = _Columns,
 			BatchesAtCompileTime = _Batches,
-            AccessFlags = AccessFlags::ReadCwise | AccessFlags::ReadDirect | AccessFlags::WriteCwise | AccessFlags::WriteDirect
+            AccessFlags = ReadCwise | ReadDirect | WriteCwise | WriteDirect
 		};
 	};
 
@@ -490,7 +490,7 @@ public:
 	using Scalar = _Scalar;
 	using Type = Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>;
 
-	typedef typename MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > Base;
+	typedef MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > Base;
 	using Base::eval_t;
 	using Base::size;
 

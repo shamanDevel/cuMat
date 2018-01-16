@@ -18,7 +18,7 @@ namespace internal {
 			RowsAtCompileTime = internal::traits<_Child>::RowsAtCompileTime,
 			ColsAtCompileTime = internal::traits<_Child>::ColsAtCompileTime,
 			BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
-            AccessFlags = AccessFlags::ReadCwise
+            AccessFlags = ReadCwise
 		};
 	};
 }

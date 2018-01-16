@@ -8,16 +8,16 @@ using namespace cuMat;
 template<typename Scalar>
 void testMatrixMatrixDynamic()
 {
-    typedef Matrix<Scalar, Dynamic, Dynamic, Dynamic, RowMajor> matr;
-    typedef Matrix<Scalar, Dynamic, Dynamic, Dynamic, ColumnMajor> matc;
+    typedef Matrix<float, Dynamic, Dynamic, Dynamic, RowMajor> matr;
+    typedef Matrix<float, Dynamic, Dynamic, Dynamic, ColumnMajor> matc;
 
-    Scalar dataA[1][2][4] {
+    float dataA[1][2][4] {
         {
             {1, 4, 6, -3},
             {-6, 8, 0, -2}
         }
     };
-    Scalar dataB[1][4][3] {
+    float dataB[1][4][3] {
         {
             {-2, 1, 0},
             {5, 7, -3},
@@ -25,7 +25,7 @@ void testMatrixMatrixDynamic()
             {7, -2, -5}
         }
     };
-    Scalar dataC[1][2][3] { //C=A*B
+    float dataC[1][2][3] { //C=A*B
         {
             {51, 71, 27},
             {38, 54, -14}
@@ -223,6 +223,7 @@ void testMatrixMatrixDynamic()
         matc M18 = (Ac.transpose() * Bc.transpose()).transpose();
         assertMatrixEquality(Cr, M18);
     }
+
 }
 TEST_CASE("matrix-matrix dynamic", "[matmul]")
 {
