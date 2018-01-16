@@ -33,12 +33,13 @@ else:
 
 # now create the plot
 plt.plot(xdata, [d[0] for d in results["CuMat"]], '-o', label='cuMat')
+plt.plot(xdata, [d[0] for d in results["CuBlas"]], '-o', label='cuBLAS')
 plt.plot(xdata, [d[0] for d in results["Eigen"]], '-o', label='Eigen')
 plt.plot(xdata, [d[0] for d in results["Numpy"]], '-o', label='numpy')
 plt.plot(xdata[:len(results["Tensorflow"])], [d[0] for d in results["Tensorflow"]], '-o', label='Tensorflow')
 for i,j in zip([xdata[0], xdata[-1]],[results["CuMat"][0][0], results["CuMat"][-1][0]]):
     plt.annotate(str(j),xy=(i,j), xytext=(-10,-10), textcoords='offset points')
-for i,j in zip([xdata[0], xdata[-1]],[results["Eigen"][0][0], results["Eigen"][-1][0]]):
+for i,j in zip([xdata[0], xdata[-1]],[results["CuBlas"][0][0], results["CuBlas"][-1][0]]):
     plt.annotate(str(j),xy=(i,j), xytext=(-10,5), textcoords='offset points')
 plt.xscale(xscale)
 plt.yscale(yscale)

@@ -25,6 +25,7 @@ foreach( benchmark ${CUMAT_BENCHMARKS} )
         ${CUMAT_BENCHMARK_COMMON} 
         ${benchmark}/Implementation_Eigen.cpp
         ${benchmark}/Implementation_cuMat.cu
+        ${benchmark}/Implementation_cuBlas.cu
         ${benchmark}/Implementation_numpy.py
         ${benchmark}/Implementation_tensorflow.py
         ${benchmark}/MakePlots.py)

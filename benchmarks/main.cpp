@@ -68,6 +68,11 @@ int main(int argc, char* argv[])
         std::cout << " Run CuMat" << std::endl;
         Json::Array resultsCuMat;
         benchmark_cuMat(parameterNames, params, returnNames, resultsCuMat);
+        
+        //cuBlas
+        std::cout << " Run cuBLAS" << std::endl;
+        Json::Array resultsCuBlas;
+        benchmark_cuBlas(parameterNames, params, returnNames, resultsCuBlas);
 
         //Eigen
         std::cout << " Run Eigen" << std::endl;
@@ -93,6 +98,7 @@ int main(int argc, char* argv[])
         //write results
         Json::Object resultAssembled;
         resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
+        resultAssembled.Insert(std::make_pair("CuBlas", resultsCuBlas));
         resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
         resultAssembled.Insert(std::make_pair("Numpy", resultsNumpy));
         resultAssembled.Insert(std::make_pair("Tensorflow", resultsTF));

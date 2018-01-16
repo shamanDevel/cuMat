@@ -2,7 +2,7 @@ namespace cuMat {
 
 /** \page Benchmarks Benchmarks
 
-To elaborate the execution time of the cuMat operations, we compare the implementations of the same algorithm in cuMat, Eigen, numpy and tensorflow.
+To elaborate the execution time of the cuMat operations, we compare the implementations of the same algorithm in cuMat, cuBLAS, Eigen, numpy and tensorflow.
 
 \section System System setup
 
@@ -19,7 +19,7 @@ The operation system used to execute the benchmarks:
 
 \section LinearCombination Benchmark 1: linear combination
 
-The first benchmark measures the performance of a linear combination
+The first benchmark measures the performance of a linear combination (series of AXPY's)
 \f[
     v = \sum_{i=1}^k \alpha_i v_i
 \f]
@@ -32,8 +32,9 @@ First test case: constant number of combinations (\f$k=2\f$), varying size of th
 \image html "Linear Combination - Constant Count.png"
 \image latex "Linear Combination - Constant Count.png" width=10cm
 
-You can see that the CPU libraries (numpy+Eigen) are faster than cuMat for small vector sizes, smaller than 10000 entries.
-After that sweep spot, the GPU is fully saturated and the performance of cuMat is better than of Eigen or cuMat. For the largest case of 50000000 entries, cuMat is about twice as fast as Eigen.
+You can see that the pure CPU libraries (numpy+Eigen) are faster than the pure GPU libraries (cuMat+cuBLAS) for small vector sizes, smaller than 10000 entries.
+After that sweep spot, the GPU is better saturated and the performance of cuMat and cuBLAS is better than of Eigen or cuMat. For the largest case of 50000000 entries, cuMat is about 23 times faster than numpy and more than 100 times faster than Eigen.
+It is also interesting to see, that the custom AXPY-implementation in cuMat performs equally well than the optimized version in cuBLAS.
 Note that Tensorflow is extremely slow compared to the other libraries in this simple example. Further, it runs out of memory for the largest test case, hence no timing is available for that.
 
 Second test case: constant size of the vectors (\f$n=1000000\f$), varying number of combinations (\f$k\f$)
@@ -42,7 +43,8 @@ Second test case: constant size of the vectors (\f$n=1000000\f$), varying number
 \image html "Linear Combination - Constant Size.png"
 \image latex "Linear Combination - Constant Size.png" width=10cm
 
-Eigen and cuMat both show sublinear growth (it appears linear because of the log-scale on the time axis). This is due to faster memory reading than writing.
+This test case shows the power of the kernel merging performed by cuMat. The linear combination is evaluated in a single kernel in cuMat (without storing the intermediate results in memory), while cuBLAS needs one call to AXPY per factor (and writes the intermediate results into memory every time).
+Between 4 and 5 linear combinations, cuMat becomes faster than the highly optimized cuBLAS. 
 
 */
 
