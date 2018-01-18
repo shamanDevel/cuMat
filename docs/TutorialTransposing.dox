@@ -1,3 +1,30 @@
 namespace cuMat {
 
 /** \page TutorialTransposing Matrix Transposing
+
+The transpose \f$ a^T \f$, conjugate \f$ \bar{a} \f$, and adjoint (i.e., conjugate transpose) \f$ a^* \f$ of a matrix or vector \f$ a \f$ are obtained by the member functions \link MatrixBase::transpose() transpose()\endlink, \link MatrixBase::conjugate() conjugate()\endlink, and \link MatrixBase::adjoint() adjoint()\endlink, respectively.
+
+\note TODO: complex support not implemented yet
+
+As like any other operation, \c transpose() only return a proxy object without performing the actual transposition.
+How the transposition is evaluated depends on the target matrix and the parent object:
+
+<table class="example">
+<tr><th>Example:</th><th>Possible Output:</th></tr>
+<tr><td>
+\include TutorialTransposing_modes.cu
+</td>
+<td>
+\verbinclude TutorialTransposing_modes.out
+</td></tr></table>
+
+1. If you call \c eval() and let cuMat choose the best storage order, the storage order is simply toggled. No actual transposition is performed, only the data is reinterpreted
+2. If you call \c transpose() on a Matrix and assign it to a matrix of the same storage order, then the data actually needs to be transposed. In that case, cuBLAS is used to perform the operation.
+3. If you call \c transpose() on a component-wise expression, the transposition is build into the component-wise evaluation to avoid evaluation of the intermediate results.
+   Again, if you let cuMat choose the storage order, it is chosen so that the memory write access is still coalesce. In that case, the storage order is the flipped one of the input matrices.
+
+
+
+*/
+
+}

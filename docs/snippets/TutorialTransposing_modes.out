@@ -1,0 +1,34 @@
+Input matrix 1:
+Matrix: rows=5 (dynamic), cols=6 (dynamic), batches=1 (compile-time), storage=Row-Major
+19 16 15 18 17  5
+14 14 14  0 18 12
+ 5  0  2  2  2  2
+10 11  6  5  6  0
+14  4 19 17 15  5
+
+eval1: class cuMat::Matrix<int,-1,-1,1,0>
+Matrix: rows=6 (dynamic), cols=5 (dynamic), batches=1 (compile-time), storage=Column-Major
+19 14  5 10 14
+16 14  0 11  4
+15 14  2  6 19
+18  0  2  5 17
+17 18  2  6 15
+ 5 12  2  0  5
+
+eval2: class cuMat::Matrix<int,-1,-1,1,1>
+Matrix: rows=6 (dynamic), cols=5 (dynamic), batches=1 (compile-time), storage=Row-Major
+19 14  5 10 14
+16 14  0 11  4
+15 14  2  6 19
+18  0  2  5 17
+17 18  2  6 15
+ 5 12  2  0  5
+
+eval3: class cuMat::Matrix<int,-1,-1,1,0>
+Matrix: rows=6 (dynamic), cols=5 (dynamic), batches=1 (compile-time), storage=Column-Major
+38 28 10 20 28
+32 28  0 22  8
+30 28  4 12 38
+36  0  4 10 34
+34 36  4 12 30
+10 24  4  0 10
