@@ -82,7 +82,7 @@ For now, assume that both input matrices have the same size.
 cuMat also supports broadcasting, e.g. combine a vector and a matrix by a binary expression. This is covered in the next chapter \ref TutorialCWise_Broadcasting.
 
 <table>
-<caption id="unary_ops">Unary operations</caption>
+<caption id="binary_ops">Unary operations</caption>
 <tr><th>Function on element \f$ x,x \f$ </th>  <th>Method style on matrix \c m1 and \c m2 </th>  <th>Function style on matrix \c m1 and \c m2 </th>  <th>Supported types</th></tr>
 
 <tr><th> \f$ x + y \f$ </th>  <th> \c m1.cwiseAdd(m2) </th>  <th> \c m1+m2 </th> <th>all</th></tr>

@@ -18,6 +18,8 @@ set(CUMAT_HEADERS
   src/Matrix.h
   src/CwiseOp.h
   src/MatrixBlock.h
+  src/MatrixBlockPluginLvalue.h
+  src/MatrixBlockPluginRvalue.h
   src/NullaryOps.h
   src/UnaryOps.h
   src/UnaryOpsPlugin.h

@@ -103,6 +103,7 @@ public:
 
 
 	// CWISE EXPRESSIONS
+#include "MatrixBlockPluginRvalue.h"
 #include "UnaryOpsPlugin.h"
 #include "BinaryOpsPlugin.h"
 #include "ReductionOpsPlugin.h"

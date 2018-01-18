@@ -1,8 +1,7 @@
 #include <catch/catch.hpp>
 
-#include <cuMat/src/Matrix.h>
-#include <cuMat/src/MatrixBlock.h>
-#include <cuMat/src/EigenInteropHelpers.h>
+#include <cuMat/Core>
+#include "Utils.h"
 
 TEST_CASE("fixed_block_rw", "[block]")
 {
@@ -66,4 +65,30 @@ TEST_CASE("dynamic_block_rw", "[block]")
 
 	for (int i = 0; i < batches; ++i) REQUIRE(m_host1[i] == m_host2[i]);
 	for (int i = 0; i < batches; ++i) REQUIRE(m_host1[i] == m_host3[i]);
+}
+
+
+TEST_CASE("cwise_r", "[block]")
+{
+    int data[2][2][2] {
+        {
+            {1, 2},
+            {3, 4}
+        },
+        {
+            {5, 6},
+            {7, 8}
+        }
+    };
+    cuMat::BMatrixXiR mat = cuMat::BMatrixXiR::fromArray(data);
+    auto matCwise = (mat * 1);
+    
+    cuMat::Matrix2i batch1 = matCwise.block<2, 2, 1>(0, 0, 0);
+    int batch1Expected[1][2][2]{
+        {
+            { 1, 2 },
+            { 3, 4 }
+        }
+    };
+    assertMatrixEquality(batch1Expected, batch1);
 }

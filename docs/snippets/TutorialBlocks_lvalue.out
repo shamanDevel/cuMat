@@ -1,0 +1,7 @@
+Matrix: rows=6 (dynamic), cols=6 (dynamic), batches=1 (compile-time), storage=Column-Major
+0 0 0 1 0 0
+0 0 0 0 1 0
+0 0 0 0 0 1
+1 0 0 0 0 0
+0 1 0 0 0 0
+0 0 1 0 0 0
