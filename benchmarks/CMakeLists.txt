@@ -13,9 +13,9 @@ set(CUMAT_BENCHMARKS
   linear_combination
   )
 
-if(MSYS)
+if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
-endif(MSYS)
+endif()
 enable_testing()
 
 # create a separate project for each benchmark

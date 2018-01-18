@@ -35,9 +35,9 @@ set(CUMAT_TEST_FILES
   TestMatrixMultOp.cu
   )
 
-if(MSYS)
+if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
-endif(MSYS)
+endif()
 enable_testing()
 
 add_definitions(-DCUMAT_CONTEXT_DEBUG_MEMORY=1 -DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
