@@ -1,0 +1,6 @@
+Here is mat.sum():       10
+Here is mat.prod():      24
+Here is mat.minCoeff():  1
+Here is mat.maxCoeff():  4
+Are all elements > 2?    0
+Is any element > 2?      1

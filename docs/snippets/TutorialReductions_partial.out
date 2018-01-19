@@ -1,0 +1,37 @@
+Input matrix: Matrix: rows=2 (dynamic), cols=2 (dynamic), batches=2 (dynamic), storage=Row-Major
+batch 0
+1 2
+3 4
+batch 1
+5 6
+7 8
+
+Full reduction: Matrix: rows=1 (compile-time), cols=1 (compile-time), batches=1 (compile-time), storage=Row-Major
+36
+
+dynamic version: Matrix: rows=1 (dynamic), cols=1 (dynamic), batches=1 (dynamic), storage=Row-Major
+36
+
+Along rows: Matrix: rows=1 (compile-time), cols=2 (dynamic), batches=2 (dynamic), storage=Row-Major
+batch 0
+4 6
+batch 1
+12 14
+
+Along columns: Matrix: rows=2 (dynamic), cols=1 (compile-time), batches=2 (dynamic), storage=Row-Major
+batch 0
+3
+7
+batch 1
+11
+15
+
+Along batches: Matrix: rows=2 (dynamic), cols=2 (dynamic), batches=1 (compile-time), storage=Row-Major
+ 6  8
+10 12
+
+Along rows and columns: Matrix: rows=1 (compile-time), cols=1 (compile-time), batches=2 (dynamic), storage=Row-Major
+batch 0
+10
+batch 1
+26

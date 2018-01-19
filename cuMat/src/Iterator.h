@@ -11,18 +11,18 @@
 CUMAT_NAMESPACE_BEGIN
 
 /**
- * \brief A random-access matrix iterator with adaptive stride.
+ * \brief A random-access matrix input iterator with adaptive stride.
  * This is a very general iterator that allows the traversal of a matrix in any order
  * (row-column-batch, or batch-column-row, to name a few).
  * Parts of the code are taken from CUB.
  * \tparam _Derived 
  */
 template <typename _Derived>
-class StridedMatrixIterator
+class StridedMatrixInputIterator
 {
 public:
     // Required iterator traits
-    typedef StridedMatrixIterator<_Derived> self_type; ///< My own type
+    typedef StridedMatrixInputIterator<_Derived> self_type; ///< My own type
     typedef Index difference_type; ///< Type to express the result of subtracting one iterator from another
     using ValueType = typename internal::traits<_Derived>::Scalar;
     using value_type = ValueType; ///< The type of the element the iterator can point to
@@ -41,7 +41,7 @@ protected:
 public:
     /// Constructor
     __host__ __device__
-    StridedMatrixIterator(const MatrixBase<_Derived>& mat, const Index3& stride)
+    StridedMatrixInputIterator(const MatrixBase<_Derived>& mat, const Index3& stride)
         : mat_(mat.derived())
         , dims_{mat.rows(), mat.cols(), mat.batches()}
         , stride_(stride)
@@ -153,15 +153,6 @@ public:
         return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
     }
 
-    //template <typename Distance, typename T = typename std::enable_if<internal::traits<_Derived>::AccessFlags & AccessFlags::WriteDirect, reference>::type>
-    //__device__ __forceinline__ T operator[](Distance n)
-    template <typename Distance>
-    __device__ __forceinline__ reference operator[](Distance n)
-    {
-        Index3 coords = fromLinear(index_ + n, dims_, stride_);
-        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
-    }
-
     /// Equal to
     __host__ __device__ __forceinline__ bool operator==(const self_type& rhs)
     {
@@ -174,6 +165,47 @@ public:
         return (index_ != rhs.index_);
     }
 };
+
+
+/**
+* \brief A random-access matrix input iterator with adaptive stride.
+* This is a very general iterator that allows the traversal of a matrix in any order
+* (row-column-batch, or batch-column-row, to name a few).
+* Parts of the code are taken from CUB.
+* \tparam _Derived
+*/
+template <typename _Derived>
+class StridedMatrixOutputIterator : public StridedMatrixInputIterator<_Derived>
+{
+public:
+    // Required iterator traits
+    typedef StridedMatrixOutputIterator<_Derived> self_type; ///< My own type
+    typedef Index difference_type; ///< Type to express the result of subtracting one iterator from another
+    using ValueType = typename internal::traits<_Derived>::Scalar;
+    using value_type = ValueType; ///< The type of the element the iterator can point to
+    using pointer = ValueType*; ///< The type of a pointer to an element the iterator can point to
+    using reference = ValueType&; ///< The type of a reference to an element the iterator can point to
+    using iterator_category = std::random_access_iterator_tag;
+
+    typedef thrust::tuple<Index, Index, Index> Index3;
+
+public:
+    /// Constructor
+    __host__ __device__
+        StridedMatrixOutputIterator(const MatrixBase<_Derived>& mat, const Index3& stride)
+        : StridedMatrixInputIterator(mat, stride)
+    {}
+
+    //The only new thing is the non-const version of the dereference
+
+    template <typename Distance>
+    __device__ __forceinline__ reference operator[](Distance n)
+    {
+        Index3 coords = fromLinear(index_ + n, dims_, stride_);
+        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
+    }
+};
+
 
 
 /**
