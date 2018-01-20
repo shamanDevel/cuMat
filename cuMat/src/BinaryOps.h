@@ -103,8 +103,10 @@ public:
     };
 
 protected:
-    const _Left left_;
-    const _Right right_;
+    typedef typename MatrixReadWrapper<_Left, AccessFlags::ReadCwise>::type left_wrapped_t;
+    typedef typename MatrixReadWrapper<_Right, AccessFlags::ReadCwise>::type right_wrapped_t;
+    const left_wrapped_t left_;
+    const right_wrapped_t right_;
     const _BinaryFunctor functor_;
 
 public:

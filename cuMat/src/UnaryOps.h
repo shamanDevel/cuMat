@@ -48,7 +48,8 @@ public:
 	};
 
 protected:
-	const _Child child_;
+    typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
+	const child_wrapped_t child_;
 	const _UnaryFunctor functor_;
 
 public:
@@ -105,6 +106,7 @@ namespace functor
 
 	DEFINE_GENERAL_FUNCTOR(cwiseNegate, (-x));
 	DEFINE_GENERAL_FUNCTOR(cwiseAbs, abs(x));
+    DEFINE_GENERAL_FUNCTOR(cwiseAbs2, x*x);
 	DEFINE_GENERAL_FUNCTOR(cwiseInverse, 1/x);
 
 	DEFINE_FUNCTOR_FLOAT(cwiseExp, exp(x));
@@ -375,14 +377,7 @@ CUMAT_FUNCTION_NAMESPACE_BEGIN
         return CUMAT_NAMESPACE UnaryOp<_Derived, CUMAT_NAMESPACE functor::UnaryMathFunctor_ ## Op <typename CUMAT_NAMESPACE internal::traits<_Derived>::Scalar>>(mat.derived()); \
     }
 
-template <typename _Derived>
-::cuMat::UnaryOp<_Derived, ::cuMat::functor::UnaryMathFunctor_cwiseAbs<typename ::cuMat::internal::traits<_Derived>::Scalar>>
-abs(const ::cuMat::MatrixBase<_Derived>& mat)
-{
-    return ::cuMat::UnaryOp<_Derived, ::cuMat::functor::UnaryMathFunctor_cwiseAbs<typename ::cuMat::internal::traits<_Derived>::Scalar>>(mat.derived());
-};
-
-//UNARY_OP(abs, cwiseAbs);
+UNARY_OP(abs, cwiseAbs);
 UNARY_OP(inverse, cwiseInverse);
 UNARY_OP(floor, cwiseFloor);
 UNARY_OP(ceil, cwiseCeil);

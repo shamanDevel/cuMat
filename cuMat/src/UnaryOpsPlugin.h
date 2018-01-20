@@ -14,6 +14,10 @@ UNARY_OP_ACCESSOR(cwiseNegate);
 */
 UNARY_OP_ACCESSOR(cwiseAbs);
 /**
+* \brief squares the value (x -> x^2)
+*/
+UNARY_OP_ACCESSOR(cwiseAbs2);
+/**
 * \brief computes the component-wise inverse (x -> 1/x)
 */
 UNARY_OP_ACCESSOR(cwiseInverse);

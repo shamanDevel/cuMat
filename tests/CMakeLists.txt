@@ -31,6 +31,7 @@ set(CUMAT_TEST_FILES
   TestReductionOps1.cu
   TestReductionOps2.cu
   TestReductionOps3.cu
+  TestReductionOps4.cu
   TestIterator.cu
   TestRandom.cu
   TestMatrixMultOp.cu

@@ -58,10 +58,10 @@ template<typename Derived, typename Scalar, int Rows, int Cols, int Batches>
 void assertMatrixEquality(const Scalar(&expected)[Batches][Rows][Cols], const cuMat::MatrixBase<Derived>& actual)
 {
     const auto mat = actual.derived().eval();
+    INFO("actual: " << mat);
     REQUIRE(Rows == mat.rows());
     REQUIRE(Cols == mat.cols());
     REQUIRE(Batches == mat.batches());
-    INFO("actual: " << mat);
     for (int batch=0; batch<Batches; ++batch)
     {
         const auto emat = mat.template block<Rows, Cols, 1>(0, 0, batch).eval().toEigen();

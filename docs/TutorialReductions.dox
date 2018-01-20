@@ -57,8 +57,12 @@ The second example demonstrates the partial reductions:
 
 The following operations are combinations of already presented primitive reductions and component-wise operations.
 
-\note
-TODO: Add \c trace() (and \c diag()), \c squaredNorm() and \c norm() 
+The trace of a matrix is available with \link MatrixBase::trace() trace()\endlink. It is simply implemented as <tt>diagonal().sum<ReductionAxis::Row>()</tt>.
+
+The dot product of two vectors is available with \link MatrixBase::dot() dot(other)\endlink. Note that both vectors must both be either compile-time row vectors or compile-time column vectors.
+
+The l2-norm of a vector can be computed with \link MatrixBase::norm() norm()\endlink, the squared version with \link MatrixBase::squaredNorm() squaredNorm()\endlink. 
+This method can also be applied on matrices; in that case, a n-by-p matrix is seen as a vector of size (n*p), so for example the norm() method returns the "Frobenius" or "Hilbert-Schmidt" norm.
 
 */
 

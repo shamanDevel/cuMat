@@ -472,9 +472,8 @@ namespace internal {
  * \tparam _Flags a combination of flags from the \ref Flags enum.
  */
 template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags>
-class Matrix 
-	: public CwiseOp<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > //inheriting from CwiseOp allows a Matrix to be used as a leaf
-	//: public MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> >
+class Matrix : public CwiseOp<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > 
+    //inheriting from CwiseOp instead MatrixBase allows it to be evaluated as cwise-operation into lvalues.
 {
 protected:
 	using Storage_t = internal::DenseStorage<_Scalar, _Rows, _Columns, _Batches>;
@@ -490,8 +489,9 @@ public:
 	using Scalar = _Scalar;
 	using Type = Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>;
 
-	typedef MatrixBase<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > Base;
-	using Base::eval_t;
+	typedef CwiseOp<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > Base;
+    using Base::derived;
+    using Base::eval_t;
 	using Base::size;
 
 	/**

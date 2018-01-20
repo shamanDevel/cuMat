@@ -76,6 +76,7 @@ namespace functor
     //unary
 	template<typename _Scalar> class UnaryMathFunctor_cwiseNegate;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseAbs;
+    template<typename _Scalar> class UnaryMathFunctor_cwiseAbs2;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseInverse;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseExp;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseLog;
