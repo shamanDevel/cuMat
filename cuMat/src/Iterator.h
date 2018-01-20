@@ -179,6 +179,7 @@ class StridedMatrixOutputIterator : public StridedMatrixInputIterator<_Derived>
 {
 public:
     // Required iterator traits
+    typedef StridedMatrixInputIterator<_Derived> Base;
     typedef StridedMatrixOutputIterator<_Derived> self_type; ///< My own type
     typedef Index difference_type; ///< Type to express the result of subtracting one iterator from another
     using ValueType = typename internal::traits<_Derived>::Scalar;
@@ -193,7 +194,7 @@ public:
     /// Constructor
     __host__ __device__
         StridedMatrixOutputIterator(const MatrixBase<_Derived>& mat, const Index3& stride)
-        : StridedMatrixInputIterator(mat, stride)
+        : StridedMatrixInputIterator<_Derived>(mat, stride)
     {}
 
     //The only new thing is the non-const version of the dereference
@@ -201,8 +202,8 @@ public:
     template <typename Distance>
     __device__ __forceinline__ reference operator[](Distance n)
     {
-        Index3 coords = fromLinear(index_ + n, dims_, stride_);
-        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
+        Index3 coords = fromLinear(Base::index_ + n, Base::dims_, Base::stride_);
+        return Base::mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
     }
 };
 
