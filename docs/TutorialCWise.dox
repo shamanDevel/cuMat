@@ -162,6 +162,13 @@ MatrixXf m2 = m1.cast<float>(); //casting to float
 \endcode
 Casting is also a component-wise operation, so it can be inserted in a chain of other component-wise expressions without overhead.
 
+\section TutorialCWise_Diagonal Diagonal matrices
+
+The main diagonal of a (not necessarily square) matrix is extracted by \link MatrixBase::diagonal() diagonal()\endlink.
+The result is a column vector containing the entries of the main diagonal. Note that if this is called on a component-wise expression, then only the entries on the diagonal are evaluated at all.
+
+The convert a vector into a matrix with the vector's entries on the diagonal, the operation \link MatrixBase::asDiagonal() asDiagonal()\endlink can be used.
+
 */
 
 }

@@ -61,6 +61,7 @@ void assertMatrixEquality(const Scalar(&expected)[Batches][Rows][Cols], const cu
     REQUIRE(Rows == mat.rows());
     REQUIRE(Cols == mat.cols());
     REQUIRE(Batches == mat.batches());
+    INFO("actual: " << mat);
     for (int batch=0; batch<Batches; ++batch)
     {
         const auto emat = mat.template block<Rows, Cols, 1>(0, 0, batch).eval().toEigen();

@@ -128,6 +128,8 @@ UNARY_OP_ACCESSOR(cwiseErfc);
 */
 UNARY_OP_ACCESSOR(cwiseLgamma);
 
+#undef UNARY_OP_ACCESSOR
+
 /**
  * \brief Negates this matrix
  */
@@ -153,4 +155,20 @@ CastingOp<_Derived, _Target> cast()
 	return CastingOp<_Derived, _Target>(derived());
 }
 
-#undef UNARY_OP_ACCESSOR
+/**
+ * \brief Returns a diagonal matrix with this vector as the main diagonal.
+ * This is only available for compile-time row- or column vectors.
+ */
+AsDiagonalOp<_Derived> asDiagonal() const
+{
+    return AsDiagonalOp<_Derived>(derived());
+}
+
+/**
+ * \brief Extracts the main diagonal of this matrix and returns it as a column vector.
+ * The matrix must not necessarily be square.
+ */
+ExtractDiagonalOp<_Derived> diagonal() const
+{
+    return ExtractDiagonalOp<_Derived>(derived());
+}

@@ -212,7 +212,7 @@ protected:
 	const _Child child_;
 
 public:
-	CastingOp(const MatrixBase<_Child>& child)
+	explicit CastingOp(const MatrixBase<_Child>& child)
 		: child_(child.derived())
 	{}
 
@@ -225,6 +225,141 @@ public:
 		return functor::CastFunctor<SourceType, TargetType>::cast(child_.derived().coeff(row, col, batch));
 	}
 };
+
+
+// diagonal() and asDiagonal()
+
+namespace internal {
+    template<typename _Child>
+    struct traits<AsDiagonalOp<_Child> >
+    {
+        using Scalar = typename internal::traits<_Child>::Scalar;
+        enum
+        {
+            Flags = internal::traits<_Child>::Flags,
+            Size = internal::traits<_Child>::RowsAtCompileTime == 1 ? internal::traits<_Child>::ColsAtCompileTime : internal::traits<_Child>::RowsAtCompileTime,
+            RowsAtCompileTime = Size,
+            ColsAtCompileTime = Size,
+            BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime
+        };
+    };
+}
+/**
+* \brief A wrapper operation that expresses the compile-time vector as a diagonal matrix.
+* This is the return type of \c asDiagonal()
+* \tparam _Child the child expression
+*/
+template<typename _Child>
+class AsDiagonalOp : public CwiseOp<AsDiagonalOp<_Child> >
+{
+public:
+    typedef CwiseOp<AsDiagonalOp<_Child> > Base;
+    using Scalar = typename internal::traits<_Child>::Scalar;
+    enum
+    {
+        Flags = internal::traits<_Child>::Flags,
+        Size = internal::traits<_Child>::RowsAtCompileTime == 1 ? internal::traits<_Child>::ColsAtCompileTime : internal::traits<_Child>::RowsAtCompileTime,
+        IsRowVector = internal::traits<_Child>::RowsAtCompileTime == 1,
+        Rows = Size,
+        Columns = Size,
+        Batches = internal::traits<_Child>::BatchesAtCompileTime
+    };
+
+protected:
+    const _Child child_;
+    const Index size_;
+
+public:
+    explicit AsDiagonalOp(const MatrixBase<_Child>& child)
+        : child_(child.derived())
+        , size_(child.rows()==1 ? child.cols() : child.rows())
+    {
+        CUMAT_STATIC_ASSERT(internal::traits<_Child>::RowsAtCompileTime == 1 || internal::traits<_Child>::ColsAtCompileTime == 1,
+            "The child expression must be a compile-time row or column vector");
+    }
+
+    __host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return size_; }
+    __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return size_; }
+    __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
+
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    {
+        if (row == col)
+        {
+            if (IsRowVector)
+                return child_.derived().coeff(0, col, batch);
+            else
+                return child_.derived().coeff(row, 0, batch);
+        } else
+        {
+            return Scalar(0);
+        }
+    }
+};
+
+
+namespace internal {
+    template<typename _Child>
+    struct traits<ExtractDiagonalOp<_Child> >
+    {
+        using Scalar = typename internal::traits<_Child>::Scalar;
+        enum
+        {
+            Flags = internal::traits<_Child>::Flags,
+            RowsAtCompileTime = (internal::traits<_Child>::RowsAtCompileTime == Dynamic || internal::traits<_Child>::RowsAtCompileTime == Dynamic)
+                ? Dynamic
+                : (internal::traits<_Child>::ColsAtCompileTime < internal::traits<_Child>::RowsAtCompileTime
+                    ? internal::traits<_Child>::ColsAtCompileTime
+                    : internal::traits<_Child>::RowsAtCompileTime),
+            ColsAtCompileTime = 1,
+            BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime
+        };
+    };
+}
+/**
+* \brief The operation that extracts the main diagonal of a matrix and returns it as a column vector.
+* The matrix must not necessarily be square
+* This is the return type of \c diagonal()
+* \tparam _Child the child expression
+*/
+template<typename _Child>
+class ExtractDiagonalOp : public CwiseOp<ExtractDiagonalOp<_Child> >
+{
+public:
+    typedef CwiseOp<ExtractDiagonalOp<_Child> > Base;
+    using Scalar = typename internal::traits<_Child>::Scalar;
+    enum
+    {
+        Flags = internal::traits<_Child>::Flags,
+        Rows = (internal::traits<_Child>::RowsAtCompileTime == Dynamic || internal::traits<_Child>::RowsAtCompileTime == Dynamic)
+            ? Dynamic 
+            : (internal::traits<_Child>::ColsAtCompileTime < internal::traits<_Child>::RowsAtCompileTime
+                ? internal::traits<_Child>::ColsAtCompileTime
+                : internal::traits<_Child>::RowsAtCompileTime),
+        Columns = 1,
+        Batches = internal::traits<_Child>::BatchesAtCompileTime
+    };
+
+protected:
+    const _Child child_;
+    const Index size_;
+
+public:
+    explicit ExtractDiagonalOp(const MatrixBase<_Child>& child)
+        : child_(child.derived())
+        , size_(child.rows() < child.cols() ? child.rows() : child.cols())
+    {}
+
+    __host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return size_; }
+    __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return 1; }
+    __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
+
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    {
+        return child_.derived().coeff(row, row, batch);
+    }
+};
+
 
 CUMAT_NAMESPACE_END
 
