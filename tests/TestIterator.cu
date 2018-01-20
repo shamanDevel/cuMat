@@ -10,7 +10,7 @@ using namespace cuMat;
 template <typename _Derived>
 void TestIndexMath(const MatrixBase<_Derived>& mat, thrust::tuple<Index, Index, Index> stride)
 {
-    typedef StridedMatrixIterator<_Derived> Iterator;
+    typedef StridedMatrixInputIterator<_Derived> Iterator;
     typedef thrust::tuple<Index, Index, Index> Index3;
     Index3 dims { mat.rows(), mat.cols(), mat.batches() };
     INFO("Dims: " << dims.get<0>()<<","<<dims.get<1>()<<","<<dims.get<2>() << "; Stride: " << stride.get<0>()<<","<<stride.get<1>()<<","<<stride.get<2>());
@@ -82,7 +82,7 @@ TEST_CASE("iterator-read", "[iterator]")
         }
     };
     auto m = BMatrixXiR::fromArray(data);
-    StridedMatrixIterator<BMatrixXiR> iter(m, thrust::make_tuple(3, 1, 12));
+    StridedMatrixInputIterator<BMatrixXiR> iter(m, thrust::make_tuple(3, 1, 12));
     DevicePointer<int> outMem(24);
     CUMAT_SAFE_CALL(cudaMemset(outMem.pointer(), 0, sizeof(int) * 24));
     FillWithIteratorKernel<<<24, 1>>>(iter, outMem.pointer());
