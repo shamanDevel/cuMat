@@ -178,7 +178,7 @@ ReductionOp_DynamicSwitched<_Derived, functor::BitwiseOr<Scalar>> bitwiseOr(int 
  * \brief Computes the trace of the matrix.
  * This is simply implemented as <tt>*this.diagonal().sum<ReductionAxis::Column>()</tt>
  */
-auto trace() const
+ReductionOp_StaticSwitched<ExtractDiagonalOp<_Derived>, functor::Sum<Scalar>, ReductionAxis::Row | ReductionAxis::Column> trace() const
 {
     return diagonal().sum<ReductionAxis::Row | ReductionAxis::Column>();
 }
@@ -188,7 +188,7 @@ auto trace() const
  * This method is only allowed on compile-time vectors of the same orientation (either row- or column vector).
  */
 template<typename _Other>
-auto dot(const MatrixBase<_Other>& rhs) const
+ReductionOp_StaticSwitched<BinaryOp<_Derived, _Other, functor::BinaryMathFunctor_cwiseMul<Scalar>, false >, functor::Sum<Scalar>, ReductionAxis::Row | ReductionAxis::Column> dot(const MatrixBase<_Other>& rhs) const
 {
     CUMAT_STATIC_ASSERT(internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1,
         "This matrix must be a compile-time row or column vector");
@@ -201,7 +201,7 @@ auto dot(const MatrixBase<_Other>& rhs) const
  * \brief Computes the squared l2-norm of this matrix if it is a vecotr, or the squared Frobenius norm if it is a matrix.
  * It consists in the the sum of the square of all the matrix entries.
  */
-auto squaredNorm() const
+ReductionOp_StaticSwitched<UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseAbs2<Scalar> >, functor::Sum<Scalar>, ReductionAxis::Row | ReductionAxis::Column> squaredNorm() const
 {
     return cwiseAbs2().sum<ReductionAxis::Row | ReductionAxis::Column>();
 }
@@ -210,7 +210,8 @@ auto squaredNorm() const
  * \brief Computes the l2-norm of this matrix if it is a vecotr, or the Frobenius norm if it is a matrix.
  * It consists in the square root of the sum of the square of all the matrix entries.
  */
-auto norm() const
+UnaryOp<ReductionOp_StaticSwitched<UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseAbs2<Scalar> >, functor::Sum<Scalar>, ReductionAxis::Row | ReductionAxis::Column>, functor::UnaryMathFunctor_cwiseSqrt<Scalar> >
+norm() const
 {
     return squaredNorm().cwiseSqrt();
 }
