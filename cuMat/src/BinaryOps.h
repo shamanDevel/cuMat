@@ -202,6 +202,11 @@ namespace functor
 #define DEFINE_FUNCTOR_FLOAT(Name, Fn) \
 	DEFINE_FUNCTOR(Name, float, Fn);   \
 	DEFINE_FUNCTOR(Name, double, Fn);
+#define DEFINE_FUNCTOR_FLOAT_COMPLEX(Name, Fn) \
+	DEFINE_FUNCTOR(Name, float, Fn);   \
+	DEFINE_FUNCTOR(Name, double, Fn);  \
+    DEFINE_FUNCTOR(Name, cfloat, Fn);  \
+	DEFINE_FUNCTOR(Name, cdouble, Fn);
 #define DEFINE_FUNCTOR_INT(Name, Fn) \
 	DEFINE_FUNCTOR(Name, int, Fn);   \
 	DEFINE_FUNCTOR(Name, long, Fn);
@@ -211,7 +216,7 @@ namespace functor
     DEFINE_GENERAL_FUNCTOR(cwiseMul, x * y);
     DEFINE_GENERAL_FUNCTOR(cwiseDiv, x / y);
     DEFINE_FUNCTOR_INT(cwiseMod, x % y);
-    DEFINE_FUNCTOR_FLOAT(cwisePow, pow(x, y));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwisePow, pow(x, y));
 
 
 #undef DECLARE_FUNCTOR

@@ -47,6 +47,10 @@ namespace internal
 	{
 		typedef cfloat Type;
 		typedef float RealType;
+        enum
+        {
+            IsCudaNumeric = 1
+        };
 	};
 
 	template <>
@@ -54,6 +58,10 @@ namespace internal
 	{
 		typedef cdouble Type;
 		typedef double RealType;
+        enum
+        {
+            IsCudaNumeric = 1
+        };
 	};
 }
 

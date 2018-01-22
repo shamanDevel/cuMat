@@ -136,9 +136,18 @@ namespace eigen
 			StorageEigenToCuMat<_EigenMatrixType::Options>::value
 		>;
 	};
+
 }
 
 CUMAT_NAMESPACE_END
+
+//tell Eigen how to handle cfloat and cdouble
+namespace Eigen
+{
+    template<> struct NumTraits<CUMAT_NAMESPACE cfloat> : NumTraits<std::complex<float>> {};
+    template<> struct NumTraits<CUMAT_NAMESPACE cdouble> : NumTraits<std::complex<double>> {};
+}
+
 
 #endif
 

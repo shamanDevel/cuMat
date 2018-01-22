@@ -2,18 +2,18 @@
 #define __CUMAT_FORWARD_DECLARATIONS_H__
 
 #include "Macros.h"
-#include <cuComplex.h>
+#include <thrust/complex.h>
 
 CUMAT_NAMESPACE_BEGIN
 
 /**
 * \brief complex float type
 */
-typedef cuFloatComplex cfloat;
+typedef thrust::complex<float> cfloat;
 /**
 * \brief complex double type
 */
-typedef cuDoubleComplex cdouble;
+typedef thrust::complex<double> cdouble;
 
 /**
 * \brief The datatype used for matrix indexing

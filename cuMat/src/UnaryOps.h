@@ -4,6 +4,9 @@
 #include "Macros.h"
 #include "ForwardDeclarations.h"
 #include "CwiseOp.h"
+#include "NumTraits.h"
+
+#include <cmath>
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -11,7 +14,8 @@ namespace internal {
 	template<typename _Child, typename _UnaryFunctor>
 	struct traits<UnaryOp<_Child, _UnaryFunctor> >
 	{
-		using Scalar = typename internal::traits<_Child>::Scalar;
+        //using Scalar = typename internal::traits<_Child>::Scalar;
+        using Scalar = typename _UnaryFunctor::ReturnType;
 		enum
 		{
 			Flags = internal::traits<_Child>::Flags,
@@ -38,7 +42,8 @@ class UnaryOp : public CwiseOp<UnaryOp<_Child, _UnaryFunctor> >
 {
 public:
 	typedef CwiseOp<UnaryOp<_Child, _UnaryFunctor> > Base;
-	using Scalar = typename internal::traits<_Child>::Scalar;
+	//using Scalar = typename internal::traits<_Child>::Scalar;
+    using Scalar = typename _UnaryFunctor::ReturnType;
 	enum
 	{
 		Flags = internal::traits<_Child>::Flags,
@@ -78,6 +83,7 @@ namespace functor
 	class UnaryMathFunctor_ ## Name \
 	{ \
 	public: \
+        typedef _Scalar ReturnType; \
 		__device__ CUMAT_STRONG_INLINE _Scalar operator()(const _Scalar& x, Index row, Index col, Index batch) const \
 		{ \
 			return Fn; \
@@ -89,6 +95,7 @@ namespace functor
 	class UnaryMathFunctor_ ## Name <Scalar> \
 	{ \
 	public: \
+        typedef Scalar ReturnType; \
 		__device__ CUMAT_STRONG_INLINE Scalar operator()(const Scalar& x, Index row, Index col, Index batch) const \
 		{ \
 			return Fn; \
@@ -98,39 +105,89 @@ namespace functor
 #define DEFINE_FUNCTOR_FLOAT(Name, Fn) \
 	DEFINE_FUNCTOR(Name, float, Fn);   \
 	DEFINE_FUNCTOR(Name, double, Fn);
+#define DEFINE_FUNCTOR_FLOAT_COMPLEX(Name, Fn) \
+	DEFINE_FUNCTOR(Name, float, Fn);   \
+	DEFINE_FUNCTOR(Name, double, Fn);  \
+    DEFINE_FUNCTOR(Name, cfloat, Fn);  \
+	DEFINE_FUNCTOR(Name, cdouble, Fn);
 #define DEFINE_FUNCTOR_INT(Name, Fn) \
 	DEFINE_FUNCTOR(Name, int, Fn);   \
 	DEFINE_FUNCTOR(Name, long, Fn);
 
-	//DECLARE_FUNCTOR(negate); //this is already done in ForwardDeclarations.h
-
 	DEFINE_GENERAL_FUNCTOR(cwiseNegate, (-x));
+
 	DEFINE_GENERAL_FUNCTOR(cwiseAbs, abs(x));
+    template<>
+    class UnaryMathFunctor_cwiseAbs<cfloat>
+    {
+    public:
+        typedef float ReturnType;
+        __device__ CUMAT_STRONG_INLINE float operator()(const cfloat& x, Index row, Index col, Index batch) const
+        {
+            return abs(x);
+        }
+    };
+    template<>
+    class UnaryMathFunctor_cwiseAbs<cdouble>
+    {
+    public:
+        typedef double ReturnType;
+        __device__ CUMAT_STRONG_INLINE double operator()(const cdouble& x, Index row, Index col, Index batch) const
+        {
+            return abs(x);
+        }
+    };
+
     DEFINE_GENERAL_FUNCTOR(cwiseAbs2, x*x);
-	DEFINE_GENERAL_FUNCTOR(cwiseInverse, 1/x);
+    template<>
+    class UnaryMathFunctor_cwiseAbs2<cfloat>
+    {
+    public:
+        typedef float ReturnType;
+        __device__ CUMAT_STRONG_INLINE float operator()(const cfloat& x, Index row, Index col, Index batch) const
+        {
+            //using namespace CUMAT_NAMESPACE internal::complex_math;
+            return norm(x);
+        }
+    };
+    template<>
+    class UnaryMathFunctor_cwiseAbs2<cdouble>
+    {
+    public:
+        typedef double ReturnType;
+        __device__ CUMAT_STRONG_INLINE double operator()(const cdouble& x, Index row, Index col, Index batch) const
+        {
+            //using namespace CUMAT_NAMESPACE internal::complex_math;
+            return norm(x);
+        }
+    };
 
-	DEFINE_FUNCTOR_FLOAT(cwiseExp, exp(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseLog, log(x));
+	DEFINE_GENERAL_FUNCTOR(cwiseInverse, ( CUMAT_NAMESPACE internal::NumTraits<_Scalar>::RealType(1) / x ) );
+    //DEFINE_CFUNCTOR(cwiseInverse, cfloat, (cfloat{ 1,0 } / x));
+    //DEFINE_CFUNCTOR(cwiseInverse, cdouble, (cdouble{1,0} / x));
+
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseExp, exp(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseLog, log(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseLog1p, log1p(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseLog10, log10(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseLog10, log10(x));
 
-	DEFINE_FUNCTOR_FLOAT(cwiseSqrt, sqrt(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseSqrt, sqrt(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseRsqrt, rsqrt(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseCbrt, cbrt(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseRcbrt, rcbrt(x));
 	
-	DEFINE_FUNCTOR_FLOAT(cwiseSin, sin(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseCos, cos(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseTan, tan(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseAsin, asin(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseAcos, acos(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseAtan, atan(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseSinh, sinh(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseCosh, cosh(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseTanh, tanh(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseAsinh, asinh(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseAcosh, acosh(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseAtanh, atanh(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseSin, sin(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseCos, cos(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseTan, tan(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseAsin, asin(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseAcos, acos(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseAtan, atan(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseSinh, sinh(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseCosh, cosh(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseTanh, tanh(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseAsinh, asinh(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseAcosh, acosh(x));
+    DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseAtanh, atanh(x));
 
 	DEFINE_FUNCTOR_FLOAT(cwiseFloor, floor(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseCeil, ceil(x));

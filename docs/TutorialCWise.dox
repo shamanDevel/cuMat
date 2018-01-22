@@ -32,45 +32,45 @@ See the documentation of the Matrix class for a list of those.
 
 Component-wise unary expression take a matrix as input, perform some transformation on each entry and return the modified matrix of the same size as the input.
 
-All operations are defined for \c float and \c double types (TODO: add complex support). Negation is additionally available on integer types and the rounding operations are no-ops on integers.
-
 For convenience, most of these operations are available both as a method (<tt>matrix.cwiseSin()</tt>) or as a function (<tt>sin(matrix)</tt>).
 The functions are defined by default in the global namespace, but this can be changed by specifying the macros \c CUMAT_FUNCTION_NAMESPACE_BEGIN and \c CUMAT_FUNCTION_NAMESPACE_END.
 
+Supported types: i: integer types (int, long, ...); f: floating point types (float, double), c: complex types (complex float, complex double).
+
 <table>
 <caption id="unary_ops">Unary operations</caption>
-<tr><th>Function on element \f$ x \f$ </th>  <th>Method style on matrix \c m </th>  <th>Function style on matrix \c m </th> </tr>
+<tr><th>Function on element \f$ x \f$ </th>  <th>Method style on matrix \c m </th>  <th>Function style on matrix \c m </th> <th>Supported types</th> </tr>
 
-<tr><td> \f$ -x \f$ </td>  <td> \c m.negate() </td>  <td> \c -m </td> </tr>
-<tr><td>\f$ 1/x \f$</td>  <td>\c m.cwiseInverse() </td>  <td> \c inverse(m) </td></tr>
-<tr><td>\f$ \lceil x \rceil \f$</td>  <td>\c m.cwiseCeil() </td>  <td> \c ceil(m) </td></tr>
-<tr><td>\f$ \lfloor x \rfloor \f$</td>  <td>\c m.cwiseFloor() </td>  <td> \c floor(m) </td></tr>
-<tr><td>\f$ \lfloor x \rceil \f$</td>  <td>\c m.cwiseRound() </td>  <td> \c round(m) </td></tr>
+<tr><td> \f$ -x \f$ </td>  <td> \c m.negate() </td>  <td> \c -m </td> <td>i, f, c</td> </tr>
+<tr><td>\f$ 1/x \f$</td>  <td>\c m.cwiseInverse() </td>  <td> \c inverse(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \lceil x \rceil \f$</td>  <td>\c m.cwiseCeil() </td>  <td> \c ceil(m) </td> <td>i, f</td></tr>
+<tr><td>\f$ \lfloor x \rfloor \f$</td>  <td>\c m.cwiseFloor() </td>  <td> \c floor(m) </td> <td>i, f</td></tr>
+<tr><td>\f$ \lfloor x \rceil \f$</td>  <td>\c m.cwiseRound() </td>  <td> \c round(m) </td> <td>i, f</td></tr>
 
-<tr><td>\f$ e^x \f$</td>  <td>\c m.cwiseExp() </td>  <td> \c exp(m) </td></tr>
-<tr><td>\f$ \log(x) \f$</td>  <td>\c m.cwiseLog() </td>  <td> \c log(m) </td></tr>
-<tr><td>\f$ \log(x+1) \f$</td>  <td>\c m.cwiseLog1p </td>  <td> \c log1p(m) </td></tr>
-<tr><td>\f$ \log_10(x) \f$</td>  <td>\c m.cwiseLog10 </td>  <td> \c log10(m) </td></tr>
-<tr><td>\f$ \sqrt{x} \f$</td>  <td>\c m.cwiseSqrt() </td>  <td> \c sqrt(m) </td></tr>
-<tr><td>\f$ \frac{1}{\sqrt{x}} \f$</td>  <td>\c m.cwiseRsqrt() </td>  <td> \c rsqrt(m) </td></tr>
-<tr><td>\f$ \sqrt[3]{x} \f$</td>  <td>\c m.cwiseCbrt() </td>  <td> \c cbrt(m) </td></tr>
-<tr><td>\f$ \frac{1}{\sqrt[3]{x}} \f$</td>  <td>\c m.cwiseRcbrt() </td>  <td> \c rcbrt(m) </td></tr>
+<tr><td>\f$ e^x \f$</td>  <td>\c m.cwiseExp() </td>  <td> \c exp(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \log(x) \f$</td>  <td>\c m.cwiseLog() </td>  <td> \c log(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \log(x+1) \f$</td>  <td>\c m.cwiseLog1p </td>  <td> \c log1p(m) </td> <td>f</td></tr>
+<tr><td>\f$ \log_10(x) \f$</td>  <td>\c m.cwiseLog10 </td>  <td> \c log10(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \sqrt{x} \f$</td>  <td>\c m.cwiseSqrt() </td>  <td> \c sqrt(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \frac{1}{\sqrt{x}} \f$</td>  <td>\c m.cwiseRsqrt() </td>  <td> \c rsqrt(m) </td> <td>f</td></tr>
+<tr><td>\f$ \sqrt[3]{x} \f$</td>  <td>\c m.cwiseCbrt() </td>  <td> \c cbrt(m) </td> <td>f</td></tr>
+<tr><td>\f$ \frac{1}{\sqrt[3]{x}} \f$</td>  <td>\c m.cwiseRcbrt() </td>  <td> \c rcbrt(m) </td> <td>f</td></tr>
 
-<tr><td>\f$ \sin(x) \f$</td>  <td>\c m.cwiseSin() </td>  <td> \c sin(m) </td></tr>
-<tr><td>\f$ \cos(x) \f$</td>  <td>\c m.cwiseCos() </td>  <td> \c cos(m) </td></tr>
-<tr><td>\f$ \tan(x) \f$</td>  <td>\c m.cwiseTan() </td>  <td> \c tan(m) </td></tr>
-<tr><td>\f$ \sin^{-1}(x) \f$</td>  <td>\c m.cwiseAsin() </td>  <td> \c asin(m) </td></tr>
-<tr><td>\f$ \cos^{-1}(x) \f$</td>  <td>\c m.cwiseAcos() </td>  <td> \c acos(m) </td></tr>
-<tr><td>\f$ \tan^{-1}(x) \f$</td>  <td>\c m.cwiseAtan() </td>  <td> \c atan(m) </td></tr>
-<tr><td>\f$ \sinh(x) \f$</td>  <td>\c m.cwiseSinh </td>  <td> \c sinh(m) </td></tr>
-<tr><td>\f$ \cosh(x) \f$</td>  <td>\c m.cwiseCosh </td>  <td> \c cosh(m) </td></tr>
-<tr><td>\f$ \tanh(x) \f$</td>  <td>\c m.cwiseTanh </td>  <td> \c tanh(m) </td></tr>
-<tr><td>\f$ \sinh^{-1}(x) \f$</td>  <td>\c m.cwiseAsinh </td>  <td> \c asinh(m) </td></tr>
-<tr><td>\f$ \cosh^{-1}(x) \f$</td>  <td>\c m.cwiseAcosh </td>  <td> \c acosh(m) </td></tr>
-<tr><td>\f$ \tanh^{-1}(x) \f$</td>  <td>\c m.cwiseAtanh </td>  <td> \c atanh(m) </td></tr>
-<tr><td>Error function \f$ \text{erf}(x) \f$</td>  <td>\c m.cwiseErf() </td>  <td> \c erf(m) </td></tr>
-<tr><td>Complementary error function \f$ \text{cerf}(x) \f$</td>  <td>\c m.cwiseCerf() </td>  <td> \c cerf(m) </td></tr>
-<tr><td>Log-gamma function \f$ \ln \Gamma(x) \f$</td>  <td>\c m.cwiseLgamma() </td>  <td> \c lgamma(m) </td></tr>
+<tr><td>\f$ \sin(x) \f$</td>  <td>\c m.cwiseSin() </td>  <td> \c sin(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \cos(x) \f$</td>  <td>\c m.cwiseCos() </td>  <td> \c cos(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \tan(x) \f$</td>  <td>\c m.cwiseTan() </td>  <td> \c tan(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \sin^{-1}(x) \f$</td>  <td>\c m.cwiseAsin() </td>  <td> \c asin(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \cos^{-1}(x) \f$</td>  <td>\c m.cwiseAcos() </td>  <td> \c acos(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \tan^{-1}(x) \f$</td>  <td>\c m.cwiseAtan() </td>  <td> \c atan(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \sinh(x) \f$</td>  <td>\c m.cwiseSinh </td>  <td> \c sinh(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \cosh(x) \f$</td>  <td>\c m.cwiseCosh </td>  <td> \c cosh(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \tanh(x) \f$</td>  <td>\c m.cwiseTanh </td>  <td> \c tanh(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \sinh^{-1}(x) \f$</td>  <td>\c m.cwiseAsinh </td>  <td> \c asinh(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \cosh^{-1}(x) \f$</td>  <td>\c m.cwiseAcosh </td>  <td> \c acosh(m) </td> <td>f, c</td></tr>
+<tr><td>\f$ \tanh^{-1}(x) \f$</td>  <td>\c m.cwiseAtanh </td>  <td> \c atanh(m) </td> <td>f, c</td></tr>
+<tr><td>Error function \f$ \text{erf}(x) \f$</td>  <td>\c m.cwiseErf() </td>  <td> \c erf(m) </td> <td>f</td></tr>
+<tr><td>Complementary error function \f$ \text{cerf}(x) \f$</td>  <td>\c m.cwiseCerf() </td>  <td> \c cerf(m) </td> <td>f</td></tr>
+<tr><td>Log-gamma function \f$ \ln \Gamma(x) \f$</td>  <td>\c m.cwiseLgamma() </td>  <td> \c lgamma(m) </td> <td>f</td></tr>
 </table>
 
 \section TutorialCWise_Binary Binary operations
@@ -85,12 +85,12 @@ cuMat also supports broadcasting, e.g. combine a vector and a matrix by a binary
 <caption id="binary_ops">Unary operations</caption>
 <tr><th>Function on element \f$ x,x \f$ </th>  <th>Method style on matrix \c m1 and \c m2 </th>  <th>Function style on matrix \c m1 and \c m2 </th>  <th>Supported types</th></tr>
 
-<tr><td> \f$ x + y \f$ </td>  <td> \c m1.cwiseAdd(m2) </td>  <td> \c m1+m2 </td> <td>all</td></tr>
-<tr><td> \f$ x - y \f$ </td>  <td> \c m1.cwiseSub(m2) </td>  <td> \c m1-m2 </td> <td>all</td></tr>
-<tr><td> \f$ x * y \f$ </td>  <td> \c m1.cwiseMul(m2) </td>  <td> not available </td> <td>all</td></tr>
-<tr><td> \f$ x / y \f$ </td>  <td> \c m1.cwiseDiv(m2) </td>  <td> not available </td> <td>all</td></tr>
-<tr><td> \f$ x \% y \f$ </td>  <td> \c m1.cwiseMod(m2) </td>  <td> \c m1 \% \c m2 </td> <td>integer types</td></tr>
-<tr><td> \f$ x^y \f$ </td>  <td> \c m1.cwisePow(m2) </td>  <td> \c pow(m1,m2) </td> <td>float types</td></tr>
+<tr><td> \f$ x + y \f$ </td>  <td> \c m1.cwiseAdd(m2) </td>  <td> \c m1+m2 </td> <td>f, i, c</td></tr>
+<tr><td> \f$ x - y \f$ </td>  <td> \c m1.cwiseSub(m2) </td>  <td> \c m1-m2 </td> <td>f, i, c</td></tr>
+<tr><td> \f$ x * y \f$ </td>  <td> \c m1.cwiseMul(m2) </td>  <td> not available </td> <td>f, i, c</td></tr>
+<tr><td> \f$ x / y \f$ </td>  <td> \c m1.cwiseDiv(m2) </td>  <td> not available </td> <td>f, i, c</td></tr>
+<tr><td> \f$ x \% y \f$ </td>  <td> \c m1.cwiseMod(m2) </td>  <td> \c m1 \% \c m2 </td> <td>i</td></tr>
+<tr><td> \f$ x^y \f$ </td>  <td> \c m1.cwisePow(m2) </td>  <td> \c pow(m1,m2) </td> <td>f, c</td></tr>
 
 </table>
 
