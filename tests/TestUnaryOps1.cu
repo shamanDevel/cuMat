@@ -47,6 +47,7 @@ TEST_CASE("cwiseNegate", "[unary]")
 
 UNARY_TEST_CASE_ALL(cwiseAbs, abs, -10, 10);
 UNARY_TEST_CASE_FLOAT(cwiseInverse, inverse, -10, 10);
+UNARY_TEST_CASE_ALL(conjugate, conjugate, -10, 10);
 
 UNARY_TEST_CASE_ALL(cwiseFloor, floor, -1000, 1000);
 UNARY_TEST_CASE_ALL(cwiseCeil, ceil, -1000, 1000);

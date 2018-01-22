@@ -66,6 +66,17 @@ void testUnary()
         };
         assertMatrixEquality(CMatrix::fromArray(expected), mat.cwiseInverse(), 1e-5);
     }
+    SECTION("conjugate")
+    {
+        type expected[1][3][3]{
+            {
+                { type(1,0), type(6,0), type(-4,0) }, //only real
+                { type(0,-5), type(0,3), type(0, -0.3f) }, //only imaginary
+                { type(0.4f,-0.9f), type(-1.5f,-0.3f), type(3.5f,2.8f) } //mixed
+            }
+        };
+        assertMatrixEquality(CMatrix::fromArray(expected), mat.conjugate());
+    }
 }
 TEST_CASE("unary", "[complex]")
 {

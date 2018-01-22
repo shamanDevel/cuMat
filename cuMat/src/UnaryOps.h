@@ -200,6 +200,10 @@ namespace functor
 	DEFINE_FUNCTOR_FLOAT(cwiseErfc, erfc(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseLgamma, lgamma(x));
 
+    DEFINE_GENERAL_FUNCTOR(conjugate, x);
+    DEFINE_FUNCTOR(conjugate, cfloat, conj(x));
+    DEFINE_FUNCTOR(conjugate, cdouble, conj(x));
+
 #undef DECLARE_FUNCTOR
 #undef DEFINE_GENERAL_FUNCTOR
 #undef DEFINE_FUNCTOR
@@ -465,6 +469,8 @@ UNARY_OP(atanh, cwiseAtanh);
 UNARY_OP(erf, cwiseErf);
 UNARY_OP(erfc, cwiseErfc);
 UNARY_OP(lgamma, cwiseLgamma);
+
+UNARY_OP(conjugate, conjugate);
 
 #undef UNARY_OP
 

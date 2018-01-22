@@ -104,6 +104,7 @@ namespace functor
 	template<typename _Scalar> class UnaryMathFunctor_cwiseErf;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseErfc;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseLgamma;
+    template<typename _Scalar> class UnaryMathFunctor_conjugate;
 	//casting
 	template<typename _Source, typename _Target> struct CastFunctor;
     //binary

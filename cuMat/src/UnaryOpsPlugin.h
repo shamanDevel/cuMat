@@ -132,6 +132,11 @@ UNARY_OP_ACCESSOR(cwiseErfc);
 */
 UNARY_OP_ACCESSOR(cwiseLgamma);
 
+/**
+* \brief Conjugates the matrix. This is a no-op for non-complex matrices.
+*/
+UNARY_OP_ACCESSOR(conjugate);
+
 #undef UNARY_OP_ACCESSOR
 
 /**
