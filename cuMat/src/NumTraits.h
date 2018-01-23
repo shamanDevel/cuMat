@@ -17,7 +17,8 @@ namespace internal
 		typedef T RealType;
         enum
         {
-            IsCudaNumeric = 0
+            IsCudaNumeric = 0,
+            IsComplex = false
         };
 	};
 
@@ -28,7 +29,8 @@ namespace internal
         typedef float RealType;
         enum
         {
-            IsCudaNumeric = 1
+            IsCudaNumeric = 1,
+            IsComplex = false,
         };
     };
     template <>
@@ -38,7 +40,8 @@ namespace internal
         typedef double RealType;
         enum
         {
-            IsCudaNumeric = 1
+            IsCudaNumeric = 1,
+            IsComplex = false,
         };
     };
 
@@ -49,7 +52,8 @@ namespace internal
 		typedef float RealType;
         enum
         {
-            IsCudaNumeric = 1
+            IsCudaNumeric = 1,
+            IsComplex = true,
         };
 	};
 
@@ -60,7 +64,8 @@ namespace internal
 		typedef double RealType;
         enum
         {
-            IsCudaNumeric = 1
+            IsCudaNumeric = 1,
+            IsComplex = true,
         };
 	};
 }

@@ -79,7 +79,7 @@ namespace
             Index i, j, k;
             matrix.index(index, i, j, k);
             //printf("eval at row=%d, col=%d, batch=%d, index=%d\n", (int)i, (int)j, (int)k, (int)matrix.index(i, j, k));
-            matrix.rawCoeff(index) = randNext<S>(&seed, min, max);
+            matrix.setRawCoeff(index, randNext<S>(&seed, min, max));
         }
         seeds[threadIdx.x] = seed;
     }

@@ -23,8 +23,14 @@ namespace
 		CUMAT_KERNEL_1D_LOOP(index, virtual_size) {
 			Index i, j, k;
 			matrix.index(index, i, j, k);
-			//printf("eval at row=%d, col=%d, batch=%d, index=%d\n", (int)i, (int)j, (int)k, (int)matrix.index(i, j, k));
-			matrix.rawCoeff(index) = expr.coeff(i, j, k);
+
+            //there seems to be a bug in CUDA if the result of expr.coeff is directly passed to setRawCoeff.
+            //By saving it in a local variable, this is prevented
+            auto val = expr.coeff(i, j, k);
+            matrix.setRawCoeff(index, val);
+		    //matrix.setRawCoeff(index, expr.coeff(i, j, k));
+
+            //printf("eval at row=%d, col=%d, batch=%d, index=%d -> %f\n", (int)i, (int)j, (int)k, (int)matrix.index(i, j, k), (float)val);
 		}
 	}
 }
@@ -38,7 +44,7 @@ namespace
  *  - defines a <code>__host__ Index size() const</code> method that returns the number of entries
  *  - defines a <code>__device__ void index(Index index, Index& row, Index& col, Index& batch) const</code>
  *    method to convert from raw index (from 0 to size()-1) to row, column and batch index
- *  - defines a <code>__Device__ Scalar& rawCoeff(Index index)</code> method
+ *  - defines a <code>__Device__ void setRawCoeff(Index index, const Scalar& newValue)</code> method
  *    that is used to write the results back.
  * 
  * Currently, the following classes support this interface and can therefore be used
@@ -69,6 +75,7 @@ public:
 	template<typename Derived>
 	void evalTo(MatrixBase<Derived>& m) const
 	{
+
         CUMAT_PROFILING_INC(EvalCwise);
         CUMAT_PROFILING_INC(EvalAny);
 		if (size() == 0) return;

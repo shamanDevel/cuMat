@@ -424,6 +424,244 @@ public:
 };
 
 
+
+// Extract Real+Imag part of a matrix
+
+namespace internal {
+    template <typename _Child, bool _Imag, bool _Lvalue>
+    struct traits<ExtractComplexPartOp<_Child, _Imag, _Lvalue> >
+    {
+        typedef typename NumTraits<typename traits<_Child>::Scalar>::RealType Scalar;
+        enum
+        {
+            Flags = traits<_Child>::Flags,
+            RowsAtCompileTime = traits<_Child>::RowsAtCompileTime,
+            ColsAtCompileTime = traits<_Child>::ColsAtCompileTime,
+            BatchesAtCompileTime = traits<_Child>::BatchesAtCompileTime,
+            AccessFlags = ReadCwise | WriteCwise
+        };
+    };
+
+} //end namespace internal
+
+/**
+ * \brief This operation extracts the real and the imaginary part of a complex matrix.
+ * This is only available on complex matrices.
+ * This is the RValue-version (const matrix)
+ * \tparam _Child the child expression
+ * \tparam _Imag true: imaginary part, false: real part
+ */
+template <typename _Child, bool _Imag>
+class ExtractComplexPartOp<_Child, _Imag, false> : public CwiseOp<ExtractComplexPartOp<_Child, _Imag, false> >
+{
+public:
+    typedef typename internal::NumTraits<typename internal::traits<_Child>::Scalar>::RealType Scalar;
+
+    enum
+    {
+        Flags = internal::traits<_Child>::Flags,
+        Rows = internal::traits<_Child>::RowsAtCompileTime,
+        Columns = internal::traits<_Child>::ColsAtCompileTime,
+        Batches = internal::traits<_Child>::BatchesAtCompileTime,
+        IsComplex = internal::NumTraits<typename internal::traits<_Child>::Scalar>::IsComplex
+    };
+
+    using Base = CwiseOp<ExtractComplexPartOp<_Child, _Imag, false> >;
+    using Type = ExtractComplexPartOp<_Child, _Imag, false>;
+    using Base::eval_t;
+
+protected:
+    typedef typename MatrixReadWrapper<_Child, ReadCwise>::type wrapped_matrix_t;
+    const wrapped_matrix_t matrix_;
+
+public:
+    explicit ExtractComplexPartOp(const MatrixBase<_Child>& matrix)
+        : matrix_(matrix.derived())
+    {}
+
+    /**
+    * \brief Returns the number of rows of this matrix.
+    * \return the number of rows
+    */
+    __host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return matrix_.rows(); }
+
+    /**
+    * \brief Returns the number of columns of this matrix.
+    * \return the number of columns
+    */
+    __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return matrix_.cols(); }
+
+    /**
+    * \brief Returns the number of batches of this matrix.
+    * \return the number of batches
+    */
+    __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return matrix_.batches(); }
+
+    /**
+    * \brief Accesses the coefficient at the specified coordinate for reading.
+    * If the device supports it (CUMAT_ASSERT_CUDA is defined), the
+    * access is checked for out-of-bound tests by assertions.
+    * \param row the row index
+    * \param col the column index
+    * \param batch the batch index
+    * \return a read-only reference to the entry
+    */
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    {
+        if (_Imag)
+            return matrix_.coeff(row, col, batch).imag();
+        else
+            return matrix_.coeff(row, col, batch).real();
+    }
+};
+/**
+* \brief This operation extracts the real and the imaginary part of a complex matrix.
+* This is only available on complex matrices.
+* This is the LValue-version (non-const matrix)
+* \tparam _Child the child expression
+* \tparam _Imag true: imaginary part, false: real part
+*/
+template <typename _Child, bool _Imag>
+class ExtractComplexPartOp<_Child, _Imag, true> : public CwiseOp<ExtractComplexPartOp<_Child, _Imag, true> >
+{
+public:
+    typedef typename internal::NumTraits<typename internal::traits<_Child>::Scalar>::RealType Scalar;
+
+    enum
+    {
+        Flags = internal::traits<_Child>::Flags,
+        Rows = internal::traits<_Child>::RowsAtCompileTime,
+        Columns = internal::traits<_Child>::ColsAtCompileTime,
+        Batches = internal::traits<_Child>::BatchesAtCompileTime,
+        IsComplex = internal::NumTraits<typename internal::traits<_Child>::Scalar>::IsComplex
+    };
+
+    using Base = CwiseOp<ExtractComplexPartOp<_Child, _Imag, true> >;
+    using Type = ExtractComplexPartOp<_Child, _Imag, true>;
+    using Base::eval_t;
+
+protected:
+    _Child matrix_;
+
+public:
+    explicit ExtractComplexPartOp(MatrixBase<_Child>& matrix)
+        : matrix_(matrix.derived())
+    {
+        CUMAT_STATIC_ASSERT(internal::traits<_Child>::AccessFlags & WriteCwise, 
+            "Lvalue version of ExtractComplexPartOp must be called on a matrix expression with the WriteCwise-Flag");
+    }
+
+    /**
+    * \brief Returns the number of rows of this matrix.
+    * \return the number of rows
+    */
+    __host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return matrix_.rows(); }
+
+    /**
+    * \brief Returns the number of columns of this matrix.
+    * \return the number of columns
+    */
+    __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return matrix_.cols(); }
+
+    /**
+    * \brief Returns the number of batches of this matrix.
+    * \return the number of batches
+    */
+    __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return matrix_.batches(); }
+
+    /**
+    * \brief Converts from the linear index back to row, column and batch index
+    * \param index the linear index
+    * \param row the row index (output)
+    * \param col the column index (output)
+    * \param batch the batch index (output)
+    */
+    __host__ __device__ CUMAT_STRONG_INLINE void index(Index index, Index& row, Index& col, Index& batch) const
+    {
+        matrix_.index(index, row, col, batch);
+        /*
+        if (CUMAT_IS_ROW_MAJOR(Flags)) {
+            batch = index / (rows() * cols());
+            index -= batch * rows() * cols();
+            row = index / cols();
+            index -= row * cols();
+            col = index;
+        }
+        else {
+            batch = index / (rows() * cols());
+            index -= batch * rows() * cols();
+            col = index / rows();
+            index -= col * rows();
+            row = index;
+        }
+        */
+    }
+
+    /**
+    * \brief Accesses the coefficient at the specified coordinate for reading and writing.
+    * If the device supports it (CUMAT_ASSERT_CUDA is defined), the
+    * access is checked for out-of-bound tests by assertions.
+    * \param row the row index
+    * \param col the column index
+    * \param batch the batch index
+    * \return a reference to the entry
+    */
+    __device__ CUMAT_STRONG_INLINE Scalar& coeff(Index row, Index col, Index batch)
+    {
+        if (_Imag)
+            return matrix_.coeff(row, col, batch).imag();
+        else
+            return matrix_.coeff(row, col, batch).real();
+    }
+    /**
+    * \brief Accesses the coefficient at the specified coordinate for reading.
+    * If the device supports it (CUMAT_ASSERT_CUDA is defined), the
+    * access is checked for out-of-bound tests by assertions.
+    * \param row the row index
+    * \param col the column index
+    * \param batch the batch index
+    * \return a read-only reference to the entry
+    */
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    {
+        if (_Imag)
+            return matrix_.coeff(row, col, batch).imag();
+        else
+            return matrix_.coeff(row, col, batch).real();
+    }
+
+    /**
+    * \brief Access to the linearized coefficient.
+    * The format of the indexing depends on whether this
+    * matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
+    * \param idx the linearized index of the entry.
+    * \return the entry at that index
+    */
+    __device__ CUMAT_STRONG_INLINE void setRawCoeff(Index index, const Scalar& newValue)
+    {
+        auto val = matrix_.rawCoeff(index);
+        if (_Imag)
+            val.imag(newValue);
+        else
+            val.real(newValue);
+        matrix_.setRawCoeff(index, val);
+    }
+
+    //ASSIGNMENT
+
+    template<typename Derived>
+    CUMAT_STRONG_INLINE Type& operator=(const MatrixBase<Derived>& expr)
+    {
+        CUMAT_ASSERT_ARGUMENT(rows() == expr.rows());
+        CUMAT_ASSERT_ARGUMENT(cols() == expr.cols());
+        CUMAT_ASSERT_ARGUMENT(batches() == expr.batches());
+        expr.evalTo(*this);
+        return *this;
+    }
+};
+
+
+
 CUMAT_NAMESPACE_END
 
 
@@ -471,6 +709,19 @@ UNARY_OP(erfc, cwiseErfc);
 UNARY_OP(lgamma, cwiseLgamma);
 
 UNARY_OP(conjugate, conjugate);
+
+template<typename _Child>
+CUMAT_NAMESPACE ExtractComplexPartOp<_Child, false, false> real(const CUMAT_NAMESPACE MatrixBase<_Child>& mat)
+{
+    CUMAT_STATIC_ASSERT(CUMAT_NAMESPACE internal::NumTraits<typename CUMAT_NAMESPACE internal::traits<_Child>::Scalar>::IsComplex, "Matrix must be complex");
+    return CUMAT_NAMESPACE ExtractComplexPartOp<_Child, false, false>(mat.derived());
+}
+template<typename _Child>
+CUMAT_NAMESPACE ExtractComplexPartOp<_Child, true, false> imag(const CUMAT_NAMESPACE MatrixBase<_Child>& mat)
+{
+    CUMAT_STATIC_ASSERT(CUMAT_NAMESPACE internal::NumTraits<typename CUMAT_NAMESPACE internal::traits<_Child>::Scalar>::IsComplex, "Matrix must be complex");
+    return CUMAT_NAMESPACE ExtractComplexPartOp<_Child, true, false>(mat.derived());
+}
 
 #undef UNARY_OP
 

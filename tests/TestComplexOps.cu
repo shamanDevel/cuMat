@@ -166,3 +166,99 @@ TEST_CASE("binary", "[complex]")
         testBinary<cdouble>();
     }
 }
+
+
+template<typename Type>
+void testRealImag()
+{
+    typedef typename internal::NumTraits<Type>::RealType Real;
+    typedef Matrix<Type, Dynamic, Dynamic, 1, RowMajor> CMatrix;
+    typedef Matrix<Real, Dynamic, Dynamic, 1, RowMajor> RMatrix;
+
+    Type data[1][3][3]{
+        {
+            { Type(1,0), Type(6,0), Type(-4,0) }, //only real
+            { Type(0,5), Type(0,-3), Type(0, 0.3f) }, //only imaginary
+            { Type(0.4f,0.9f), Type(-1.5f,0.3f), Type(3.5f,-2.8f) } //mixed
+        }
+    };
+    CMatrix mat = CMatrix::fromArray(data);
+
+    SECTION("rvalue-direct")
+    {
+        Real expectedReal[1][3][3]{
+            {
+                {1, 6, -4},
+                {0, 0, 0},
+                {0.4f, -1.5f, 3.5f}
+            }
+        };
+        Real expectedImag[1][3][3]{
+            {
+                { 0, 0, 0 },
+                { 5, -3, 0.3f },
+                { 0.9f, 0.3f, -2.8f }
+            }
+        };
+        assertMatrixEquality(expectedReal, mat.real());
+        assertMatrixEquality(expectedReal, real(mat));
+        assertMatrixEquality(expectedImag, mat.imag());
+        assertMatrixEquality(expectedImag, imag(mat));
+    }
+
+    SECTION("lvalue-direct")
+    {
+        Real realPart[1][3][3]{
+            {
+                { 1, 6, -4 },
+                { 0, 0, 0 },
+                { 0.4f, -1.5f, 3.5f }
+            }
+        };
+        Real imagPart[1][3][3]{
+            {
+                { 0, 0, 0 },
+                { 5, -3, 0.3f },
+                { 0.9f, 0.3f, -2.8f }
+            }
+        };
+        CMatrix newMat(3, 3);
+        newMat.setZero();
+        newMat.real() = RMatrix::fromArray(realPart);
+        newMat.imag() = RMatrix::fromArray(imagPart);
+        assertMatrixEquality(newMat, mat);
+    }
+
+    SECTION("rvalue-cwise")
+    {
+        Real expectedReal[1][3][3]{
+            {
+                { 1, 6, -4 },
+                { 0, 0, 0 },
+                { 0.4f, -1.5f, 3.5f }
+            }
+        };
+        Real expectedImag[1][3][3]{
+            {
+                { 0, 0, 0 },
+                { 5, -3, 0.3f },
+                { 0.9f, 0.3f, -2.8f }
+            }
+        };
+        auto matExpr = (mat + 0);
+        assertMatrixEquality(expectedReal, matExpr.real());
+        assertMatrixEquality(expectedReal, real(matExpr));
+        assertMatrixEquality(expectedImag, matExpr.imag());
+        assertMatrixEquality(expectedImag, imag(matExpr));
+    }
+}
+TEST_CASE("real+imag", "[complex]")
+{
+    SECTION("complex-float") {
+        testRealImag<cfloat>();
+    }
+    SECTION("complex-double")
+    {
+        testRealImag<cdouble>();
+    }
+}

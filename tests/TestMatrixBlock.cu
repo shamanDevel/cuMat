@@ -67,7 +67,6 @@ TEST_CASE("dynamic_block_rw", "[block]")
 	for (int i = 0; i < batches; ++i) REQUIRE(m_host1[i] == m_host3[i]);
 }
 
-
 TEST_CASE("cwise_r", "[block]")
 {
     int data[2][2][2] {

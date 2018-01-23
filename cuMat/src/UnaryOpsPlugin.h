@@ -181,3 +181,22 @@ ExtractDiagonalOp<_Derived> diagonal() const
 {
     return ExtractDiagonalOp<_Derived>(derived());
 }
+
+/**
+ * \brief Extracts the real part of the complex matrix.
+ * This method is only available for complex matrices.
+ */
+ExtractComplexPartOp<_Derived, false, false> real() const
+{
+    CUMAT_STATIC_ASSERT(internal::NumTraits<typename internal::traits<_Derived>::Scalar>::IsComplex, "Matrix must be complex");
+    return ExtractComplexPartOp<_Derived, false, false>(derived());
+}
+/**
+ * \brief Extracts the imaginary part of the complex matrix.
+ * This method is only available for complex matrices.
+ */
+ExtractComplexPartOp<_Derived, true, false> imag() const
+{
+    CUMAT_STATIC_ASSERT(internal::NumTraits<typename internal::traits<_Derived>::Scalar>::IsComplex, "Matrix must be complex");
+    return ExtractComplexPartOp<_Derived, true, false>(derived());
+}

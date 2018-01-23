@@ -139,14 +139,14 @@ public:
 	* The format of the indexing depends on whether this
 	* matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
 	* \param idx the linearized index of the entry.
-	* \return the entry at that index
+	* \param newValue the new value at that index
 	*/
-	__device__ CUMAT_STRONG_INLINE _Scalar& rawCoeff(Index idx)
+	__device__ CUMAT_STRONG_INLINE void setRawCoeff(Index idx, const _Scalar& newValue)
 	{
 		//This method is quite ineffective at the moment, since it has to convert the values back to row,col,batch
 		Index i, j, k;
 		index(idx, i, j, k);
-		return coeff(i, j, k);
+		coeff(i, j, k) = newValue;
 	}
 
 	//ASSIGNMENT

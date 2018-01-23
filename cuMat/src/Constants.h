@@ -57,7 +57,7 @@ enum AccessFlags
      * \code
      * __host__ Index size() const;
      * __host__ __device__ void index(Index index, Index& row, Index& col, Index& batch) const;
-     *  __device__ Scalar& rawCoeff(Index index);
+     *  __device__ void setRawCoeff(Index index, const Scalar& newValue);
      * \endcode
      */
     WriteCwise = 0x10,

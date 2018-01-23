@@ -606,7 +606,7 @@ public:
 	 * \param col the column index
 	 * \param batch the batch index
 	 * \return the linear index
-	 * \see rawCoeff(Index)
+	 * \see setRawCoeff(Index, Scalar)
 	 */
 	__host__ __device__ CUMAT_STRONG_INLINE Index index(Index row, Index col, Index batch) const
 	{
@@ -652,17 +652,17 @@ public:
 	}
 
 	/**
-	 * \brief Access to the linearized coefficient.
+	 * \brief Access to the linearized coefficient, write-only.
 	 * The format of the indexing depends on whether this
 	 * matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
 	 * \param index the linearized index of the entry.
-	 * \return the entry at that index
+	 * \param newValue the new value at that entry
 	 */
-	__device__ CUMAT_STRONG_INLINE _Scalar& rawCoeff(Index index)
+	__device__ CUMAT_STRONG_INLINE void setRawCoeff(Index index, const _Scalar& newValue)
 	{
 		CUMAT_ASSERT_CUDA(index >= 0);
 		CUMAT_ASSERT_CUDA(index < size());
-		return data_.data()[index];
+		data_.data()[index] = newValue;
 	}
 
 	/**
@@ -1071,6 +1071,29 @@ public:
     }
 
 #include "MatrixBlockPluginLvalue.h"
+
+    //TODO: find a better place for the following two methods:
+
+    /**
+    * \brief Extracts the real part of the complex matrix.
+    * This method is only available for complex matrices.
+    * This is the non-const lvalue version
+    */
+    ExtractComplexPartOp<Type, false, true> real()
+    {
+        CUMAT_STATIC_ASSERT(internal::NumTraits<_Scalar>::IsComplex, "Matrix must be complex");
+        return ExtractComplexPartOp<Type, false, true>(*this);
+    }
+    /**
+    * \brief Extracts the imaginary part of the complex matrix.
+    * This method is only available for complex matrices.
+    * This is the non-const lvalue version
+    */
+    ExtractComplexPartOp<Type, true, true> imag()
+    {
+        CUMAT_STATIC_ASSERT(internal::NumTraits<_Scalar>::IsComplex, "Matrix must be complex");
+        return ExtractComplexPartOp<Type, true, true>(*this);
+    }
 
 };
 

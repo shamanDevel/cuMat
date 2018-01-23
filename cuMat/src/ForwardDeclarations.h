@@ -66,6 +66,7 @@ template<typename _Child, typename _ReductionOp, int _Axis> class ReductionOp_St
 template<typename _Left, typename _Right, bool _TransposedLeft, bool _TransposedRight, bool _TransposedOutput> class MultOp;
 template<typename _Child> class AsDiagonalOp;
 template<typename _Child> class ExtractDiagonalOp;
+template <typename _Child, bool _Imag, bool _Lvalue> class ExtractComplexPartOp;
 
 namespace functor
 {

@@ -169,6 +169,29 @@ The result is a column vector containing the entries of the main diagonal. Note 
 
 The convert a vector into a matrix with the vector's entries on the diagonal, the operation \link MatrixBase::asDiagonal() asDiagonal()\endlink can be used.
 
+\section TutorialCWise_RealImag Real and Imaginary part of a matrix
+
+For a complex matrix, the methods \link MatrixBase::real() real()\endlink and \link MatrixBase::imag() imag()\endlink can be used to extract the real or imaginary part of the matrix.
+These methods also exist in the function-style version: <tt>real(MatrixBase)</tt> and <tt>imag(MatrixBase)</tt>.
+Example:
+\code{.cpp}
+typedef Matrix<cdouble, Dynamic, Dynamic, 1, RowMajor> CMatrix;
+typedef Matrix<double, Dynamic, Dynamic, 1, RowMajor> RMatrix;
+CMatrix mat = ...;
+RMatrix realPart = mat.real(); // or real(mat);
+RMatrix imagPart = mat.imag(); // or imag(mat);
+\endcode
+
+\note These methods are only available for complex matrices. A compiler error is thrown if they are applied to real matrices.
+
+The methods <tt>real()</tt> and <tt>imag()</tt> can also be used as lvalues on a Matrix. By that, you can set the real and imaginary part of a matrix separately.
+Example:
+\code{.cpp}
+CMatrix mat(rows, cols);
+mat.real() = 5*RMatrix::Identity(rows, cols);
+mat.imag() = someOtherExpressionYieldingARealMatrix;
+\endcode
+
 */
 
 }

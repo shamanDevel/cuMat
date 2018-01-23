@@ -191,7 +191,7 @@ __global__ void TestMatrixWriteRawKernel(dim3 virtual_size, MatrixType matrix)
 {
 	CUMAT_KERNEL_1D_LOOP(i, virtual_size)
 	{
-		matrix.rawCoeff(i) = i;
+		matrix.setRawCoeff(i, i);
 	}
 }
 //Tests if a kernel can write the raw data
