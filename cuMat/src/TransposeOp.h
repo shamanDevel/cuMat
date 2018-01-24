@@ -30,6 +30,14 @@ namespace internal {
 
 } //end namespace internal
 
+//helper functions to conjugate the argument if supported
+namespace
+{
+    template<typename Scalar, bool _IsConjugated> __device__ CUMAT_STRONG_INLINE Scalar conjugateCoeff(const Scalar& val) { return val; };
+    template<> __device__ CUMAT_STRONG_INLINE cfloat conjugateCoeff<cfloat, true>(const cfloat& val) { return conj(val); }
+    template<> __device__ CUMAT_STRONG_INLINE cdouble conjugateCoeff<cdouble, true>(const cdouble& val) { return conj(val); }
+}
+
 /**
  * \brief Transposes the matrix.
  * This expression can be used on the right hand side and the left hand side.
@@ -70,16 +78,10 @@ public:
     __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return matrix_.rows(); }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return matrix_.batches(); }
 
-private:
-    template<bool _IsConjugated> __device__ CUMAT_STRONG_INLINE Scalar conjugateCoeff(const Scalar& val) const;
-    template<> __device__ CUMAT_STRONG_INLINE Scalar conjugateCoeff<false>(const Scalar& val) const { return val; }
-    template<> __device__ CUMAT_STRONG_INLINE Scalar conjugateCoeff<true>(const Scalar& val) const { return conj(val); }
-
-public:
     __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
     { //read acces (cwise)
         Scalar val = matrix_.coeff(col, row, batch);
-        val = conjugateCoeff<IsConjugated>(val);
+        val = conjugateCoeff<Scalar, IsConjugated>(val);
         return val;
     }
     __device__ CUMAT_STRONG_INLINE Scalar& coeff(Index row, Index col, Index batch)
