@@ -149,9 +149,17 @@ UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() co
 /**
  * \brief Transposes this matrix
  */
-TransposeOp<_Derived> transpose() const
+TransposeOp<_Derived, false> transpose() const
 {
-	return TransposeOp<_Derived>(derived());
+	return TransposeOp<_Derived, false>(derived());
+}
+
+/**
+* \brief Returns the adjoint of this matrix (the conjugated transpose).
+*/
+TransposeOp<_Derived, true> adjoint() const
+{
+    return TransposeOp<_Derived, true>(derived());
 }
 
 /**

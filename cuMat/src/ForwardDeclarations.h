@@ -60,7 +60,7 @@ template<typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, ty
 template<typename _Child, typename _UnaryFunctor> class UnaryOp;
 template<typename _Left, typename _Right, typename _BinaryFunctor, bool _IsLogic> class BinaryOp;
 template<typename _Child, typename _Target> class CastingOp;
-template<typename _Derived> class TransposeOp;
+template<typename _Derived, bool _Conjugated> class TransposeOp;
 template<typename _Child, typename _ReductionOp> class ReductionOp_DynamicSwitched;
 template<typename _Child, typename _ReductionOp, int _Axis> class ReductionOp_StaticSwitched;
 template<typename _Left, typename _Right, bool _TransposedLeft, bool _TransposedRight, bool _TransposedOutput> class MultOp;

@@ -1,6 +1,9 @@
 #include <catch/catch.hpp>
 
 #include <cuMat/Core>
+#include "Utils.h"
+
+using namespace cuMat;
 
 TEST_CASE("direct_fixed", "[transpose]")
 {
@@ -197,4 +200,112 @@ TEST_CASE("cwise_dynamic", "[transpose]")
     math out32 = md3.block<5, 6, 1>(0, 0, 1).eval().toEigen();
     REQUIRE((-in1) == out31);
     REQUIRE((-in2) == out32);
+}
+
+template<typename Type>
+void testComplexTranspose()
+{
+    typedef typename internal::NumTraits<Type>::RealType Real;
+    typedef Matrix<Type, Dynamic, Dynamic, 1, RowMajor> CMatrix;
+    typedef Matrix<Type, Dynamic, Dynamic, 1, ColumnMajor> CMatrixT;
+    typedef Matrix<Real, Dynamic, Dynamic, 1, RowMajor> RMatrix;
+
+    Type data[1][3][3]{
+        {
+            { Type(1,0), Type(6,0), Type(-4,0) }, //only real
+            { Type(0,5), Type(0,-3), Type(0, 0.3f) }, //only imaginary
+            { Type(0.4f,0.9f), Type(-1.5f,0.3f), Type(3.5f,-2.8f) } //mixed
+        }
+    };
+    CMatrix mat = CMatrix::fromArray(data);
+
+    Type transposedData[1][3][3]{
+        {
+            { Type(1,0), Type(0,5), Type(0.4f,0.9f) },
+            { Type(6,0), Type(0,-3), Type(-1.5f,0.3f) },
+            { Type(-4,0), Type(0, 0.3f), Type(3.5f,-2.8f) }
+        }
+    };
+    CMatrix transposed = CMatrix::fromArray(transposedData);
+
+    Type adjointData[1][3][3]{
+        {
+            { Type(1,0), Type(0,-5), Type(0.4f,-0.9f) },
+            { Type(6,0), Type(0,3), Type(-1.5f,-0.3f) },
+            { Type(-4,0), Type(0, -0.3f), Type(3.5f,2.8f) }
+        }
+    };
+    CMatrix adjoint = CMatrix::fromArray(adjointData);
+
+    SECTION("transpose")
+    {
+        //no-op
+        CUMAT_PROFILING_RESET();
+        CMatrixT m1 = mat.transpose();
+        REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 0);
+        assertMatrixEquality(transposed, m1);
+
+        //direct
+        CUMAT_PROFILING_RESET();
+        CMatrix m2 = mat.transpose();
+        REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
+        REQUIRE(CUMAT_PROFILING_GET(EvalTranspose) == 1);
+        assertMatrixEquality(transposed, m2);
+
+        //cwise 1
+        CUMAT_PROFILING_RESET();
+        CMatrixT m3 = (mat + 0).transpose();
+        REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
+        REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+        assertMatrixEquality(transposed, m3);
+
+        //cwise 1
+        CUMAT_PROFILING_RESET();
+        CMatrix m4 = (mat + 0).transpose();
+        REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
+        REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+        assertMatrixEquality(transposed, m4);
+    }
+
+    SECTION("adjoint")
+    {
+        //no-op
+        CUMAT_PROFILING_RESET();
+        CMatrixT m1 = mat.adjoint();
+        REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
+        REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+        assertMatrixEquality(adjoint, m1);
+
+        //direct
+        CUMAT_PROFILING_RESET();
+        CMatrix m2 = mat.adjoint();
+        REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
+        REQUIRE(CUMAT_PROFILING_GET(EvalTranspose) == 1);
+        assertMatrixEquality(adjoint, m2);
+
+        //cwise 1
+        CUMAT_PROFILING_RESET();
+        CMatrixT m3 = (mat + 0).adjoint();
+        REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
+        REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+        assertMatrixEquality(adjoint, m3);
+
+        //cwise 1
+        CUMAT_PROFILING_RESET();
+        CMatrix m4 = (mat + 0).adjoint();
+        REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
+        REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+        assertMatrixEquality(adjoint, m4);
+    }
+}
+TEST_CASE("complex", "[transpose]")
+{
+    SECTION("float")
+    {
+        testComplexTranspose<cfloat>();
+    }
+    SECTION("double")
+    {
+        testComplexTranspose<cdouble>();
+    }
 }

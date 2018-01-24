@@ -240,7 +240,7 @@ public:
  */
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, true, true, false>
-operator*(const TransposeOp<_Left>& left, const TransposeOp<_Right>& right)
+operator*(const TransposeOp<_Left, false>& left, const TransposeOp<_Right, false>& right)
 {
     return MultOp<_Left, _Right, true, true, false>(left.getUnderlyingMatrix(), right.getUnderlyingMatrix());
 }
@@ -256,7 +256,7 @@ operator*(const TransposeOp<_Left>& left, const TransposeOp<_Right>& right)
 */
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, false, true, false>
-operator*(const MatrixBase<_Left>& left, const TransposeOp<_Right>& right)
+operator*(const MatrixBase<_Left>& left, const TransposeOp<_Right, false>& right)
 {
     return MultOp<_Left, _Right, false, true, false>(left, right.getUnderlyingMatrix());
 }
@@ -272,7 +272,7 @@ operator*(const MatrixBase<_Left>& left, const TransposeOp<_Right>& right)
 */
 template<typename _Left, typename _Right>
 MultOp<_Left, _Right, true, false, false>
-operator*(const TransposeOp<_Left>& left, const MatrixBase<_Right>& right)
+operator*(const TransposeOp<_Left, false>& left, const MatrixBase<_Right>& right)
 {
     return MultOp<_Left, _Right, true, false, false>(left.getUnderlyingMatrix(), right);
 }

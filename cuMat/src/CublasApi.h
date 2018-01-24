@@ -80,6 +80,7 @@ namespace internal
             , stream_(ctx.stream())
         {
             CUBLAS_SAFE_CALL(cublasCreate_v2(&handle_));
+            CUBLAS_SAFE_CALL(cublasSetPointerMode(handle_, CUBLAS_POINTER_MODE_HOST));
         }
     public:
         ~CublasApi()
@@ -96,6 +97,19 @@ namespace internal
             static thread_local CublasApi INSTANCE(Context::current());
             return INSTANCE;
         }
+
+        /**
+         * \brief The complex types of cuMat (thrust::complex) and of cuBLAS (cuComplex=float2) are not
+         * the same, but binary compatible. This function performs the cast
+         * \tparam _Scalar the scalar type. No-op for non-complex types
+         * \param p 
+         * \return 
+         */
+        template<typename _Scalar> static _Scalar* cast(_Scalar* p) { return p; }
+        static cuFloatComplex* cast(cfloat* p) { return reinterpret_cast<cuFloatComplex*>(p); }
+        static const cuFloatComplex* cast(const cfloat* p) { return reinterpret_cast<const cuFloatComplex*>(p); }
+        static cuDoubleComplex* cast(cdouble* p) { return reinterpret_cast<cuDoubleComplex*>(p); }
+        static const cuDoubleComplex* cast(const cdouble* p) { return reinterpret_cast<const cuDoubleComplex*>(p); }
 
         //-------------------------------
         // MAIN API
