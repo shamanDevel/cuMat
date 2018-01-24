@@ -84,9 +84,9 @@ void assertMatrixEquality(const cuMat::MatrixBase<Left>& l, const cuMat::MatrixB
     REQUIRE(left.rows() == right.rows());
     REQUIRE(left.cols() == right.cols());
     REQUIRE(left.batches() == right.batches());
-    auto op = (abs(left - right) < epsilon).eval().all();
-    bool result = (bool)op;
-    CHECK(result);
+    auto equality = (abs(left - right) <= epsilon).eval();
+    INFO("Equality:\n" << equality);
+    REQUIRE(static_cast<bool>(equality.all()));
 }
 
 #endif

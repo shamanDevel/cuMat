@@ -23,6 +23,7 @@ TEST_CASE("direct_fixed", "[transpose]")
     matd2t mdt2 = md.transpose();
     REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
     REQUIRE(CUMAT_PROFILING_GET(EvalTranspose) == 1);
+    assertMatrixEquality(mdt2, md.adjoint());
 	//test
     math out21 = mdt2.block<6, 5, 1>(0, 0, 0).eval().toEigen();
     math out22 = mdt2.block<6, 5, 1>(0, 0, 1).eval().toEigen();
@@ -58,6 +59,7 @@ TEST_CASE("direct_dynamic1", "[transpose]")
     matd2 mdt2 = md.transpose();
     REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
     REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+    assertMatrixEquality(mdt2, md.adjoint());
     //test
     math out21 = mdt2.block<6, 5, 1>(0, 0, 0).eval().toEigen();
     math out22 = mdt2.block<6, 5, 1>(0, 0, 1).eval().toEigen();
@@ -81,6 +83,7 @@ TEST_CASE("direct_dynamic2", "[transpose]")
     matd2 mdt2 = md.transpose();
     REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
     REQUIRE(CUMAT_PROFILING_GET(EvalTranspose) == 1);
+    assertMatrixEquality(mdt2, md.adjoint());
     //test
     math out21 = mdt2.block<6, 5, 1>(0, 0, 0).eval().toEigen();
     math out22 = mdt2.block<6, 5, 1>(0, 0, 1).eval().toEigen();
@@ -107,6 +110,7 @@ TEST_CASE("noop_fixed", "[transpose]")
     CUMAT_PROFILING_RESET();
     matdt2 mdt1 = md.transpose();
     REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 0);
+    assertMatrixEquality(mdt1, md.adjoint());
     //test
     matht out11 = mdt1.block<6, 5, 1>(0, 0, 0).eval().toEigen();
     matht out12 = mdt1.block<6, 5, 1>(0, 0, 1).eval().toEigen();
@@ -132,6 +136,7 @@ TEST_CASE("noop_dynamic", "[transpose]")
     CUMAT_PROFILING_RESET();
     matdt2 mdt1 = md.transpose();
     REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 0);
+    assertMatrixEquality(mdt1, md.adjoint());
     //test
     math out11 = mdt1.block<6, 5, 1>(0, 0, 0).eval().toEigen();
     math out12 = mdt1.block<6, 5, 1>(0, 0, 1).eval().toEigen();
@@ -159,6 +164,7 @@ TEST_CASE("cwise_fixed", "[transpose]")
     matdt2 mdt1 = md.cwiseNegate().transpose();
     REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
     REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+    assertMatrixEquality(mdt1, md.cwiseNegate().adjoint());
     //test
     matht out11 = mdt1.block<6, 5, 1>(0, 0, 0).eval().toEigen();
     matht out12 = mdt1.block<6, 5, 1>(0, 0, 1).eval().toEigen();
@@ -184,6 +190,7 @@ TEST_CASE("cwise_dynamic", "[transpose]")
     matdt2 mdt1 = md.cwiseNegate().transpose();
     REQUIRE(CUMAT_PROFILING_GET(EvalAny) == 1);
     REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == 1);
+    assertMatrixEquality(mdt1, md.cwiseNegate().adjoint());
     //test
     math out11 = mdt1.block<6, 5, 1>(0, 0, 0).eval().toEigen();
     math out12 = mdt1.block<6, 5, 1>(0, 0, 1).eval().toEigen();
