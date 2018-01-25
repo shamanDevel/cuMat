@@ -48,6 +48,9 @@ namespace internal {
 /**
  * \brief Operation for matrix-matrix multiplication.
  * It calls cuBLAS internally, therefore, it is only available for floating-point types.
+ * 
+ * TODO: also catch if the child expressions are conjugated/adjoint, not just transposed
+ * 
  * \tparam _Left the left matrix
  * \tparam _Right the right matrix
  * \tparam _TransposedLeft true iff the left matrix is transposed
@@ -189,8 +192,19 @@ private:
         int ldc = m;
 
         //alpha+beta will later be filled if more information of the parent nodes are available
-        Scalar alpha = Scalar(1);
-        Scalar beta = Scalar(0);
+        //(like C + 3*A*B)
+
+        //thrust::complex<double> has no alignment requirements,
+        //while cublas cuComplexDouble requires 16B-alignment.
+        //If this is not fullfilled, a segfault is thrown.
+        //This hack enforces that.
+#ifdef _MSC_VER
+        __declspec(align(16)) Scalar alpha(1);
+        __declspec(align(16)) Scalar beta(0);
+#else
+        Scalar alpha __attribute__((aligned(16))) = 1;
+        Scalar beta __attribute__((aligned(16))) = 0;
+#endif
 
         if (_Batches > 1 || batches() > 1)
         {
@@ -198,12 +212,20 @@ private:
             long long int strideA = m * k;
             long long int strideB = k * n;
             long long int strideC = m * n;
-            internal::CublasApi::current().cublasGemmBatched(transA, transB, m, n, k, &alpha, A, lda, strideA, B, ldb, strideB, &beta, C, ldc, strideC, batches());
+            internal::CublasApi::current().cublasGemmBatched(
+                transA, transB, m, n, k, 
+                internal::CublasApi::cast(&alpha), internal::CublasApi::cast(A), lda, strideA, 
+                internal::CublasApi::cast(B), ldb, strideB, 
+                internal::CublasApi::cast(&beta), internal::CublasApi::cast(C), ldc, strideC, batches());
 
         } else
         {
             //single non-batched evaluation
-            internal::CublasApi::current().cublasGemm(transA, transB, m, n, k, &alpha, A, lda, B, ldb, &beta, C, ldc);
+            internal::CublasApi::current().cublasGemm(
+                transA, transB, m, n, k, 
+                internal::CublasApi::cast(&alpha), internal::CublasApi::cast(A), lda, 
+                internal::CublasApi::cast(B), ldb, 
+                internal::CublasApi::cast(&beta), internal::CublasApi::cast(C), ldc);
         }
 
         CUMAT_PROFILING_INC(EvalAny);

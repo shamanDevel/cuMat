@@ -8,16 +8,16 @@ using namespace cuMat;
 template<typename Scalar>
 void testMatrixMatrixDynamic()
 {
-    typedef Matrix<float, Dynamic, Dynamic, Dynamic, RowMajor> matr;
-    typedef Matrix<float, Dynamic, Dynamic, Dynamic, ColumnMajor> matc;
+    typedef Matrix<Scalar, Dynamic, Dynamic, Dynamic, RowMajor> matr;
+    typedef Matrix<Scalar, Dynamic, Dynamic, Dynamic, ColumnMajor> matc;
 
-    float dataA[1][2][4] {
+    Scalar dataA[1][2][4] {
         {
             {1, 4, 6, -3},
             {-6, 8, 0, -2}
         }
     };
-    float dataB[1][4][3] {
+    Scalar dataB[1][4][3] {
         {
             {-2, 1, 0},
             {5, 7, -3},
@@ -25,7 +25,7 @@ void testMatrixMatrixDynamic()
             {7, -2, -5}
         }
     };
-    float dataC[1][2][3] { //C=A*B
+    Scalar dataC[1][2][3] { //C=A*B
         {
             {51, 71, 27},
             {38, 54, -14}
@@ -457,5 +457,51 @@ TEST_CASE("vector-vector", "[matmul]")
     }
     SECTION("double") {
         testVectorVector<double>();
+    }
+}
+
+
+template<typename Scalar>
+void testMatrixMatrixComplex()
+{
+    typedef Matrix<Scalar, Dynamic, Dynamic, 1, RowMajor> matr;
+    typedef Matrix<Scalar, Dynamic, Dynamic, 1, ColumnMajor> matc;
+
+    Scalar Adata[1][3][3]{
+        {
+            { Scalar(1,0), Scalar(6,0), Scalar(-4,0) }, //only real
+            { Scalar(0,5), Scalar(0,-3), Scalar(0, 0.3f) }, //only imaginary
+            { Scalar(0.4f,0.9f), Scalar(-1.5f,0.3f), Scalar(3.5f,-2.8f) } //mixed
+        }
+    };
+    matr A = matr::fromArray(Adata);
+
+    Scalar Bdata[1][3][3]{
+        {
+            { Scalar(1,0), Scalar(0,-5), Scalar(0.4f,-0.9f) },
+            { Scalar(6,0), Scalar(0,3), Scalar(-1.5f,-0.3f) },
+            { Scalar(-4,0), Scalar(0, -0.3f), Scalar(3.5f,2.8f) }
+        }
+    };
+    matr B = matr::fromArray(Bdata);
+
+    Scalar ABdata[1][3][3]{
+        {
+            { Scalar(53, 0), Scalar(0, 14.2), Scalar(-22.6f, -13.9)},
+            { Scalar(0, -14.2f), Scalar(34.09f, 0), Scalar(2.76f, 7.55)},
+            { Scalar(-22.6f, 13.9f), Scalar(2.76f, -7.55f), Scalar(23.4f, 0)}
+        }
+    };
+    matr AB = matr::fromArray(ABdata);
+
+    assertMatrixEquality(AB, A*B, 1e-5);
+}
+TEST_CASE("matrix-matrix complex", "[matmul]")
+{
+    SECTION("complex-float") {
+        testMatrixMatrixComplex<cfloat>();
+    }
+    SECTION("complex-double") {
+        testMatrixMatrixComplex<cdouble>();
     }
 }
