@@ -26,6 +26,16 @@
 #include <assert.h>
 #endif
 
+
+/**
+ * \brief If this macro is defined to 1, then the cub cached allocator is used for device allocation.
+ */
+#define CUMAT_CONTEXT_USE_CUB_ALLOCATOR 1
+
+#if CUMAT_CONTEXT_USE_CUB_ALLOCATOR==1
+#include <cub/util_allocator.cuh>
+#endif
+
 CUMAT_NAMESPACE_BEGIN
 
 /**
@@ -154,6 +164,16 @@ public:
 	 */
 	cudaStream_t stream() const { return stream_; }
 
+#if CUMAT_CONTEXT_USE_CUB_ALLOCATOR==1
+    static cub::CachingDeviceAllocator& getCubAllocator()
+	{
+	    //the allocator is shared over all devices and threads for best caching behavior
+        //Cub synchronizes the access internally
+        static cub::CachingDeviceAllocator INSTANCE;
+        return INSTANCE;
+	}
+#endif
+
 	/**
 	 * \brief Allocates size-number of bytes on the host system.
 	 * This memory must be freed with freeHost(void*).
@@ -202,7 +222,11 @@ public:
 		allocationsDevice_++;
 #endif
 		void* memory;
+#if CUMAT_CONTEXT_USE_CUB_ALLOCATOR==1
+        CUMAT_SAFE_CALL(getCubAllocator().DeviceAllocate(device_, &memory, size, stream_));
+#else
 		CUMAT_SAFE_CALL(cudaMalloc(&memory, size));
+#endif
 		return memory;
 	}
 
@@ -238,8 +262,13 @@ public:
 			CUMAT_ASSERT(allocationsDevice_ >= 0 && "You freed more pointers than were allocated");
 	}
 #endif
-		//TODO: add a plugin-mechanism for custom allocators
+#if CUMAT_CONTEXT_USE_CUB_ALLOCATOR==1
+        if (memory != nullptr) {
+            CUMAT_SAFE_CALL(getCubAllocator().DeviceFree(device_, memory));
+        }
+#else
 		CUMAT_SAFE_CALL(cudaFree(memory));
+#endif
 	}
 	
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
