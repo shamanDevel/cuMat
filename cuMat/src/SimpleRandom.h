@@ -71,6 +71,22 @@ namespace
         return (v * (max - min)) + min;
     }
 
+    template<>
+    __device__ cfloat randNext<cfloat>(state_t* seed, cfloat min, cfloat max)
+    {
+        float real = randNext<float>(seed, min.real(), max.real());
+        float imag = randNext<float>(seed, min.imag(), max.imag());
+        return cfloat(real, imag);
+    }
+
+    template<>
+    __device__ cdouble randNext<cdouble>(state_t* seed, cdouble min, cdouble max)
+    {
+        double real = randNext<double>(seed, min.real(), max.real());
+        double imag = randNext<double>(seed, min.imag(), max.imag());
+        return cdouble(real, imag);
+    }
+
     template<typename M, typename S>
     __global__ void RandomEvaluationKernel(dim3 virtual_size, M matrix, S min, S max, state_t* seeds)
     {
