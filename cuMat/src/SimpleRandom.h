@@ -9,6 +9,7 @@
 #include <random>
 #include <chrono>
 #include <vector>
+#include <limits>
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -99,6 +100,51 @@ namespace
         }
         seeds[threadIdx.x] = seed;
     }
+
+
+    template<typename S>
+    struct MinMaxDefaults;
+
+    template<> struct MinMaxDefaults<int>
+    {
+        constexpr static int min() { return 0; }
+        constexpr static int max() { return std::numeric_limits<int>::max(); }
+    };
+    template<> struct MinMaxDefaults<long>
+    {
+        constexpr static long min() { return 0; }
+        constexpr static long max() { return std::numeric_limits<long>::max(); }
+    };
+    template<> struct MinMaxDefaults<long long>
+    {
+        constexpr static long long min() { return 0; }
+        constexpr static long long max() { return std::numeric_limits<long long>::max(); }
+    };
+    template<> struct MinMaxDefaults<bool>
+    {
+        constexpr static bool min() { return false; }
+        constexpr static bool max() { return true; }
+    };
+    template<> struct MinMaxDefaults<float>
+    {
+        constexpr static float min() { return 0; }
+        constexpr static float max() { return 1; }
+    };
+    template<> struct MinMaxDefaults<double>
+    {
+        constexpr static double min() { return 0; }
+        constexpr static double max() { return 1; }
+    };
+    template<> struct MinMaxDefaults<cfloat>
+    {
+        const static cfloat min() { return cfloat(0, 0); }
+        const static cfloat max() { return cfloat(1, 1); }
+    };
+    template<> struct MinMaxDefaults<cdouble>
+    {
+        const static cdouble min() { return cdouble(0, 0); }
+        const static cdouble max() { return cdouble(1, 1); }
+    };
 }
 
 /**
@@ -160,7 +206,7 @@ public:
     template<
         typename _Derived,
         typename _Scalar = typename internal::traits<_Derived>::Scalar >
-    void fillUniform(const MatrixBase<_Derived>& m, const _Scalar& min, const _Scalar& max)
+    void fillUniform(const MatrixBase<_Derived>& m, const _Scalar& min = MinMaxDefaults<_Scalar>::min(), const _Scalar& max = MinMaxDefaults<_Scalar>::max())
     {
         if (m.size() == 0) return;
         Context& ctx = Context::current();
