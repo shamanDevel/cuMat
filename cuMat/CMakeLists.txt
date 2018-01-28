@@ -34,6 +34,9 @@ set(CUMAT_HEADERS
   src/SimpleRandom.h
   src/MultOp.h
   Core
+  
+  src/CusolverApi.h
+  Dense
   )
 
 add_library(cuMat INTERFACE) # 'moduleA' is an INTERFACE pseudo target

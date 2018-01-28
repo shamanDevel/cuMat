@@ -124,7 +124,7 @@ public:
 		std::lock_guard<std::mutex> lock(mutex);
 #endif
 
-		CUMAT_SAFE_CALL(cudaStreamCreate(&stream_));
+		CUMAT_SAFE_CALL(cudaStreamCreateWithFlags(&stream_, cudaStreamNonBlocking));
 
 		//TODO: init BLAS context and so on
 

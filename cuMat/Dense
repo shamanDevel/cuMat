@@ -1,0 +1,10 @@
+
+/*
+ * Specifies dense linear algebra routines (LAPACK)
+ * This needs cuSolver.
+ */
+
+// Core is always needed
+#include "Core"
+
+#include "src/CusolverApi.h"
