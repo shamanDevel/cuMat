@@ -87,6 +87,11 @@ void testLUDecomposition()
     //compute determinant
     auto determinantResult = decomposition.determinant().eval();
     assertMatrixEquality(determinant, determinantResult, 1e-3);
+
+    //Test inverse
+    auto inverseResult = decomposition.inverse().eval();
+    INFO("inverse: \n" << inverseResult);
+    assertMatrixEquality(mat_t::Identity(5, 5, 2), A*inverseResult, 1e-5);
 }
 TEST_CASE("LU-Decomposition", "[Dense]")
 {

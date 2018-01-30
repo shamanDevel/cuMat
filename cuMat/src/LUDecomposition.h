@@ -128,7 +128,22 @@ public:
             );
     }
 
-    //TODO: move to parent class
+    typedef SolveOp<Type, NullaryOp<Scalar, Rows, Columns, Batches, ColumnMajor, functor::IdentityFunctor<Scalar> > > InverseResultType;
+    /**
+     * \brief Computes the inverse of the input matrix.
+     * \return The inverse matrix
+     */
+    InverseResultType inverse() const
+    {
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(Rows > 0 && Columns > 0, Rows == Columns),
+            "Static count of rows and columns must be equal (square matrix)");
+        CUMAT_ASSERT(rows() == cols());
+
+        return solve(NullaryOp<Scalar, Rows, Columns, Batches, ColumnMajor, functor::IdentityFunctor<Scalar> >(
+            rows(), cols(), batches(), functor::IdentityFunctor<Scalar>()));
+    }
+
+    //TODO: move to parent class, only keep _solver_impl
     /**
      * \brief 
      * \tparam _RHS 
@@ -136,7 +151,7 @@ public:
      * \return 
      */
     template<typename _RHS>
-    SolveOp<Type, _RHS> solve(const MatrixBase<_RHS>& rhs)
+    SolveOp<Type, _RHS> solve(const MatrixBase<_RHS>& rhs) const
     {
         return SolveOp<Type, _RHS>(this, rhs.derived());
     }
@@ -244,7 +259,7 @@ private:
 public:
     SolveOp(const _Solver* const decomposition, const MatrixBase<_RHS>& rhs)
         : decomposition_(decomposition)
-        , rhs_(rhs)
+        , rhs_(rhs.derived())
     {
         CUMAT_STATIC_ASSERT((std::is_same<typename _Solver::Scalar, typename internal::traits<_RHS>::Scalar>::value),
             "Datatype of left- and right hand side must match");
