@@ -63,10 +63,11 @@ void testLUDecomposition()
     };
     mat_t AB = BMatrixXdR::fromArray(dataAB).cast<Scalar>().template block<5, 2, 2>(0, 0, 0);
 
-    Scalar determinant[2]{
-        31.1144f,
-        -43.7003f
+    double determinantData[2][1][1]{
+        {{31.1144}},
+        {{-43.7003}}
     };
+    mat_t determinant = BMatrixXdR::fromArray(determinantData).cast<Scalar>().template block<1, 1, 2>(0, 0, 0);
 
     //perform LU decomposition
     LUDecomposition<mat_t> decomposition(A);
@@ -82,6 +83,10 @@ void testLUDecomposition()
     INFO("pivots:\n" << pivots);
     INFO("A*X = " << (A*solveResult).eval());
     assertMatrixEquality(AB, solveResult, 1e-5);
+    
+    //compute determinant
+    auto determinantResult = decomposition.determinant().eval();
+    assertMatrixEquality(determinant, determinantResult, 1e-3);
 }
 TEST_CASE("LU-Decomposition", "[Dense]")
 {

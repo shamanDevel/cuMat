@@ -244,7 +244,8 @@ namespace internal {
 			Flags = internal::traits<_Child>::Flags,
 			RowsAtCompileTime = internal::traits<_Child>::RowsAtCompileTime,
 			ColsAtCompileTime = internal::traits<_Child>::ColsAtCompileTime,
-			BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime
+			BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
+            AccessFlags = ReadCwise
 		};
 	};
 }
@@ -272,7 +273,8 @@ public:
 	};
 
 protected:
-	const _Child child_;
+    typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
+    const child_wrapped_t child_;
 
 public:
 	explicit CastingOp(const MatrixBase<_Child>& child)
@@ -303,7 +305,8 @@ namespace internal {
             Size = internal::traits<_Child>::RowsAtCompileTime == 1 ? internal::traits<_Child>::ColsAtCompileTime : internal::traits<_Child>::RowsAtCompileTime,
             RowsAtCompileTime = Size,
             ColsAtCompileTime = Size,
-            BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime
+            BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
+            AccessFlags = ReadCwise
         };
     };
 }
@@ -329,7 +332,8 @@ public:
     };
 
 protected:
-    const _Child child_;
+    typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
+    const child_wrapped_t child_;
     const Index size_;
 
 public:
@@ -375,7 +379,8 @@ namespace internal {
                     ? internal::traits<_Child>::ColsAtCompileTime
                     : internal::traits<_Child>::RowsAtCompileTime),
             ColsAtCompileTime = 1,
-            BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime
+            BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
+            AccessFlags = ReadCwise
         };
     };
 }
@@ -404,7 +409,8 @@ public:
     };
 
 protected:
-    const _Child child_;
+    typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
+    const child_wrapped_t child_;
     const Index size_;
 
 public:

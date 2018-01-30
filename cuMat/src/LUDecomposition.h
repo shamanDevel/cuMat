@@ -12,6 +12,19 @@ CUMAT_NAMESPACE_BEGIN
 template<typename _Solver, typename _RHS>
 class SolveOp;
 
+namespace
+{
+    class PermutationSignFunctor
+	{
+	public:
+        typedef int ReturnType;
+		__device__ CUMAT_STRONG_INLINE int operator()(const int& x, Index row, Index col, Index batch) const
+		{
+			return (row+1 != x) ? -1 : 1;
+		}
+    };
+}
+
 template<typename _MatrixType>
 class LUDecomposition
 {
@@ -28,6 +41,7 @@ public:
     };
     typedef Matrix<Scalar, Dynamic, Dynamic, Batches, Flags> EvaluatedMatrix;
     typedef Matrix<int, Dynamic, 1, Batches, Flags> PivotArray;
+    typedef Matrix<Scalar, 1, 1, Batches, ColumnMajor> DeterminantMatrix;
 private:
     EvaluatedMatrix decompositedMatrix_;
     PivotArray pivots_;
@@ -101,9 +115,17 @@ public:
      * \brief Computes the determinant of this matrix
      * \return The determinant
      */
-    Scalar determinant() const
+    DeterminantMatrix determinant() const
     {
-        throw "Not supported yet";
+        if (rows()==0 || cols()!=rows())
+        {
+            return DeterminantMatrix::Constant(1, 1, batches(), Scalar(0));
+        }
+        return decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>() //multiply diagonal elements
+            .cwiseMul(
+                UnaryOp<PivotArray, PermutationSignFunctor>(pivots_, PermutationSignFunctor())
+                .template prod<ReductionAxis::Row | ReductionAxis::Column>().template cast<Scalar>() //compute sign of the permutation
+            );
     }
 
     //TODO: move to parent class
