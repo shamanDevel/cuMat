@@ -36,6 +36,7 @@ set(CUMAT_TEST_FILES
   TestRandom.cu
   TestMatrixMultOp.cu
   TestComplexOps.cu
+  TestLUDecomposition.cu
   )
 
 if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
@@ -60,7 +61,7 @@ if(CUMAT_SEPARATE_TESTS)
         #target_link_libraries(${testname} Catch)
         #target_link_libraries(${testname} cuMat)
         
-        target_link_libraries(${testname} ${CUDA_LIBRARIES})
+        target_link_libraries(${testname} ${CUDA_LIBRARIES} ${CUDA_cusolver_LIBRARY})
         #target_compile_definitions(${testname} PUBLIC CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
     endforeach(testsourcefile)
 else(CUMAT_SEPARATE_TESTS)

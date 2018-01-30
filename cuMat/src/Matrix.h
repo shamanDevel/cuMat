@@ -707,6 +707,19 @@ public:
 		return data_.dataPointer();
 	}
 
+    /**
+     * \brief Checks if the this matrix has exclusive use to the underlying data, i.e. no other matrix expression shares the data.
+     * This allows to check if this matrix is used in other expressions because that increments the internal reference counter.
+     * If the internal reference counter is one, the matrix is nowhere else copied and this method returns true.
+     * 
+     * This is used to determine if the matrix can be modified inplace.
+     * \return 
+     */
+    CUMAT_STRONG_INLINE bool isExclusiveUse() const
+    {
+        return data_.dataPointer().getCounter() == 1;
+    }
+
 	// COPY CALLS
 
     /**
@@ -907,6 +920,21 @@ public:
 		return *this;
 	}
 
+    /**
+     * \brief Performs a deep clone of the matrix.
+     * Usually, when you assign matrix instances, the underlying data is shared. This method explicitly copies the internal data
+     * of the matrix into a new matrix. The two matrices are then completely independent, i.e. if you perform an 
+     * inplace modification on this or the returned matrix, the changes are not reflected in the other.
+     * 
+     * \return the new matrix with a deep clone of the data
+     */
+    CUMAT_STRONG_INLINE Type deepClone() const
+	{
+        Type mat(rows(), cols(), batches());
+        CUMAT_SAFE_CALL(cudaMemcpy(mat.data(), data(), sizeof(_Scalar)*rows()*cols()*batches(), cudaMemcpyDeviceToDevice));
+        return mat;
+	}
+
 	// EVALUATIONS
 
 	template<typename Derived>
@@ -923,6 +951,12 @@ public:
 		expr.evalTo(*this);
 		return *this;
 	}
+
+    //TODO: add overwrites of CwiseOp::evalTo with specializations for other Matrices
+    //Two options:
+    // - Same flags -> efficient memcpy
+    // - Different flags -> explicit transpose with BLAS
+    //This is more performant than a cwise-tranpose evaluation
 
 	// STATIC METHODS AND OTHER HELPERS
 

@@ -48,6 +48,7 @@ enum AccessFlags
      * The following method must be provided:
      * \code
      * __host__ __device__ const _Scalar* data() const;
+     * __host__ bool isExclusiveUse() const;
      * \endcode
      */
     ReadDirect = 0x02,

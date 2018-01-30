@@ -8,3 +8,4 @@
 #include "Core"
 
 #include "src/CusolverApi.h"
+#include "src/LUDecomposition.h"
