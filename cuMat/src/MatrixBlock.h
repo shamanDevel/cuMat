@@ -129,7 +129,7 @@ public:
 	* \param batch the batch index
 	* \return a read-only reference to the entry
 	*/
-	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch) const
+	__device__ CUMAT_STRONG_INLINE _Scalar coeff(Index row, Index col, Index batch) const
 	{
 		return matrix_.coeff(row + start_row_, col + start_column_, batch + start_batch_);
 	}
