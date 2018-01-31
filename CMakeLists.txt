@@ -5,13 +5,21 @@ project(cuMat)
 # Cuda is always required
 find_package(CUDA REQUIRED)
 
+# Add OpenMP if available. This is needed by cuSolver for optimal performance
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
 # Eigen is not required by default,
 # but the tests depend on it -> use bundled Eigen for tests
 
 # Hack: The FindCUDA that is used by the CI does not correctly support target_include_directories,
 #  it does not forward the include paths.
 #  Hence I have to include the paths globally.
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party)
+include_directories(${CMAKE_SOURCE_DIR} ${CUDA_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third-party)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
