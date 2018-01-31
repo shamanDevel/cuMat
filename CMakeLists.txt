@@ -23,7 +23,7 @@ include_directories(${CMAKE_SOURCE_DIR} ${CUDA_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 --expt-relaxed-constexpr" )
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11" )
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(third-party)
