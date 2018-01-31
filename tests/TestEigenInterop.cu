@@ -1,5 +1,6 @@
 #include <catch/catch.hpp>
 
+#include <cuMat/src/DisableCompilerWarnings.h>
 #include <cuMat/src/Matrix.h>
 #include <cuMat/src/EigenInteropHelpers.h>
 

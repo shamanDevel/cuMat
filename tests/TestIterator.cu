@@ -2,8 +2,7 @@
 #include <set>
 #include <vector>
 
-#include <cuMat/src/Iterator.h>
-#include "cuMat/src/Matrix.h"
+#include <cuMat/Core>
 
 using namespace cuMat;
 

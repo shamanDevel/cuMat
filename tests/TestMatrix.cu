@@ -1,5 +1,6 @@
 #include <catch/catch.hpp>
 
+#include <cuMat/src/DisableCompilerWarnings.h>
 #include <cuMat/src/Matrix.h>
 
 #define TEST_SIZE_F1(type, flags, rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime) \
