@@ -1,7 +1,7 @@
 #include <catch/catch.hpp>
 
-#include <cuMat/src/DisableCompilerWarnings.h>
-#include <cuMat/src/Matrix.h>
+#include <cuMat/Core>
+#include "Utils.h"
 
 #define TEST_SIZE_F1(type, flags, rowCompile, rowRuntime, colCompile, colRuntime, batchCompile, batchRuntime) \
 	do{ \
@@ -387,3 +387,79 @@ TEST_CASE("assign", "[matrix]")
 	REQUIRE(mat1.data() == mat3.data());
 	REQUIRE(mat1.data() == mat4.data());
 }
+
+// Matrix direct eval
+template<typename T>
+void testDirectEvalTo()
+{
+    typedef typename cuMat::Matrix<T, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor> MatR;
+    typedef typename cuMat::Matrix<T, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor> MatC;
+    T data[2][2][3] {
+        {
+            {1, 2, -1},
+            {3, 4, -2}
+        },
+        {
+            {5, 6, -3},
+            {7, 8, -4}
+        }
+    };
+    MatR matR = MatR::fromArray(data);
+    MatC matC = matR+0;
+    
+    MatR targetR(2, 3, 2);
+    MatC targetC(2, 3, 2);
+    
+    //memcpy
+    targetR.setZero();
+    targetC.setZero();
+    CUMAT_PROFILING_RESET();
+    matR.evalTo(targetR);
+    matC.evalTo(targetC);
+    REQUIRE(CUMAT_PROFILING_GET(EvalAny)==0);
+    REQUIRE(CUMAT_PROFILING_GET(DeviceMemcpy)==2);
+    assertMatrixEquality(matR, targetR);
+    assertMatrixEquality(matC, targetC);
+    
+    //transpose
+    targetR.setZero();
+    targetC.setZero();
+    CUMAT_PROFILING_RESET();
+    matR.evalTo(targetC);
+    matC.evalTo(targetR);
+    REQUIRE(CUMAT_PROFILING_GET(EvalAny)==2);
+    REQUIRE(CUMAT_PROFILING_GET(EvalTranspose) == (cuMat::internal::NumTraits<T>::IsCudaNumeric ? 2 : 0));
+    REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == (cuMat::internal::NumTraits<T>::IsCudaNumeric ? 0 : 2));
+    REQUIRE(CUMAT_PROFILING_GET(DeviceMemcpy)==0);
+    assertMatrixEquality(matR, targetR);
+    assertMatrixEquality(matC, targetC);
+    
+    //cwise
+    targetR.setZero();
+    targetC.setZero();
+    CUMAT_PROFILING_RESET();
+    auto block1 = targetC.block(0,0,0,2,3,2);
+    auto block2 = targetR.block(0,0,0,2,3,2);
+    matR.evalTo(block1);
+    matC.evalTo(block2);
+    REQUIRE(CUMAT_PROFILING_GET(EvalAny)==2);
+    REQUIRE(CUMAT_PROFILING_GET(EvalTranspose)==0);
+    REQUIRE(CUMAT_PROFILING_GET(EvalCwise)==2);
+    REQUIRE(CUMAT_PROFILING_GET(DeviceMemcpy)==0);
+    assertMatrixEquality(matR, targetR);
+    assertMatrixEquality(matC, targetC);
+}
+TEST_CASE("direct evalTo", "[matrix]")
+{
+    SECTION("int") {
+        testDirectEvalTo<int>();
+    }
+    SECTION("float") {
+        testDirectEvalTo<float>();
+    }
+    SECTION("double") {
+        testDirectEvalTo<double>();    
+    }
+}
+
+

@@ -38,6 +38,57 @@ namespace
     template<> __device__ CUMAT_STRONG_INLINE cdouble conjugateCoeff<cdouble, true>(const cdouble& val) { return conj(val); }
 }
 
+namespace internal
+{
+    /**
+     * \brief Performs a direct copy-transpose operation from the src matrix (column major) into the dst matrix (column major)
+     * \param dst destination matrix, column major
+     * \param src source matrix, column major
+     * \param rows number of rows in the source matrix
+     * \param cols number of columns in the source matrix
+     * \param batches number of batches in the source matrix
+     */
+    template<typename Scalar>
+    void directTranspose(Scalar* dst, const Scalar* src, Index rows, Index cols, Index batches, cublasOperation_t transOp = CUBLAS_OP_T)
+    {
+        //thrust::complex<double> has no alignment requirements,
+        //while cublas cuComplexDouble requires 16B-alignment.
+        //If this is not fullfilled, a segfault is thrown.
+        //This hack enforces that.
+#ifdef _MSC_VER
+        __declspec(align(16)) Scalar alpha(1);
+        __declspec(align(16)) Scalar beta(0);
+#else
+        Scalar alpha __attribute__((aligned(16))) = 1;
+        Scalar beta __attribute__((aligned(16))) = 0;
+#endif
+
+        int m = static_cast<int>(rows);
+        int n = static_cast<int>(cols);
+        
+        cublasOperation_t transB = CUBLAS_OP_N;
+
+        const Scalar* A = src;
+        int lda = n;
+        const Scalar* B = nullptr;
+        int ldb = m;
+        Scalar* C = dst;
+        int ldc = m;
+        size_t batch_offset = size_t(m) * n;
+        //TODO: parallelize over multiple streams
+        for (Index batch = 0; batch < batches; ++batch) {
+            internal::CublasApi::current().cublasGeam(
+                transOp, transB, m, n,
+                internal::CublasApi::cast(&alpha), internal::CublasApi::cast(A + batch*batch_offset), lda, 
+                internal::CublasApi::cast(&beta), internal::CublasApi::cast(B), ldb,
+                internal::CublasApi::cast(C + batch*batch_offset), ldc);
+        }
+
+        CUMAT_PROFILING_INC(EvalTranspose);
+        CUMAT_PROFILING_INC(EvalAny);
+    }
+}
+
 /**
  * \brief Transposes the matrix.
  * This expression can be used on the right hand side and the left hand side.
@@ -132,40 +183,11 @@ private:
         CUMAT_LOG(CUMAT_LOG_WARNING) << "Transpose: Direct transpose using cuBLAS";
 
         cublasOperation_t transA = IsConjugated ? CUBLAS_OP_C : CUBLAS_OP_T;
-        cublasOperation_t transB = CUBLAS_OP_N;
         int m = static_cast<int>(OriginalFlags == ColumnMajor ? mat.rows() : mat.cols());
         int n = static_cast<int>(OriginalFlags == ColumnMajor ? mat.cols() : mat.rows());
 
-        //thrust::complex<double> has no alignment requirements,
-        //while cublas cuComplexDouble requires 16B-alignment.
-        //If this is not fullfilled, a segfault is thrown.
-        //This hack enforces that.
-#ifdef _MSC_VER
-        __declspec(align(16)) Scalar alpha(1);
-        __declspec(align(16)) Scalar beta(0);
-#else
-        Scalar alpha __attribute__((aligned(16))) = 1;
-        Scalar beta __attribute__((aligned(16))) = 0;
-#endif
-
-        const Scalar* A = matrix_.data();
-        int lda = n;
-        const Scalar* B = nullptr;
-        int ldb = m;
-        Scalar* C = mat.data();
-        int ldc = m;
-        size_t batch_offset = size_t(m) * n;
-        //TODO: parallelize over multiple streams
-        for (Index batch = 0; batch < batches(); ++batch) {
-            internal::CublasApi::current().cublasGeam(
-                transA, transB, m, n,
-                internal::CublasApi::cast(&alpha), internal::CublasApi::cast(A + batch*batch_offset), lda, 
-                internal::CublasApi::cast(&beta), internal::CublasApi::cast(B), ldb,
-                internal::CublasApi::cast(C + batch*batch_offset), ldc);
-        }
-
-        CUMAT_PROFILING_INC(EvalTranspose);
-        CUMAT_PROFILING_INC(EvalAny);
+        //perform transposition
+        internal::directTranspose(mat.data(), matrix_.data(), m, n, batches(), transA);
     }
     template<int _Rows, int _Columns, int _Batches>
     CUMAT_STRONG_INLINE void evalToImplDirect(Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>& mat, std::false_type) const

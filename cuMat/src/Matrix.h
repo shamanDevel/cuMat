@@ -11,6 +11,7 @@
 #include "MatrixBase.h"
 #include "CwiseOp.h"
 #include "NullaryOps.h"
+#include "TransposeOp.h"
 
 #if CUMAT_EIGEN_SUPPORT==1
 #include <Eigen/Core>
@@ -484,7 +485,8 @@ public:
 		Flags = _Flags,
 		Rows = _Rows,
 		Columns = _Columns,
-		Batches = _Batches
+		Batches = _Batches,
+		TransposedFlags = CUMAT_IS_COLUMN_MAJOR(Flags) ? RowMajor : ColumnMajor
 	};
 	using Scalar = _Scalar;
 	using Type = Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>;
@@ -953,11 +955,65 @@ public:
 		return *this;
 	}
 
-    //TODO: add overwrites of CwiseOp::evalTo with specializations for other Matrices
-    //Two options:
-    // - Same flags -> efficient memcpy
-    // - Different flags -> explicit transpose with BLAS
-    //This is more performant than a cwise-tranpose evaluation
+    template<int _OtherRows, int _OtherColumns, int _OtherBatches>
+    void evalTo(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, Flags>& mat) const
+    {
+        //optimized path: direct memcpy
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Rows!=Dynamic && _OtherRows!=Dynamic, _Rows == _OtherRows), 
+            "unable to assign a matrix to another matrix with a different compile time row count");
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Columns!=Dynamic && _OtherColumns!=Dynamic, _Columns == _OtherColumns), 
+            "unable to assign a matrix to another matrix with a different compile time column count");
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Batches!=Dynamic && _OtherBatches!=Dynamic, _Batches == _OtherBatches), 
+            "unable to assign a matrix to another matrix with a different compile time row count");
+            
+        CUMAT_ASSERT(rows() == mat.rows());
+        CUMAT_ASSERT(cols() == mat.cols());
+        CUMAT_ASSERT(batches() == mat.batches());
+        
+        CUMAT_SAFE_CALL(cudaMemcpyAsync(mat.data(), data(), sizeof(_Scalar)*rows()*cols()*batches(), cudaMemcpyDeviceToDevice, Context::current().stream()));
+        CUMAT_PROFILING_INC(DeviceMemcpy);
+    }
+    
+private:
+    template<int _OtherRows, int _OtherColumns, int _OtherBatches>
+    void _evalTo_directTranspose(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat, std::integral_constant<bool, true>) const
+    {
+        //optimized path: direct transpose
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Rows!=Dynamic && _OtherRows!=Dynamic, _Rows == _OtherRows), 
+            "unable to assign a matrix to another matrix with a different compile time row count");
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Columns!=Dynamic && _OtherColumns!=Dynamic, _Columns == _OtherColumns), 
+            "unable to assign a matrix to another matrix with a different compile time column count");
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Batches!=Dynamic && _OtherBatches!=Dynamic, _Batches == _OtherBatches), 
+            "unable to assign a matrix to another matrix with a different compile time row count");
+            
+        CUMAT_ASSERT(rows() == mat.rows());
+        CUMAT_ASSERT(cols() == mat.cols());
+        CUMAT_ASSERT(batches() == mat.batches());
+        
+        Index m = CUMAT_IS_ROW_MAJOR(Flags) ? rows() : cols();
+        Index n = CUMAT_IS_ROW_MAJOR(Flags) ? cols() : rows();
+        internal::directTranspose<_Scalar>(mat.data(), data(), m, n, batches());
+    }
+    template<int _OtherRows, int _OtherColumns, int _OtherBatches>
+    void _evalTo_directTranspose(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat, std::integral_constant<bool, false>) const
+    {
+        //cuBLAS is not available for that type
+        //default: cwise evaluation
+	    Base::evalTo(mat);
+    }
+public:
+    template<int _OtherRows, int _OtherColumns, int _OtherBatches>
+    void evalTo(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat) const
+    {
+        _evalTo_directTranspose(mat, std::integral_constant<bool, internal::NumTraits<_Scalar>::IsCudaNumeric>());
+    }
+    
+    template<typename Derived>
+	void evalTo(MatrixBase<Derived>& m) const
+	{
+	    //default: cwise evaluation
+	    Base::evalTo(m);
+	}
 
 	// STATIC METHODS AND OTHER HELPERS
 
