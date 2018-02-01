@@ -33,5 +33,5 @@ test_compile:
   stage: build
   script:
   - cd build/
-  - make -j 8
+  - make
   
