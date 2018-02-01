@@ -898,8 +898,8 @@ public:
 		CUMAT_STATIC_ASSERT(_Batches == Dynamic || _OtherBatches == _Batches, 
 			"unable to assign a matrix to another matrix with a different compile time batch count");
 
-		//TODO: relax the following constraint to allow automatic transposing?
-		CUMAT_STATIC_ASSERT(_OtherFlags == _Flags,
+		//Only allow implicit transposing if we have vectors
+		CUMAT_STATIC_ASSERT(_OtherFlags == _Flags || _Rows==1 || _Columns==1,
 			"unable to assign a matrix to another matrix with a different storage order, transpose them explicitly");
 	}
 
@@ -913,8 +913,8 @@ public:
 		CUMAT_STATIC_ASSERT(_Batches == Dynamic || _OtherBatches == _Batches,
 			"unable to assign a matrix to another matrix with a different compile time batch count");
 
-		//TODO: relax the following constraint to allow automatic transposing?
-		CUMAT_STATIC_ASSERT(_OtherFlags == _Flags,
+		//Only allow implicit transposing if we have vectors
+		CUMAT_STATIC_ASSERT(_OtherFlags == _Flags || _Rows==1 || _Columns==1,
 			"unable to assign a matrix to another matrix with a different storage order, transpose them explicitly");
 
 		// shallow copy
