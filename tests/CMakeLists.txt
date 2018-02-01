@@ -76,7 +76,7 @@ else(CUMAT_SEPARATE_TESTS)
     #target_link_libraries(cuMat_tests Catch)
     #target_link_libraries(cuMat_tests cuMat)
     
-    target_link_libraries(cuMat_tests ${CUDA_LIBRARIES})
+    target_link_libraries(cuMat_tests ${CUDA_LIBRARIES} ${CUDA_cusolver_LIBRARY})
     #target_compile_definitions(cuMat_tests PUBLIC CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
     add_test(NAME cuMatTest COMMAND cuMat_tests)
 endif(CUMAT_SEPARATE_TESTS)

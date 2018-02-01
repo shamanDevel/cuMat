@@ -25,6 +25,6 @@ foreach( demosourcefile ${CUMAT_DEMO_FILES} )
     #target_link_libraries(${demoname} Catch)
     #target_link_libraries(${demoname} cuMat)
     
-    target_link_libraries(${demoname} ${CUDA_LIBRARIES})
+    target_link_libraries(${demoname} ${CUDA_LIBRARIES} ${CUDA_cusolver_LIBRARY})
     #target_compile_definitions(${demoname} PRIVATE CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
 endforeach(demosourcefile)

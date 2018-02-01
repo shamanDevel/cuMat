@@ -32,7 +32,7 @@ foreach( benchmark ${CUMAT_BENCHMARKS} )
     cuda_add_cublas_to_target(${benchmark})
     set_target_properties(${benchmark} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     set_target_properties(${benchmark} PROPERTIES FOLDER Benchmarks)
-    target_link_libraries(${benchmark} ${CUDA_LIBRARIES})
+    target_link_libraries(${benchmark} ${CUDA_LIBRARIES} ${CUDA_cusolver_LIBRARY})
     target_compile_definitions(${benchmark} PRIVATE 
         CUMAT_EIGEN_SUPPORT=1 
         CUMAT_PROFILING=1 

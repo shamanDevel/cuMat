@@ -16,8 +16,8 @@ namespace internal
 {
 
     /**
-     * \brief Interface class to cuBLAS.
-     * Note that cuBLAS assumes all matrices to be in ColumnMajor order.
+     * \brief Interface class to cuSOLVER.
+     * Note that cuSOLVER assumes all matrices to be in ColumnMajor order.
      */
     class CusolverApi
     {

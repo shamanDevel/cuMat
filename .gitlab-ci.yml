@@ -12,7 +12,7 @@ prepare:
   script:
   - mkdir build
   - cd build/
-  - cmake -DCUDA_VERBOSE_BUILD=ON ..
+  - cmake -DCUDA_VERBOSE_BUILD=ON -DCUMAT_SEPARATE_TESTS=ON ..
   artifacts:
     paths:
     - build
@@ -33,5 +33,5 @@ test_compile:
   stage: build
   script:
   - cd build/
-  - make
+  - make -j 8
   
