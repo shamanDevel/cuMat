@@ -488,4 +488,55 @@ TEST_CASE("direct evalTo", "[matrix]")
     }
 }
 
+//Deep clone
+template<typename T>
+void testDeepClone()
+{
+    typedef typename cuMat::Matrix<T, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor> MatR;
+    typedef typename cuMat::Matrix<T, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor> MatC;
+    T data[2][2][3] {
+        {
+            {1, 2, -1},
+            {3, 4, -2}
+        },
+        {
+            {5, 6, -3},
+            {7, 8, -4}
+        }
+    };
+    MatR matR = MatR::fromArray(data);
+    MatC matC = matR+0;
+    
+    MatR cloneR1 = matR.deepClone();
+    MatR cloneR2 = matR.template deepClone<cuMat::RowMajor>();
+    MatC cloneR3 = matR.template deepClone<cuMat::ColumnMajor>();
+    REQUIRE(matR.data() != cloneR1.data());
+    REQUIRE(matR.data() != cloneR2.data());
+    REQUIRE(matR.data() != cloneR3.data());
+    assertMatrixEquality(matR, cloneR1);
+    assertMatrixEquality(matR, cloneR2);
+    assertMatrixEquality(matR, cloneR3);
+    
+    MatC cloneC1 = matC.deepClone();
+    MatC cloneC2 = matC.template deepClone<cuMat::ColumnMajor>();
+    MatR cloneC3 = matC.template deepClone<cuMat::RowMajor>();
+    REQUIRE(matC.data() != cloneC1.data());
+    REQUIRE(matC.data() != cloneC2.data());
+    REQUIRE(matC.data() != cloneC3.data());
+    assertMatrixEquality(matC, cloneC1);
+    assertMatrixEquality(matC, cloneC2);
+    assertMatrixEquality(matC, cloneC3);
+}
 
+TEST_CASE("deep clone", "[matrix]")
+{
+    SECTION("int") {
+        testDeepClone<int>();
+    }
+    SECTION("float") {
+        testDeepClone<float>();
+    }
+    SECTION("double") {
+        testDeepClone<double>();    
+    }
+}

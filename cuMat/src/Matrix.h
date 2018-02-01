@@ -923,21 +923,6 @@ public:
 		return *this;
 	}
 
-    /**
-     * \brief Performs a deep clone of the matrix.
-     * Usually, when you assign matrix instances, the underlying data is shared. This method explicitly copies the internal data
-     * of the matrix into a new matrix. The two matrices are then completely independent, i.e. if you perform an 
-     * inplace modification on this or the returned matrix, the changes are not reflected in the other.
-     * 
-     * \return the new matrix with a deep clone of the data
-     */
-    CUMAT_STRONG_INLINE Type deepClone() const
-	{
-        Type mat(rows(), cols(), batches());
-        CUMAT_SAFE_CALL(cudaMemcpy(mat.data(), data(), sizeof(_Scalar)*rows()*cols()*batches(), cudaMemcpyDeviceToDevice));
-        return mat;
-	}
-
 	// EVALUATIONS
 
 	template<typename Derived>
@@ -1013,6 +998,28 @@ public:
 	{
 	    //default: cwise evaluation
 	    Base::evalTo(m);
+	}	
+
+    /**
+     * \brief Performs a deep clone of the matrix.
+     * Usually, when you assign matrix instances, the underlying data is shared. This method explicitly copies the internal data
+     * of the matrix into a new matrix. The two matrices are then completely independent, i.e. if you perform an 
+     * inplace modification on this or the returned matrix, the changes are not reflected in the other.
+     * 
+     * Furthermore, this is the only option to explicitly change the storage mode:
+     * In cuMat, implicit transposition is not allowed when assigning matrices of different storage mode (column major vs. row major) to each other.
+     * This method, however, allows to specify the target storage mode.
+     * By default, this is the same as the current mode, resulting in a simple memcpy
+     *
+     * \tparam _TargetFlags the target storage mode (ColumnMajor or RowMajor). Default: the current storage mode
+     * \return the new matrix with a deep clone of the data
+     */
+    template<int _TargetFlags = _Flags>
+    CUMAT_STRONG_INLINE Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> deepClone() const
+	{
+        Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> mat(rows(), cols(), batches());
+        evalTo(mat);
+        return mat;
 	}
 
 	// STATIC METHODS AND OTHER HELPERS
