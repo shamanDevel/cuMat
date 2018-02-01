@@ -119,9 +119,10 @@ namespace eigen
 			SizeCuMatToEigen<_CuMatMatrixType::Rows>::size,
 			SizeCuMatToEigen<_CuMatMatrixType::Columns>::size,
             //Eigen requires specific storage types for vector sizes
-			(_CuMatMatrixType::Rows==1) ? ::Eigen::StorageOptions::RowMajor  
+			((_CuMatMatrixType::Rows==1) ? ::Eigen::StorageOptions::RowMajor  
             : (_CuMatMatrixType::Columns==1) ? ::Eigen::StorageOptions::ColMajor
-	        : StorageCuMatToEigen<_CuMatMatrixType::Flags>::value
+	        : StorageCuMatToEigen<_CuMatMatrixType::Flags>::value)
+	        | ::Eigen::DontAlign //otherwise, toEigen() will produce strange errors because we access the native data pointer
 		>;
 	};
 	template<typename _EigenMatrixType>

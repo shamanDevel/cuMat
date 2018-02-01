@@ -90,4 +90,42 @@ TEST_CASE("cwise_r", "[block]")
         }
     };
     assertMatrixEquality(batch1Expected, batch1);
+    
+    cuMat::Matrix2i batch2 = matCwise.block<2, 2, 1>(0, 0, 1);
+    int batch2Expected[1][2][2]{
+        {
+            { 5, 6 },
+            { 7, 8 }
+        }
+    };
+    assertMatrixEquality(batch2Expected, batch2);
 }
+
+
+//Utils assertMatrixEquality is based on matrix blocks, so test that also here
+TEST_CASE("test_utils", "[block]")
+{
+    int data[2][2][2] {
+        {
+            {1, 2},
+            {3, 4}
+        },
+        {
+            {5, 6},
+            {7, 8}
+        }
+    };
+    cuMat::BMatrixXiR matR = cuMat::BMatrixXiR::fromArray(data);
+    cuMat::BMatrixXiC matC = matR+0;
+    
+    assertMatrixEquality(data, matR);
+    assertMatrixEquality(data, matC);
+    
+    assertMatrixEquality(matR, matC);
+    assertMatrixEquality(matC, matR);
+    
+    assertMatrixEquality(matR*2, matC+matC);
+    assertMatrixEquality(matC*2, matR+matR);
+}
+
+
