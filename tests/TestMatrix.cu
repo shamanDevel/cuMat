@@ -388,6 +388,32 @@ TEST_CASE("assign", "[matrix]")
 	REQUIRE(mat1.data() == mat4.data());
 }
 
+TEST_CASE("implicit-transpose", "[matrix]")
+{
+    //implicit transposition is only allowed for vectors
+    
+    cuMat::VectorXiR v1(5);
+    cuMat::VectorXiC v2a = v1;
+    cuMat::VectorXiC v2b(v1);
+    cuMat::VectorXiC v2c; v2c = v1;
+    
+    cuMat::RowVectorXiR v3(5);
+    cuMat::RowVectorXiC v4a = v3;
+    cuMat::RowVectorXiC v4b(v3);
+    cuMat::RowVectorXiC v4c; v4c = v3;
+    
+    cuMat::ScalariR v5;
+    cuMat::ScalariC v6a = v5;
+    cuMat::ScalariC v6b(v5);
+    cuMat::ScalariC v6c; v6c = v5;
+    
+    //This should not compile, how can I test that?
+    //cuMat::MatrixXiR v7(5, 4);
+    //cuMat::MatrixXiC v8a = v7;
+    //cuMat::MatrixXiC v8b(v7);
+    //cuMat::MatrixXiC v8c; v8c = v7;
+}
+
 // Matrix direct eval
 template<typename T>
 void testDirectEvalTo()
