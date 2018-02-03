@@ -119,13 +119,29 @@ public:
     {
         if (rows()==0 || cols()!=rows())
         {
-            return DeterminantMatrix::Constant(1, 1, batches(), Scalar(0));
+            return DeterminantMatrix::Constant(1, 1, batches(), Scalar(1));
         }
         return decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>() //multiply diagonal elements
             .cwiseMul(
                 UnaryOp<PivotArray, PermutationSignFunctor>(pivots_, PermutationSignFunctor())
                 .template prod<ReductionAxis::Row | ReductionAxis::Column>().template cast<Scalar>() //compute sign of the permutation
             );
+    }
+
+    /**
+    * \brief Computes the log-determinant of this matrix.
+    * This is only supported for hermitian positive definite matrices, because no sign is computed.
+    * A negative determinant would return in an complex logarithm which requires to return
+    * a complex result for real matrices. This is not desired.
+    * \return The log-determinant
+    */
+    DeterminantMatrix logDeterminant() const
+    {
+        if (rows() == 0 || cols() != rows())
+        {
+            return DeterminantMatrix::Constant(1, 1, batches(), Scalar(0));
+        }
+        return decompositedMatrix_.diagonal().cwiseLog().template sum<ReductionAxis::Row | ReductionAxis::Column>(); //multiply diagonal elements;
     }
 
     typedef SolveOp<Type, NullaryOp<Scalar, Rows, Columns, Batches, ColumnMajor, functor::IdentityFunctor<Scalar> > > InverseResultType;

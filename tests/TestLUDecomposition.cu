@@ -233,3 +233,62 @@ TEST_CASE("LU-Decomposition", "[Dense]")
         }
     }
 }
+
+
+template<typename Scalar, int Flags>
+void testLUDecompositionLogDet()
+{
+    typedef Matrix<Scalar, Dynamic, Dynamic, 2, Flags> mat_t;
+    double dataA[2][5][5]{
+        { 
+            { 5.49558, -5.00076, -1.36761, -3.65355, -1.7765 },
+            { -5.00076, 7.09413, 0.367989, 2.57289, 3.32289 },
+            { -1.36761, 0.367989, 4.45802, 1.96195, -0.529342 },
+            { -3.65355, 2.57289, 1.96195, 5.24609, -0.620785 },
+            { -1.7765, 3.32289, -0.529342, -0.620785, 9.83736 } 
+        },
+        { 
+            { 8.53528, -0.228827, 1.98238, 5.73122, 2.33181 },
+            { -0.228827, 5.163, -1.95338, 1.56358, 3.02351 },
+            { 1.98238, -1.95338, 7.18909, -0.663429, -1.657 },
+            { 5.73122, 1.56358, -0.663429, 7.75456, 2.6002 },
+            { 2.33181, 3.02351, -1.657, 2.6002, 5.06648 } 
+        }
+    };
+    mat_t A = BMatrixXdR::fromArray(dataA).cast<Scalar>().template block<5, 5, 2>(0, 0, 0);
+    double logDeterminantData[2][1][1]{
+        { { 6.875344150773254} },
+        { { 7.55471060202439 } }
+    };
+    mat_t logDeterminant = BMatrixXdR::fromArray(logDeterminantData).cast<Scalar>().template block<1, 1, 2>(0, 0, 0);
+
+    //perform LU decomposition
+    LUDecomposition<mat_t> decomposition(A);
+    assertMatrixEquality(logDeterminant, decomposition.logDeterminant(), 1e-3);
+}
+
+TEST_CASE("LU-Decomposition LogDet", "[Dense]")
+{
+    SECTION("float")
+    {
+        SECTION("row major")
+        {
+            testLUDecompositionLogDet<float, RowMajor>();
+        }
+        SECTION("column major")
+        {
+            testLUDecompositionLogDet<float, ColumnMajor>();
+        }
+    }
+    SECTION("double")
+    {
+        SECTION("row major")
+        {
+            testLUDecompositionLogDet<double, RowMajor>();
+        }
+        SECTION("column major")
+        {
+            testLUDecompositionLogDet<double, ColumnMajor>();
+        }
+    }
+}

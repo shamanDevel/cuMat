@@ -136,6 +136,11 @@ namespace functor
 template<typename _Scalar>
 using HostScalar = NullaryOp<_Scalar, 1, 1, 1, 0, functor::ConstantFunctor<_Scalar> >;
 
+// DENSE
+
+template<typename _MatrixType> class LUDecomposition;
+template<typename _Solver, typename _RHS> class SolveOp;
+
 CUMAT_NAMESPACE_END
 
 #endif
