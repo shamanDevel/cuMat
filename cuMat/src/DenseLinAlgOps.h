@@ -259,7 +259,8 @@ namespace internal
             RowsAtCompileTime = 1,
             ColsAtCompileTime = 1,
             BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
-            InputSize = std::max(internal::traits<_Child>::RowsAtCompileTime, internal::traits<_Child>::ColsAtCompileTime),
+            //InputSize = std::max(internal::traits<_Child>::RowsAtCompileTime, internal::traits<_Child>::ColsAtCompileTime), //std::max is not constexpr in gcc
+            InputSize = internal::traits<_Child>::RowsAtCompileTime>internal::traits<_Child>::ColsAtCompileTime ? internal::traits<_Child>::RowsAtCompileTime : internal::traits<_Child>::ColsAtCompileTime,
             AccessFlags = InputSize<=3 ? ReadCwise : 0 //for matrices <=3, we also support cwise evaluation
         };
     };
@@ -277,7 +278,8 @@ public:
         Rows = 1,
         Columns = 1,
         Batches = internal::traits<_Child>::BatchesAtCompileTime,
-        InputSize = std::max(internal::traits<_Child>::RowsAtCompileTime, internal::traits<_Child>::ColsAtCompileTime)
+        //InputSize = std::max(internal::traits<_Child>::RowsAtCompileTime, internal::traits<_Child>::ColsAtCompileTime)
+        InputSize = internal::traits<_Child>::RowsAtCompileTime>internal::traits<_Child>::ColsAtCompileTime ? internal::traits<_Child>::RowsAtCompileTime : internal::traits<_Child>::ColsAtCompileTime
     };
 
 private:
@@ -371,15 +373,15 @@ public:
     template<typename Derived>
     void evalTo(MatrixBase<Derived>& m) const
     {
-        evalImpl(m.derived(), std::integral_constant<int, std::max(internal::traits<_Child>::RowsAtCompileTime, internal::traits<_Child>::ColsAtCompileTime)>());
+        evalImpl(m.derived(), std::integral_constant<int, InputSize>());
     }
 
     template<int Dims = InputSize>
     __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
     {
         CUMAT_STATIC_ASSERT(Dims <= 3, "Cwise-evaluation of the determinant is only supported for matrices of size <= 3x3");
-        typedef typename DeviceMatrix<Scalar, Dims, internal::traits<_Child>::Flags> Mat_t;
-        Mat_t in = loadMat(matrix_, batch);
+        typedef DeviceMatrix<Scalar, Dims, internal::traits<_Child>::Flags> Mat_t;
+        Mat_t in = loadMat<Dims, _Child, Scalar>(matrix_, batch);
         Scalar det = DeterminantFunctor<Scalar, Dims, Mat_t>::run(in);
         return det;
     }

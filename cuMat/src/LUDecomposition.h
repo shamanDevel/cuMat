@@ -6,6 +6,7 @@
 #include "CusolverApi.h"
 #include <algorithm>
 #include <vector>
+#include <type_traits>
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -37,7 +38,8 @@ public:
         Rows = internal::traits<_MatrixType>::RowsAtCompileTime,
         Columns = internal::traits<_MatrixType>::ColsAtCompileTime,
         Batches = internal::traits<_MatrixType>::BatchesAtCompileTime,
-        Transposed = CUMAT_IS_ROW_MAJOR(Flags)
+        Transposed = CUMAT_IS_ROW_MAJOR(Flags),
+        InputIsMatrix = std::is_same< _MatrixType, Matrix<Scalar, Rows, Columns, Batches, Flags> >::value
     };
     typedef Matrix<Scalar, Dynamic, Dynamic, Batches, Flags> EvaluatedMatrix;
     typedef Matrix<int, Dynamic, 1, Batches, Flags> PivotArray;
@@ -54,14 +56,16 @@ public:
      * \param inplace true to enforce inplace operation. The matrix contents will be destroyed
      */
     explicit LUDecomposition(const MatrixBase<_MatrixType>& matrix, bool inplace=false)
-        //aquire a version of the input matrix that can be modified
-        //TODO: matrix.derived().isExclusiveUse() can't be used here because the counter is not incremented
-        // how can I check if the matrix will be used afterwards? E.g. by providing an alternative with Matrix&& as argument?
-        : decompositedMatrix_(inplace ? matrix.derived() : matrix.derived().deepClone())
+        : decompositedMatrix_(matrix.derived()) //this evaluates every matrix expression into a matrix
         //allocate memory for the pivots
         , pivots_(std::min(matrix.rows(), matrix.cols()), 1, matrix.batches())
         , singular_(matrix.batches())
     {
+        //optionally, copy input
+        //(copy is never needed if the input is not a matrix and is evaluated into the matrix during the initializer list)
+        if (!inplace && InputIsMatrix)
+            decompositedMatrix_ = decompositedMatrix_.deepClone();
+        
         //perform LU factorization
         const int m = Transposed ? decompositedMatrix_.cols() : decompositedMatrix_.rows();
         const int n = Transposed ? decompositedMatrix_.rows() : decompositedMatrix_.cols();

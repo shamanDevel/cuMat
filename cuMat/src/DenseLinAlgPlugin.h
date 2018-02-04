@@ -26,7 +26,7 @@ DeterminantOp<_Derived> determinant() const
 * a complex result for real matrices. This is not desired.
 * \return the log-determinant of this matrix
 */
-Matrix<internal::traits<_Derived>::Scalar, 1, 1, internal::traits<_Derived>::BatchesAtCompileTime, ColumnMajor> logDeterminant() const
+Matrix<typename internal::traits<_Derived>::Scalar, 1, 1, internal::traits<_Derived>::BatchesAtCompileTime, ColumnMajor> logDeterminant() const
 {
     //TODO: implement direct methods for matrices up to 4x4.
     return decompositionLU().logDeterminant();
