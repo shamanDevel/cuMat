@@ -107,6 +107,7 @@ public:
 #include "UnaryOpsPlugin.h"
 #include "BinaryOpsPlugin.h"
 #include "ReductionOpsPlugin.h"
+#include "DenseLinAlgPlugin.h"
 };
 
 

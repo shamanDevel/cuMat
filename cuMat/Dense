@@ -9,3 +9,4 @@
 
 #include "src/CusolverApi.h"
 #include "src/LUDecomposition.h"
+#include "src/DenseLinAlgOps.h"

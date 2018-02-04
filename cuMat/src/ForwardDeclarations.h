@@ -140,6 +140,7 @@ using HostScalar = NullaryOp<_Scalar, 1, 1, 1, 0, functor::ConstantFunctor<_Scal
 
 template<typename _MatrixType> class LUDecomposition;
 template<typename _Solver, typename _RHS> class SolveOp;
+template<typename _Child> class DeterminantOp;
 
 CUMAT_NAMESPACE_END
 

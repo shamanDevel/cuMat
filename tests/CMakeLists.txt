@@ -37,6 +37,7 @@ set(CUMAT_TEST_FILES
   TestMatrixMultOp.cu
   TestComplexOps.cu
   TestLUDecomposition.cu
+  TestLinAlgOps.cu
   )
 
 if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")

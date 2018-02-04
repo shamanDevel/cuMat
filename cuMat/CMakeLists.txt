@@ -37,6 +37,8 @@ set(CUMAT_HEADERS
   
   src/CusolverApi.h
   src/LUDecomposition.h
+  src/DenseLinAlgOps.h
+  src/DenseLinAlgPlugin.h
   Dense
   )
 

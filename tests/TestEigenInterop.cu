@@ -35,10 +35,12 @@ void testMatrixToEigen(const _Matrix& m)
 }
 TEST_CASE("matrix_to_eigen", "[eigen-interop]")
 {
+    testMatrixToEigen(cuMat::Matrix<float, 1, 1, 1, cuMat::ColumnMajor>(1, 1, 1));
 	testMatrixToEigen(cuMat::Matrix<float, 4, 8, 1, cuMat::ColumnMajor>(4, 8, 1));
 	testMatrixToEigen(cuMat::Matrix<int, 16, 8, 1, cuMat::ColumnMajor>(16, 8, 1));
 	testMatrixToEigen(cuMat::Matrix<float, cuMat::Dynamic, cuMat::Dynamic, 1, cuMat::ColumnMajor>(32, 6, 1));
 
+    testMatrixToEigen(cuMat::Matrix<float, 1, 1, 1, cuMat::RowMajor>(1, 1, 1));
 	testMatrixToEigen(cuMat::Matrix<float, 4, 8, 1, cuMat::RowMajor>(4, 8, 1));
 	testMatrixToEigen(cuMat::Matrix<int, 16, 8, 1, cuMat::RowMajor>(16, 8, 1));
 	testMatrixToEigen(cuMat::Matrix<float, cuMat::Dynamic, cuMat::Dynamic, 1, cuMat::RowMajor>(32, 6, 1));

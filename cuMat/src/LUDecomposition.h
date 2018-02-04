@@ -2,7 +2,7 @@
 #define __CUMAT_LU_DECOMPOSITION_H__
 
 #include "Macros.h"
-#include "MatrixBase.h"
+#include "Matrix.h"
 #include "CusolverApi.h"
 #include <algorithm>
 #include <vector>
