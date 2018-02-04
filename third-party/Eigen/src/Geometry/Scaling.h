@@ -12,6 +12,18 @@
 
 namespace Eigen { 
 
+    namespace internal {
+
+        template<typename Scalar, int Dim, int Mode>
+        struct uniformscaling_times_affine_returntype {
+            enum {
+                NewMode = int(Mode) == int(Isometry) ? Affine : Mode
+            };
+            typedef Transform<Scalar, Dim, NewMode> type;
+        };
+
+    } // namespace internal
+
 /** \geometry_module \ingroup Geometry_Module
   *
   * \class Scaling
@@ -60,7 +72,7 @@ public:
 
   /** Concatenates a uniform scaling and an affine transformation */
   template<int Dim, int Mode, int Options>
-  inline Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Mode)> operator* (const Transform<Scalar,Dim, Mode, Options>& t) const
+  inline typename internal::uniformscaling_times_affine_returntype<Scalar, Dim, Mode>::type operator* (const Transform<Scalar,Dim, Mode, Options>& t) const
   {
     Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Mode)> res = t;
     res.prescale(factor());

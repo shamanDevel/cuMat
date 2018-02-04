@@ -110,6 +110,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
+    
     typedef typename internal::remove_all<XprType>::type NestedExpression;
   
     /** Column or Row constructor
@@ -159,6 +160,11 @@ class BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, Dense>
   public:
     typedef Impl Base;
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE BlockImpl& operator=(const BlockImpl& other)
+    {
+        Base::operator=(other);
+        return *this;
+    }
     EIGEN_DEVICE_FUNC inline BlockImpl(XprType& xpr, Index i) : Impl(xpr,i) {}
     EIGEN_DEVICE_FUNC inline BlockImpl(XprType& xpr, Index startRow, Index startCol) : Impl(xpr, startRow, startCol) {}
     EIGEN_DEVICE_FUNC
@@ -179,6 +185,11 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     typedef typename internal::dense_xpr_base<BlockType>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(BlockType)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl_dense)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE BlockImpl_dense& operator=(const BlockImpl_dense& other)
+    {
+        Base::operator=(other);
+        return *this;
+    }
 
     // class InnerIterator; // FIXME apparently never used
 
@@ -339,6 +350,11 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
     typedef MapBase<BlockType> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(BlockType)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl_dense)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE BlockImpl_dense& operator=(const BlockImpl_dense& other)
+    {
+        Base::operator=(other);
+        return *this;
+    }
 
     /** Column or Row constructor
       */

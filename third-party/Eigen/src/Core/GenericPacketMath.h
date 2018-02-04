@@ -298,6 +298,7 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu
 /** \internal tries to do cache prefetching of \a addr */
 template<typename Scalar> EIGEN_DEVICE_FUNC inline void prefetch(const Scalar* addr)
 {
+    /*
 #ifdef __CUDA_ARCH__
 #if defined(__LP64__)
   // 64-bit pointer operand constraint for inlined asm
@@ -309,6 +310,7 @@ template<typename Scalar> EIGEN_DEVICE_FUNC inline void prefetch(const Scalar* a
 #elif (!EIGEN_COMP_MSVC) && (EIGEN_COMP_GNUC || EIGEN_COMP_CLANG || EIGEN_COMP_ICC)
   __builtin_prefetch(addr);
 #endif
+    */
 }
 
 /** \internal \returns the first element of a packet */
