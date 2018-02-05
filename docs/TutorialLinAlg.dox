@@ -1,0 +1,50 @@
+namespace cuMat {
+
+/** \page TutorialLinAlg Linear Algebra and Decompositions
+
+This page explains how to use cuMat to solve linear systems, compute the determinant and inverse of a matrix, and use various decompositions like LU, QR and SVD.
+
+<tt>#include <cuMat/Dense></tt>
+
+\section TutorialLinAlg_Basic Basic Linear Algebra
+This section explains the basic linear algebra routines that are directly available as methods of \ref MatrixBase. 
+They are used if you don't care about the underlying algorithm and let cuMat choose the best algorithm.
+
+\note For some methods here and very small matrices (up to 3x3 or 4x4), explicit solvers are available that don't use decompositions like LU.
+
+\subsection TutorialLinAlg_Basic_Determinant Computing the determinant
+
+The determinant can be computed with \link MatrixBase::determinant() determinant()\endlink.
+Further, often, only the logarithm of the determinant is needed. It can be evaluated numerically much more stable and is available as \link MatrixBase::logDeterminant() logDeterminant()\endlink.
+
+Example:
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include TutorialLinAlg_determinant.cu
+</td>
+<td>
+\verbinclude TutorialLinAlg_determinant.out
+</td></tr></table>
+
+\note The log-determinant is only available for positive-definite Hermitian matrices. Otherwise, the determinant of a real matrix might be negative and the logarithm is not defined over the reals anymore.
+
+\subsection TutorialLinAlg_Basic_Inverse Inverse matrix
+
+TODO
+
+\subsection TutorialLinAlg_Basic_Solving Solving linear systems
+
+TODO
+
+\section TutorialLinAlg_Decompositions Decompositions
+
+If you want more control over the algorithm or solve multiple equation systems, it is preferred to directly call the decompositions.
+They provide further additional checks like tests if a matrix is invertible.
+For details, see the documentation of the decompositions:
+
+ - \ref LUDecomposition
+
+*/
+
+}

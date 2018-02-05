@@ -17,6 +17,8 @@ namespace cuMat {
 
 \subpage TutorialMatrixMultiplication
 
+\subpage TutorialLinAlg
+
 \subpage TutorialEigenInterop
 
 */

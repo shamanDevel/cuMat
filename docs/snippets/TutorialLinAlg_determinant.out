@@ -1,0 +1,8 @@
+Here is the matrix A:
+Matrix: rows=3 (dynamic), cols=3 (dynamic), batches=1 (compile-time), storage=Row-Major
+6 4 1
+4 5 1
+1 1 6
+
+The determinant of A is 81
+The log-determinant of A is 4.39445
