@@ -4,9 +4,7 @@ namespace cuMat {
 
 The transpose \f$ a^T \f$, conjugate \f$ \bar{a} \f$, and adjoint (i.e., conjugate transpose) \f$ a^* \f$ of a matrix or vector \f$ a \f$ are obtained by the member functions \link MatrixBase::transpose() transpose()\endlink, \link MatrixBase::conjugate() conjugate()\endlink, and \link MatrixBase::adjoint() adjoint()\endlink, respectively.
 
-\note TODO: complex support not implemented yet
-
-As like any other operation, \c transpose() only return a proxy object without performing the actual transposition.
+As like any other operation, \c transpose() and the other variants only return a proxy object without performing the actual transposition.
 How the transposition is evaluated depends on the target matrix and the parent object:
 
 <table class="example">

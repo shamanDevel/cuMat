@@ -1,0 +1,55 @@
+namespace cuMat {
+
+/** \page TutorialMatrixMultiplication Matrix Multiplication
+
+cuMat supports the general batched matrix-matrix multiplication with \c operator* in the form of <tt>op(C) = op(A)*op(B)</tt>
+where <tt>op()</tt> can be none or <tt>.transpose()</tt>.
+Further, the two input matrices \c A and \c B, as well as the output matrix \c C can be in Column Major or Row Major storage.
+
+Example:
+\code{.cpp}
+BMatrixXfR Ar = ...; //row major
+BMatrixXfC Ac = ...; //column major
+BMatrixXfR Br = ...;
+BMatrixXfC Bc = ...;
+BMatrixXfR Cr = ...;
+BMatrixXfC Cc = ...;
+
+Cr = Ar * Br;
+Cc = Ac * Br;
+Cr = Ar.transpose() * Bc;
+Cr = (Ac * Bc.transpose()).transpose();
+...
+\endcode
+All these multiplication, including transposing the matrices, are realized with a single call to cuBLAS GEMM.
+
+\note Since cuBLAS is used for the actual computation, all input matrices are evaluated to a matrix before use.
+
+\section TutorialMatrixMultiplication_Vectors Matrix-Vector multiplication
+
+Since vectors are only special shaped matrices, matrix-vector, vector-matrix, vector inner- and outer products are also directly with the general matrix-matrix multiplication.
+
+Keep in mind that the inner product between two vectors might be faster with \c .dot() because this is a cwise-expression and cwise input matrices don't need to be evaluated into temporary matrices before the multiplication.
+
+\section TutorialMatrixMultiplication_supportedTypes Supported types
+
+The matrix multiplication is performed by cuBLAS. cuBLAS only supports floating point types (<tt>float</tt>, <tt>double</tt>) and complex types (<tt>cfloat</tt>, <tt>cdouble</tt>). Integral matrices are not supported. 
+
+\section TutorialMatrixMultiplication_adjoint Complex matrices: adjoint
+
+You might wonder, why \c .transpose() is directly included into the cuBLAS GEMM call, but \c .adjoint() is not.
+The first reason: because I'm lacy.
+
+The second reason: It introduces many special cases.
+cuBLAS GEMM assumes column major matrices and implements the multiplication <tt>op(A) * op(B)</tt> with <tt>op()</tt> being no modification (\f$ op(A)=A \f$), transposing (\f$ op(A)=A^T \f$) and the adjoint (\f$ op(A)=A^H \f$). 
+
+Take for example <tt>Cc = Ar.transpose() * Bc</tt>. Because cuBLAS only works with column major matrices, the matrix \c Ar is in fact simply interpreted as a transposed column major matrix, hence <tt>Ar.transpose()</tt> is simply the matrix A interpreted as a column major matrix. cuBLAS is therefore called without any transposition commands.
+
+But what happens if one requests <tt>Cc = Ar.adjoint() * Bc</tt>? Again, the row major matrix A is interpreted as a transposed column major matrix, so this is equal to <tt>Cc = Ac.conjugate() * Bc</tt>. But GEMM does not support only the conjugate as a modification! I would therefore need to first compute the conjugate (see \link MatrixBase::conjugate() conjugate()\endlink) and then use the result in the GEMM call.
+
+This is not implemented for now, therefore, <tt>.conjugate()</tt> and <tt>.adjoint()</tt> are evaluated prior to the matrix multiplication and not fused into the GEMM call.
+
+
+*/
+
+}
