@@ -12,30 +12,30 @@ set(CUMAT_TEST_HEADERS
   )
 
 set(CUMAT_TEST_FILES 
-  TestContext.cu
-  TestDevicePointer.cu
-  TestMatrix.cu
-  TestEigenInterop.cu
-  TestNullaryOps.cu
-  TestMatrixBlock.cu
-  TestUnaryOps1.cu
-  TestUnaryOps2.cu
-  TestUnaryOps3.cu
-  TestUnaryOps4.cu
-  TestCasting.cu
-  TestDiagonal.cu
-  TestTranspose.cu
-  TestBinaryOps1.cu
-  TestBinaryOps2.cu
-  TestBinaryOps3.cu
-  TestReductionOps1.cu
-  TestReductionOps2.cu
-  TestReductionOps3.cu
-  TestReductionOps4.cu
-  TestIterator.cu
-  TestRandom.cu
-  TestMatrixMultOp.cu
-  TestComplexOps.cu
+  #TestContext.cu
+  #TestDevicePointer.cu
+  #TestMatrix.cu
+  #TestEigenInterop.cu
+  #TestNullaryOps.cu
+  #TestMatrixBlock.cu
+  #TestUnaryOps1.cu
+  #TestUnaryOps2.cu
+  #TestUnaryOps3.cu
+  #TestUnaryOps4.cu
+  #TestCasting.cu
+  #TestDiagonal.cu
+  #TestTranspose.cu
+  #TestBinaryOps1.cu
+  #TestBinaryOps2.cu
+  #TestBinaryOps3.cu
+  #TestReductionOps1.cu
+  #TestReductionOps2.cu
+  #TestReductionOps3.cu
+  #TestReductionOps4.cu
+  #TestIterator.cu
+  #TestRandom.cu
+  #TestMatrixMultOp.cu
+  #TestComplexOps.cu
   TestLUDecomposition.cu
   TestLinAlgOps.cu
   )

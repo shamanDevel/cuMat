@@ -364,8 +364,10 @@ private:
         } else
         {
             //use LU Decomposition
+            //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
             LUDecomposition<_Child> lu(matrix_);
             lu.determinant().evalTo(m);
+            //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
         }
     }
 

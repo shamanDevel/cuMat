@@ -25,9 +25,10 @@ void testLinAlgOpsReal()
     {
         inputMatricesHost[i] = emat_t::Random();
         auto slice = Matrix<Scalar, Dims, Dims, 1, Flags>::fromEigen(inputMatricesHost[i]);
-        cudaDeviceSynchronize();
         inputMatrixDevice.template block<Dims, Dims, 1>(0, 0, i) = slice;
+        INFO("input batch "<<i<<":\n" << inputMatricesHost[i]);
     }
+    INFO("inputMatrixDevice: " << inputMatrixDevice);
 
     //1. Determinant
     {
@@ -106,7 +107,7 @@ void testlinAlgOps2()
         }
         SECTION("column major")
         {
-            testLinAlgOpsReal<float, ColumnMajor, Dims>();
+            //testLinAlgOpsReal<float, ColumnMajor, Dims>();
         }
     }
     SECTION("double")
@@ -117,12 +118,13 @@ void testlinAlgOps2()
         }
         SECTION("column major")
         {
-            testLinAlgOpsReal<double, ColumnMajor, Dims>();
+            //testLinAlgOpsReal<double, ColumnMajor, Dims>();
         }
     }
 }
-TEST_CASE("general accessors", "[Dense]")
+TEST_CASE("dense lin-alg", "[Dense]")
 {
+    /*
     SECTION("1x1")
     {
         testlinAlgOps2<1>();
@@ -135,6 +137,7 @@ TEST_CASE("general accessors", "[Dense]")
     {
         testlinAlgOps2<3>();
     }
+    */
     SECTION("4x4")
     {
         testlinAlgOps2<4>();
