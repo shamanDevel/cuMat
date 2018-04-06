@@ -138,7 +138,9 @@ using HostScalar = NullaryOp<_Scalar, 1, 1, 1, 0, functor::ConstantFunctor<_Scal
 
 // DENSE
 
+template<typename _MatrixType, typename _DecompositionImpl> class DecompositionBase;
 template<typename _MatrixType> class LUDecomposition;
+template<typename _MatrixType> class CholeskyDecomposition;
 template<typename _Solver, typename _RHS> class SolveOp;
 template<typename _Child> class DeterminantOp;
 

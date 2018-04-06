@@ -11,6 +11,17 @@ LUDecomposition<_Derived> decompositionLU() const
 }
 
 /**
+ * \brief Computes and returns the Cholesky decompositionof this matrix.
+ * The matrix must be Hermetian and positive definite.
+ * The resulting decomposition can then be used to compute the determinant of the matrix,
+ * invert the matrix and solve multiple linear equation systems.
+ */
+CholeskyDecomposition<_Derived> decompositionCholesky() const
+{
+    return CholeskyDecomposition<_Derived>(derived());
+}
+
+/**
  * \brief Computes the determinant of this matrix.
  * \return the determinant of this matrix
  */

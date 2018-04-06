@@ -36,7 +36,9 @@ set(CUMAT_HEADERS
   Core
   
   src/CusolverApi.h
+  src/DecompositionBase.h
   src/LUDecomposition.h
+  src/CholeskyDecomposition.h
   src/DenseLinAlgOps.h
   src/DenseLinAlgPlugin.h
   Dense
