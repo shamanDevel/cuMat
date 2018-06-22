@@ -43,8 +43,8 @@ namespace internal
             //create iterators
             StridedMatrixInputIterator<_Input> iterIn(in, thrust::make_tuple(1, in.rows(), in.rows()*in.cols()));
             StridedMatrixOutputIterator<_Output> iterOut(out, thrust::make_tuple(1, 1, in.cols()));
-            CountingInputIterator<int> iterOffsets(0, in.rows());
-            int num_segments = in.cols() * in.batches();
+            CountingInputIterator<int> iterOffsets(0, static_cast<int>(in.rows()));
+            int num_segments = static_cast<int>(in.cols() * in.batches());
             //call cub
             Context& ctx = Context::current();
             size_t temp_storage_bytes = 0;
@@ -63,8 +63,8 @@ namespace internal
             //create iterators
             StridedMatrixInputIterator<_Input> iterIn(in, thrust::make_tuple(in.cols(), 1, in.rows()*in.cols()));
             StridedMatrixOutputIterator<_Output> iterOut(out, thrust::make_tuple(1, 1, in.rows()));
-            CountingInputIterator<int> iterOffsets(0, in.cols());
-            int num_segments = in.rows() * in.batches();
+            CountingInputIterator<int> iterOffsets(0, static_cast<int>(in.cols()));
+            int num_segments = static_cast<int>(in.rows() * in.batches());
             //call cub
             Context& ctx = Context::current();
             size_t temp_storage_bytes = 0;
@@ -88,8 +88,8 @@ namespace internal
             StridedMatrixOutputIterator<_Output> iterOut(out, isRowMajor
                 ? thrust::make_tuple(in.cols(), Index(1), 1)
                 : thrust::make_tuple(Index(1), in.rows(), 1));
-            CountingInputIterator<int> iterOffsets(0, in.batches());
-            int num_segments = in.rows() * in.cols();
+            CountingInputIterator<int> iterOffsets(0, static_cast<int>(in.batches()));
+            int num_segments = static_cast<int>(in.rows() * in.cols());
             //call cub
             Context& ctx = Context::current();
             size_t temp_storage_bytes = 0;
@@ -111,8 +111,8 @@ namespace internal
                 ? thrust::make_tuple(in.cols(), Index(1), in.cols()*in.rows())
                 : thrust::make_tuple(Index(1), in.rows(), in.rows()*in.cols()));
             _Scalar* iterOut = out.data();
-            CountingInputIterator<int> iterOffsets(0, in.rows()*in.cols());
-            int num_segments = in.batches();
+            CountingInputIterator<int> iterOffsets(0, static_cast<int>(in.rows()*in.cols()));
+            int num_segments = static_cast<int>(in.batches());
             //call cub
             Context& ctx = Context::current();
             size_t temp_storage_bytes = 0;
@@ -131,8 +131,8 @@ namespace internal
             //create iterators
             StridedMatrixInputIterator<_Input> iterIn(in, thrust::make_tuple(1, in.rows()*in.batches(), in.rows()));
             _Scalar* iterOut = out.data();
-            CountingInputIterator<int> iterOffsets(0, in.rows() * in.batches());
-            int num_segments = in.cols();
+            CountingInputIterator<int> iterOffsets(0, static_cast<int>(in.rows() * in.batches()));
+            int num_segments = static_cast<int>(in.cols());
             //call cub
             Context& ctx = Context::current();
             size_t temp_storage_bytes = 0;
@@ -151,8 +151,8 @@ namespace internal
             //create iterators
             StridedMatrixInputIterator<_Input> iterIn(in, thrust::make_tuple(in.cols()*in.batches(), 1, in.cols()));
             _Scalar* iterOut = out.data();
-            CountingInputIterator<int> iterOffsets(0, in.cols() * in.batches());
-            int num_segments = in.rows();
+            CountingInputIterator<int> iterOffsets(0, static_cast<int>(in.cols() * in.batches()));
+            int num_segments = static_cast<int>(in.rows());
             //call cub
             Context& ctx = Context::current();
             size_t temp_storage_bytes = 0;
@@ -174,7 +174,7 @@ namespace internal
                 ? thrust::make_tuple(in.cols(), Index(1), in.cols()*in.rows())
                 : thrust::make_tuple(Index(1), in.rows(), in.rows()*in.cols()));
             _Scalar* iterOut = out.data();
-            int num_items = in.rows() * in.cols() * in.batches();
+            int num_items = static_cast<int>(in.rows() * in.cols() * in.batches());
             //call cub
             Context& ctx = Context::current();
             size_t temp_storage_bytes = 0;

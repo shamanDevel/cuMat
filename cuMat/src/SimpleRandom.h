@@ -186,7 +186,7 @@ public:
      * \brief Creates a new random number generator using the current time as seed.
      */
     SimpleRandom()
-        : SimpleRandom(std::chrono::system_clock::now().time_since_epoch().count())
+        : SimpleRandom(static_cast<int>(std::chrono::system_clock::now().time_since_epoch().count()))
     {}
 
     /**

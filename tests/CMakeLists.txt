@@ -42,7 +42,7 @@ set(CUMAT_TEST_FILES
   )
 
 if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
-list(APPEND CUDA_NVCC_FLAGS --cl-version=2017 --device-debug)
+list(APPEND CUDA_NVCC_FLAGS --device-debug)
 endif()
 enable_testing()
 
