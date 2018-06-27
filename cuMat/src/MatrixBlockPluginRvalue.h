@@ -173,12 +173,12 @@ public:
 */
 template<int N>
 auto //FixedVectorSegmentXpr<N>::Type
-segment(Index start) const -> decltype(segmentHelper<N>(start, std::bool_constant<internal::traits<_Derived>::ColsAtCompileTime == 1>()))
+segment(Index start) const -> decltype(segmentHelper<N>(start, std::integral_constant<bool, internal::traits<_Derived>::ColsAtCompileTime == 1>()))
 {
     CUMAT_STATIC_ASSERT(
         (internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1),
         "segment can only act on compile-time vectors");
-    return segmentHelper<N>(start, std::bool_constant<internal::traits<_Derived>::ColsAtCompileTime == 1>());
+    return segmentHelper<N>(start, std::integral_constant<bool, internal::traits<_Derived>::ColsAtCompileTime == 1>());
 }
 
 /**
@@ -247,12 +247,12 @@ public:
 * \param length the length of the segment
 */
 auto
-segment(Index start, Index length) const -> decltype(segmentHelper(start, length, std::bool_constant<internal::traits<_Derived>::ColsAtCompileTime == 1>()))
+segment(Index start, Index length) const -> decltype(segmentHelper(start, length, std::integral_constant<bool, internal::traits<_Derived>::ColsAtCompileTime == 1>()))
 {
     CUMAT_STATIC_ASSERT(
         (internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1),
         "segment can only act on compile-time vectors");
-    return segmentHelper(start, length, std::bool_constant<internal::traits<_Derived>::ColsAtCompileTime == 1>());
+    return segmentHelper(start, length, std::integral_constant<bool, internal::traits<_Derived>::ColsAtCompileTime == 1>());
 }
 
 /**
