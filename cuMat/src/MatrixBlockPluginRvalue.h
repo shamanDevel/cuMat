@@ -122,6 +122,7 @@ slice(Index batch) const
 }
 
 
+// Vector operations
 
 private:
 template<int N>
@@ -172,7 +173,7 @@ public:
 */
 template<int N>
 auto //FixedVectorSegmentXpr<N>::Type
-segment(Index start) const
+segment(Index start) const -> decltype(segmentHelper<N>(start, std::bool_constant<internal::traits<_Derived>::ColsAtCompileTime == 1>()))
 {
     CUMAT_STATIC_ASSERT(
         (internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1),
@@ -186,7 +187,7 @@ segment(Index start) const
  * \tparam N the length of the segment
  */
 template<int N>
-auto head() const
+auto head() const -> decltype(segment<N>(0))
 {
     return segment<N>(0);
 }
@@ -197,7 +198,7 @@ auto head() const
 * \tparam N the length of the segment
 */
 template<int N>
-auto tail() const
+auto tail() const -> decltype(segment<N>(0))
 {
     return segment<N>(std::max(rows(), cols()) - N);
 }
@@ -246,7 +247,7 @@ public:
 * \param length the length of the segment
 */
 auto
-segment(Index start, Index length) const
+segment(Index start, Index length) const -> decltype(segmentHelper(start, length, std::bool_constant<internal::traits<_Derived>::ColsAtCompileTime == 1>()))
 {
     CUMAT_STATIC_ASSERT(
         (internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1),
@@ -259,7 +260,7 @@ segment(Index start, Index length) const
 * Only available for vectors
 * \param length the length of the segment
 */
-auto head(Index length) const
+auto head(Index length) const -> decltype(segment(0, length))
 {
     return segment(0, length);
 }
@@ -269,7 +270,7 @@ auto head(Index length) const
 * Only available for vectors
 * \param length the length of the segment
 */
-auto tail(Index length) const
+auto tail(Index length) const -> decltype(segment(0, length))
 {
     return segment(std::max(rows(), cols()) - length, length);
 }
