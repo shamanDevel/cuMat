@@ -62,4 +62,214 @@ block(Index start_row, Index start_column, Index start_batch, Index num_rows, In
         derived(), num_rows, num_columns, num_batches, start_row, start_column, start_batch);
 }
 
-// TODO: specializations for batch==1, vectors, slices
+// specializations for batch==1, vectors, slices
+
+/**
+* \brief Extracts a row out of the matrix.
+* \param row the index of the row
+*/
+MatrixBlock<
+    typename internal::traits<_Derived>::Scalar, 
+    1, internal::traits<_Derived>::ColsAtCompileTime, internal::traits<_Derived>::BatchesAtCompileTime,
+    internal::traits<_Derived>::Flags, const _Derived>
+row(Index row) const
+{
+    CUMAT_ASSERT_ARGUMENT(row >= 0);
+    CUMAT_ASSERT_ARGUMENT(row < rows());
+    return MatrixBlock<
+        typename internal::traits<_Derived>::Scalar,
+        1, internal::traits<_Derived>::ColsAtCompileTime, internal::traits<_Derived>::BatchesAtCompileTime,
+        internal::traits<_Derived>::Flags, const _Derived>(
+        derived(), 1, cols(), batches(), row, 0, 0);
+}
+
+/**
+* \brief Extracts a column out of the matrix.
+* \param col the index of the column
+*/
+MatrixBlock<
+    typename internal::traits<_Derived>::Scalar,
+    internal::traits<_Derived>::RowsAtCompileTime, 1, internal::traits<_Derived>::BatchesAtCompileTime,
+    internal::traits<_Derived>::Flags, const _Derived>
+col(Index column) const
+{
+    CUMAT_ASSERT_ARGUMENT(column >= 0);
+    CUMAT_ASSERT_ARGUMENT(column < cols());
+    return MatrixBlock<
+        typename internal::traits<_Derived>::Scalar,
+        internal::traits<_Derived>::RowsAtCompileTime, 1, internal::traits<_Derived>::BatchesAtCompileTime,
+        internal::traits<_Derived>::Flags, const _Derived>(
+            derived(), rows(), 1, batches(), 0, column, 0);
+}
+
+/**
+* \brief Extracts a slice of a specific batch out of the batched matrix
+* \param batch the index of the batch
+*/
+MatrixBlock<
+    typename internal::traits<_Derived>::Scalar,
+    internal::traits<_Derived>::RowsAtCompileTime, internal::traits<_Derived>::ColsAtCompileTime, 1,
+    internal::traits<_Derived>::Flags, const _Derived>
+slice(Index batch) const
+{
+    CUMAT_ASSERT_ARGUMENT(batch >= 0);
+    CUMAT_ASSERT_ARGUMENT(batch < batches());
+    return MatrixBlock<
+        typename internal::traits<_Derived>::Scalar,
+        internal::traits<_Derived>::RowsAtCompileTime, internal::traits<_Derived>::ColsAtCompileTime, 1,
+        internal::traits<_Derived>::Flags, const _Derived>(
+            derived(), rows(), cols(), 1, 0, 0, batch);
+}
+
+
+
+private:
+template<int N>
+MatrixBlock<
+    typename internal::traits<_Derived>::Scalar,
+    N,
+    1,
+    internal::traits<_Derived>::BatchesAtCompileTime,
+    internal::traits<_Derived>::Flags, const _Derived>
+segmentHelper(Index start, std::true_type) const
+{
+    //column vector
+    CUMAT_ASSERT_ARGUMENT(start >= 0);
+    CUMAT_ASSERT_ARGUMENT(start + N <= rows());
+    return MatrixBlock<
+        typename internal::traits<_Derived>::Scalar,
+        N, 1, internal::traits<_Derived>::BatchesAtCompileTime,
+        internal::traits<_Derived>::Flags, const _Derived>(
+            derived(), N, 1, batches(), start, 0, 0);
+}
+
+template<int N>
+MatrixBlock<
+    typename internal::traits<_Derived>::Scalar,
+    1,
+    N,
+    internal::traits<_Derived>::BatchesAtCompileTime,
+    internal::traits<_Derived>::Flags, const _Derived>
+segmentHelper(Index start, std::false_type) const
+{
+    //row vector
+    CUMAT_ASSERT_ARGUMENT(start >= 0);
+    CUMAT_ASSERT_ARGUMENT(start + N <= cols());
+    return MatrixBlock<
+        typename internal::traits<_Derived>::Scalar,
+        1, N, internal::traits<_Derived>::BatchesAtCompileTime,
+        internal::traits<_Derived>::Flags, const _Derived>(
+            derived(), 1, N, batches(), 0, start, 0);
+}
+
+public:
+
+/**
+* \brief Extracts a fixed-size segment of the vector.
+*   Only available for vectors
+* \param start the start position of the segment
+* \tparam N the length of the segment
+*/
+template<int N>
+auto //FixedVectorSegmentXpr<N>::Type
+segment(Index start) const
+{
+    CUMAT_STATIC_ASSERT(
+        (internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1),
+        "segment can only act on compile-time vectors");
+    return segmentHelper<N>(start, std::bool_constant<internal::traits<_Derived>::ColsAtCompileTime == 1>());
+}
+
+/**
+ * \brief Extracts a fixed-size segment from the head of the vector.
+ * Only available for vectors
+ * \tparam N the length of the segment
+ */
+template<int N>
+auto head() const
+{
+    return segment<N>(0);
+}
+
+/**
+* \brief Extracts a fixed-size segment from the tail of the vector.
+* Only available for vectors
+* \tparam N the length of the segment
+*/
+template<int N>
+auto tail() const
+{
+    return segment<N>(std::max(rows(), cols()) - N);
+}
+
+private:
+MatrixBlock<
+    typename internal::traits<_Derived>::Scalar,
+    Dynamic,
+    1,
+    internal::traits<_Derived>::BatchesAtCompileTime,
+    internal::traits<_Derived>::Flags, const _Derived>
+segmentHelper(Index start, Index length, std::true_type) const
+{
+    //column vector
+    CUMAT_ASSERT_ARGUMENT(start >= 0);
+    CUMAT_ASSERT_ARGUMENT(start + length <= rows());
+    return MatrixBlock<
+        typename internal::traits<_Derived>::Scalar,
+        Dynamic, 1, internal::traits<_Derived>::BatchesAtCompileTime,
+        internal::traits<_Derived>::Flags, const _Derived>(
+            derived(), length, 1, batches(), start, 0, 0);
+}
+MatrixBlock<
+    typename internal::traits<_Derived>::Scalar,
+    1,
+    Dynamic,
+    internal::traits<_Derived>::BatchesAtCompileTime,
+    internal::traits<_Derived>::Flags, const _Derived>
+segmentHelper(Index start, Index length, std::false_type) const
+{
+    //row vector
+    CUMAT_ASSERT_ARGUMENT(start >= 0);
+    CUMAT_ASSERT_ARGUMENT(start + length <= cols());
+    return MatrixBlock<
+        typename internal::traits<_Derived>::Scalar,
+        1, Dynamic, internal::traits<_Derived>::BatchesAtCompileTime,
+        internal::traits<_Derived>::Flags, const _Derived>(
+            derived(), 1, length, batches(), 0, start, 0);
+}
+
+public:
+/**
+* \brief Extracts a dynamic-size segment of the vector.
+*   Only available for vectors
+* \param start the start position of the segment
+* \param length the length of the segment
+*/
+auto
+segment(Index start, Index length) const
+{
+    CUMAT_STATIC_ASSERT(
+        (internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1),
+        "segment can only act on compile-time vectors");
+    return segmentHelper(start, length, std::bool_constant<internal::traits<_Derived>::ColsAtCompileTime == 1>());
+}
+
+/**
+* \brief Extracts a dynamic-size segment from the head of the vector.
+* Only available for vectors
+* \param length the length of the segment
+*/
+auto head(Index length) const
+{
+    return segment(0, length);
+}
+
+/**
+* \brief Extracts a dynamic-size segment from the tail of the vector.
+* Only available for vectors
+* \param length the length of the segment
+*/
+auto tail(Index length) const
+{
+    return segment(std::max(rows(), cols()) - length, length);
+}
