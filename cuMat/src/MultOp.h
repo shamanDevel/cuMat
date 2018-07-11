@@ -233,9 +233,11 @@ private:
     }
 
 public:
-    template<typename Derived>
+    template<typename Derived, AssignmentMode Mode>
     void evalTo(MatrixBase<Derived>& m) const
     {
+        //TODO: Handle different assignment modes
+        static_assert(Mode == AssignmentMode::ASSIGN, "Currently, only AssignmentMode::ASSIGN is supported");
         evalImpl(m.derived());
     }
 

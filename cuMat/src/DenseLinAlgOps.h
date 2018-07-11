@@ -366,15 +366,16 @@ private:
             //use LU Decomposition
             //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
             LUDecomposition<_Child> lu(matrix_);
-            lu.determinant().evalTo(m);
+            lu.determinant().template evalTo<Derived, AssignmentMode::ASSIGN>(m);
             //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
         }
     }
 
 public:
-    template<typename Derived>
+    template<typename Derived, AssignmentMode Mode>
     void evalTo(MatrixBase<Derived>& m) const
     {
+        static_assert(Mode == AssignmentMode::ASSIGN, "Currently only AssignmentMode::ASSIGN is supported");
         evalImpl(m.derived(), std::integral_constant<int, InputSize>());
     }
 

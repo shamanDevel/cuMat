@@ -30,7 +30,7 @@ namespace internal
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
             //No-op reduction, no axis selected -> copy in to out
-            in.evalTo(out);
+            in.template evalTo<_Output, AssignmentMode::ASSIGN>(out);
         }
     };
 
@@ -248,9 +248,12 @@ public:
         return (axis_ & ReductionAxis::Batch) ? 1 : child_.batches();
     }
 
-    template<typename Derived>
+    template<typename Derived, AssignmentMode Mode>
     void evalTo(MatrixBase<Derived>& m) const
     {
+        //TODO: Handle different assignment modes
+        static_assert(Mode == AssignmentMode::ASSIGN, "Currently, only AssignmentMode::ASSIGN is supported");
+
         CUMAT_PROFILING_INC(EvalReduction);
         CUMAT_PROFILING_INC(EvalAny);
         if (size() == 0) return;
@@ -341,9 +344,12 @@ public:
         return (_Axis & ReductionAxis::Batch) ? 1 : child_.batches();
     }
 
-    template<typename Derived>
+    template<typename Derived, AssignmentMode Mode>
     void evalTo(MatrixBase<Derived>& m) const
     {
+        //TODO: Handle different assignment modes
+        static_assert(Mode == AssignmentMode::ASSIGN, "Currently, only AssignmentMode::ASSIGN is supported");
+
         CUMAT_PROFILING_INC(EvalReduction);
         CUMAT_PROFILING_INC(EvalAny);
         if (size() == 0) return;

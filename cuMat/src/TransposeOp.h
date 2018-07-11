@@ -153,7 +153,7 @@ private:
     CUMAT_STRONG_INLINE void evalToImpl(MatrixBase<Derived>& m, std::false_type, std::integral_constant<bool, _Conj>) const
     {
         //don't pass _Conj further, it is equal to IsConjugated
-        CwiseOp<TransposeOp<_Derived, _Conjugated>>::evalTo(m);
+        CwiseOp<TransposeOp<_Derived, _Conjugated>>::template evalTo<Derived, AssignmentMode::ASSIGN>(m);
     }
 
     // No-Op version, just reinterprets the result
@@ -193,7 +193,7 @@ private:
     CUMAT_STRONG_INLINE void evalToImplDirect(Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>& mat, std::false_type) const
     {
         //fallback for integer types
-        CwiseOp<TransposeOp<_Derived, _Conjugated>>::evalTo(mat);
+        CwiseOp<TransposeOp<_Derived, _Conjugated>>::template evalTo<Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>, AssignmentMode::ASSIGN>(mat);
     }
     template<int _Rows, int _Columns, int _Batches, bool _Conj>
     CUMAT_STRONG_INLINE void evalToImpl(Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>& mat,
@@ -204,9 +204,11 @@ private:
     }
 
 public:
-    template<typename Derived>
+    template<typename Derived, AssignmentMode Mode>
     void evalTo(MatrixBase<Derived>& m) const
 	{
+        //TODO: Handle different assignment modes
+        static_assert(Mode == AssignmentMode::ASSIGN, "Currently, only AssignmentMode::ASSIGN is supported");
         evalToImpl(m.derived(), std::integral_constant<bool, IsMatrix>(), std::integral_constant<bool, IsConjugated>());
 	}
 
@@ -217,7 +219,7 @@ public:
 		CUMAT_ASSERT_ARGUMENT(rows() == expr.rows());
 		CUMAT_ASSERT_ARGUMENT(cols() == expr.cols());
 		CUMAT_ASSERT_ARGUMENT(batches() == expr.batches());
-		expr.evalTo(*this);
+		expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
 		return *this;
 	}
 

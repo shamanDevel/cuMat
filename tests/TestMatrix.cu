@@ -440,8 +440,8 @@ void testDirectEvalTo()
     targetR.setZero();
     targetC.setZero();
     CUMAT_PROFILING_RESET();
-    matR.evalTo(targetR);
-    matC.evalTo(targetC);
+    matR.template evalTo<MatR, cuMat::AssignmentMode::ASSIGN>(targetR);
+    matC.template evalTo<MatC, cuMat::AssignmentMode::ASSIGN>(targetC);
     REQUIRE(CUMAT_PROFILING_GET(EvalAny)==0);
     REQUIRE(CUMAT_PROFILING_GET(DeviceMemcpy)==2);
     assertMatrixEquality(matR, targetR);
@@ -451,8 +451,8 @@ void testDirectEvalTo()
     targetR.setZero();
     targetC.setZero();
     CUMAT_PROFILING_RESET();
-    matR.evalTo(targetC);
-    matC.evalTo(targetR);
+    matR.template evalTo<MatC, cuMat::AssignmentMode::ASSIGN>(targetC);
+    matC.template evalTo<MatR, cuMat::AssignmentMode::ASSIGN>(targetR);
     REQUIRE(CUMAT_PROFILING_GET(EvalAny)==2);
     REQUIRE(CUMAT_PROFILING_GET(EvalTranspose) == (cuMat::internal::NumTraits<T>::IsCudaNumeric ? 2 : 0));
     REQUIRE(CUMAT_PROFILING_GET(EvalCwise) == (cuMat::internal::NumTraits<T>::IsCudaNumeric ? 0 : 2));
@@ -466,8 +466,8 @@ void testDirectEvalTo()
     CUMAT_PROFILING_RESET();
     auto block1 = targetC.block(0,0,0,2,3,2);
     auto block2 = targetR.block(0,0,0,2,3,2);
-    matR.evalTo(block1);
-    matC.evalTo(block2);
+    matR.template evalTo<decltype(block1), cuMat::AssignmentMode::ASSIGN>(block1);
+    matC.template evalTo<decltype(block2), cuMat::AssignmentMode::ASSIGN>(block2);
     REQUIRE(CUMAT_PROFILING_GET(EvalAny)==2);
     REQUIRE(CUMAT_PROFILING_GET(EvalTranspose)==0);
     REQUIRE(CUMAT_PROFILING_GET(EvalCwise)==2);

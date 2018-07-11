@@ -157,9 +157,11 @@ public:
 		CUMAT_ASSERT_ARGUMENT(rows() == expr.rows());
 		CUMAT_ASSERT_ARGUMENT(cols() == expr.cols());
 		CUMAT_ASSERT_ARGUMENT(batches() == expr.batches());
-		expr.evalTo(*this);
+		expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
 		return *this;
 	}
+
+    //TODO: add operator+=, -=, ....
 };
 
 

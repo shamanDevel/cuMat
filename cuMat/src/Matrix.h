@@ -501,7 +501,7 @@ public:
 	 * For completely fixed-size matrices, this creates a matrix of that size.
 	 * For (fully or partially) dynamic matrices, creates a matrix of size 0.
 	 */
-    __host__ __device__
+    __host__
 	Matrix() {}
 
 #ifdef CUMAT_PARSED_BY_DOXYGEN
@@ -977,7 +977,7 @@ public:
 	Matrix(const MatrixBase<Derived>& expr)
 		: data_(expr.rows(), expr.cols(), expr.batches())
 	{
-		expr.evalTo(*this);
+		expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
 	}
 
     /**
@@ -995,9 +995,11 @@ public:
             //allocate new memory for the result
             data_ = Storage_t(expr.rows(), expr.cols(), expr.batches());
         } //else: reuse memory
-		expr.evalTo(*this);
+		expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
 		return *this;
 	}
+
+    //TODO: add operator+=, -=, ....
 
     /**
      * \brief Forces inplace assignment.
@@ -1014,8 +1016,9 @@ public:
         return internal::MatrixInplaceAssignment<Type>(this);
 	}
 
+private:
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
-    void evalTo(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, Flags>& mat) const
+    void evalToA(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, Flags>& mat) const
     {
         //optimized path: direct memcpy
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Rows!=Dynamic && _OtherRows!=Dynamic, _Rows == _OtherRows), 
@@ -1033,7 +1036,6 @@ public:
         CUMAT_PROFILING_INC(DeviceMemcpy);
     }
     
-private:
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
     void _evalTo_directTranspose(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat, std::integral_constant<bool, true>) const
     {
@@ -1058,20 +1060,40 @@ private:
     {
         //cuBLAS is not available for that type
         //default: cwise evaluation
-	    Base::evalTo(mat);
+	    Base::template evalTo<Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>, AssignmentMode::ASSIGN>(mat);
     }
-public:
+
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
-    void evalTo(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat) const
+    void evalToA(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat) const
     {
         _evalTo_directTranspose(mat, std::integral_constant<bool, internal::NumTraits<_Scalar>::IsCudaNumeric>());
     }
-    
+
     template<typename Derived>
+    void evalToA(MatrixBase<Derived>& m) const
+    {
+        //default: cwise evaluation
+        Base::template evalTo<Derived, AssignmentMode::ASSIGN>(m);
+    }
+    template<typename Derived, AssignmentMode Mode>
+    void evalTo(MatrixBase<Derived>& m, std::integral_constant<bool, true>) const
+    {
+        static_assert(Mode == AssignmentMode::ASSIGN, "Internal error, this should never happen");
+        evalToA(m.derived());
+    }
+    template<typename Derived, AssignmentMode Mode>
+    void evalTo(MatrixBase<Derived>& m, std::integral_constant<bool, false>) const
+    {
+        //default: cwise evaluation
+        Base::template evalTo<Derived, Mode>(m);
+    }
+
+public:    
+    template<typename Derived, AssignmentMode Mode>
 	void evalTo(MatrixBase<Derived>& m) const
 	{
-	    //default: cwise evaluation
-	    Base::evalTo(m);
+        //Fast track if Mode==ASSIGN and Derived is a Matrix
+        evalTo<Derived, Mode>(m, std::integral_constant<bool, Mode == AssignmentMode::ASSIGN>());
 	}	
 
     /**
@@ -1092,7 +1114,7 @@ public:
     CUMAT_STRONG_INLINE Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> deepClone() const
 	{
         Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> mat(rows(), cols(), batches());
-        evalTo(mat);
+        evalTo<Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags>, AssignmentMode::ASSIGN>(mat);
         return mat;
 	}
 
@@ -1188,7 +1210,7 @@ namespace internal
             CUMAT_ASSERT_DIMENSION(matrix_->rows() == expr.rows());
             CUMAT_ASSERT_DIMENSION(matrix_->cols() == expr.cols());
             CUMAT_ASSERT_DIMENSION(matrix_->batches() == expr.batches());
-            expr.evalTo(*matrix_);
+            expr.template evalTo<MatrixBase<Derived>, AssignmentMode::ASSIGN>(*matrix_);
             return *matrix_;
         }
     };
