@@ -722,6 +722,27 @@ public:
         return data_.dataPointer().getCounter() == 1;
     }
 
+    /**
+    * \brief Checks if the underlying data is used by an other matrix expression and if so,
+    * copies the data so that this matrix is the exclusive user of that data.
+    * This method is called by every operation that modifies the matrix in-place (e.g. block-write, += and similar operators).
+    *
+    * This method has no effect if \ref isExclusiveUse is already true.
+    *
+    * Postcondition: <code>isExclusiveUse() == true</code>
+    */
+    void makeExclusiveUse()
+    {
+        if (isExclusiveUse()) return;
+
+        DevicePointer<_Scalar> ptr = data_.dataPointer();
+        data_ = Storage_t(rows(), cols(), batches());
+        CUMAT_SAFE_CALL(cudaMemcpyAsync(data(), ptr.pointer(), sizeof(_Scalar)*rows()*cols()*batches(), cudaMemcpyDeviceToDevice, Context::current().stream()));
+        CUMAT_PROFILING_INC(DeviceMemcpy);
+
+        assert(isExclusiveUse());
+    }
+
 	// COPY CALLS
 
     /**
@@ -887,6 +908,16 @@ public:
 
 	//assignments from other matrices: convert compile-size to dynamic
 
+    /**
+	 * \brief Shallow copy constructor, the underlying data is shared!!
+	 * This only works if the dimension other matrix is compatible with the
+	 * static dimension of this matrix.
+	 * \tparam _OtherRows 
+	 * \tparam _OtherColumns 
+	 * \tparam _OtherBatches 
+	 * \tparam _OtherFlags 
+	 * \param other 
+	 */
 	template<int _OtherRows, int _OtherColumns, int _OtherBatches, int _OtherFlags>
 	Matrix(const Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, _OtherFlags>& other)
 		: data_(other.dataPointer(), other.rows(), other.cols(), other.batches()) //shallow copy
@@ -903,6 +934,18 @@ public:
 			"unable to assign a matrix to another matrix with a different storage order, transpose them explicitly");
 	}
 
+    /**
+	 * \brief Shallow assignment operator, the underlying data is shared!
+	 * The data of this matrix is replaced by the other matrix.
+	 * This only works if the dimension other matrix is compatible with the
+	 * static dimension of this matrix.
+	 * \tparam _OtherRows 
+	 * \tparam _OtherColumns 
+	 * \tparam _OtherBatches 
+	 * \tparam _OtherFlags 
+	 * \param other the other matrix
+	 * \return this
+	 */
 	template<int _OtherRows, int _OtherColumns, int _OtherBatches, int _OtherFlags>
 	CUMAT_STRONG_INLINE Type& operator=(const Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, _OtherFlags>& other)
 	{
@@ -925,6 +968,11 @@ public:
 
 	// EVALUATIONS
 
+    /**
+	 * \brief Evaluation constructor, new memory is allocated for the result.
+	 * \tparam Derived 
+	 * \param expr the matrix expression
+	 */
 	template<typename Derived>
 	Matrix(const MatrixBase<Derived>& expr)
 		: data_(expr.rows(), expr.cols(), expr.batches())
@@ -932,12 +980,38 @@ public:
 		expr.evalTo(*this);
 	}
 
+    /**
+	 * \brief Evaluation assignment, new memory is allocated for the result.
+	 * Exception: if it can be guarantered, that the memory is used exclusivly (\ref isExclusiveUse() returns true),
+	 * and the size of this matrix and the result match, the memory is reuse.
+	 * \tparam Derived 
+	 * \param expr 
+	 * \return 
+	 */
 	template<typename Derived>
 	CUMAT_STRONG_INLINE Type& operator=(const MatrixBase<Derived>& expr)
 	{
-		data_ = Storage_t(expr.rows(), expr.cols(), expr.batches());
+        if (!isExclusiveUse() || rows() != expr.rows() || cols() != expr.cols() || batches() != expr.batches()) {
+            //allocate new memory for the result
+            data_ = Storage_t(expr.rows(), expr.cols(), expr.batches());
+        } //else: reuse memory
 		expr.evalTo(*this);
 		return *this;
+	}
+
+    /**
+     * \brief Forces inplace assignment.
+     * The only usecase is <code>matrix.inplace() = expression</code>
+     * where the content's of matrix are overwritten inplace, even if the data is shared with
+     * some other matrix instance.
+     * Using the returned object in another context as directly as the left side of an assignment is
+     * undefined behaviour.
+     * The assignment will fail if the dimensions of this matrix and the expression don't match.
+     * \return an expression to force inplace assignment
+     */
+    internal::MatrixInplaceAssignment<Type> inplace()
+	{
+        return internal::MatrixInplaceAssignment<Type>(this);
 	}
 
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
@@ -1023,78 +1097,6 @@ public:
 	}
 
 	// STATIC METHODS AND OTHER HELPERS
-
-	template<typename _NullaryFunctor>
-	using NullaryOp_t = NullaryOp<_Scalar, _Rows, _Columns, _Batches, _Flags, _NullaryFunctor >;
-
-    /**
-	 * \brief Creates a new matrix with all entries set to a constant value
-	 * \param rows the number of rows
-	 * \param cols the number of columns
-	 * \param batches the number of batches
-	 * \param value the value to fill
-	 * \return the expression creating that matrix
-	 */
-	static NullaryOp_t<functor::ConstantFunctor<_Scalar> >
-	Constant(Index rows, Index cols, Index batches, const _Scalar& value)
-	{
-		if (_Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(_Rows == rows && "runtime row count does not match compile time row count");
-		if (_Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(_Columns == cols && "runtime row count does not match compile time row count");
-		if (_Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(_Batches == batches && "runtime row count does not match compile time row count");
-		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-			rows, cols, batches, functor::ConstantFunctor<_Scalar>(value));
-	}
-	//Specialization for some often used cases
-
-    /**
-    * \brief Creates a new matrix with all entries set to a constant value.
-    * This version is only available if the number of batches is fixed on compile-time.
-    * \param rows the number of rows
-    * \param cols the number of columns
-    * \param value the value to fill
-    * \return the expression creating that matrix
-    */
-	template<typename T = std::enable_if<_Batches!=Dynamic && _Rows==Dynamic && _Columns==Dynamic, 
-		NullaryOp_t<functor::ConstantFunctor<_Scalar> >>>
-	static typename T::type Constant(Index rows, Index cols, const _Scalar& value)
-	{
-		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-			rows, cols, _Batches, functor::ConstantFunctor<_Scalar>(value));
-	}
-
-    /**
-    * \brief Creates a new vector with all entries set to a constant value.
-    * This version is only available if the number of batches is fixed on compile-time,
-    * and either rows or columns are fixed on compile time.
-    * \param size the size of the matrix along the free dimension
-    * \param value the value to fill
-    * \return the expression creating that matrix
-    */
-	template<typename T = std::enable_if<_Batches != Dynamic 
-		&& ((_Rows == Dynamic && _Columns != Dynamic) || (_Rows != Dynamic && _Columns == Dynamic)),
-		NullaryOp_t<functor::ConstantFunctor<_Scalar> >>>
-		static typename T::type Constant(Index size, const _Scalar& value)
-	{
-		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-			_Rows==Dynamic ? size : _Rows,
-			_Columns==Dynamic ? size : _Columns, 
-			_Batches, functor::ConstantFunctor<_Scalar>(value));
-	}
-
-    /**
-    * \brief Creates a new matrix with all entries set to a constant value.
-    * This version is only available if all sized (row, column, batch) are fixed on compile-time.
-    * \param value the value to fill
-    * \return the expression creating that matrix
-    */
-	template<typename T = std::enable_if<_Batches != Dynamic && _Rows != Dynamic && _Columns != Dynamic,
-		NullaryOp_t<functor::ConstantFunctor<_Scalar> >>>
-		static typename T::type Constant(const _Scalar& value)
-	{
-		return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-			_Rows, _Columns, _Batches, functor::ConstantFunctor<_Scalar>(value));
-	}
-
     /**
 	 * \brief Sets all entries to zero.
 	 * Warning: this operation works in-place and therefore violates the copy-on-write paradigm.
@@ -1107,67 +1109,7 @@ public:
 		}
 	}
 
-    /**
-     * \brief generalized identity matrix.
-     * This matrix contains ones along the main diagonal and zeros everywhere else.
-     * The matrix must not necessarily be square.
-     * \param rows the number of rows
-     * \param cols the number of columns
-     * \param batches the number of batches
-     * \return the operation that computes the identity matrix
-     */
-    static NullaryOp_t<functor::IdentityFunctor<_Scalar> >
-        Identity(Index rows, Index cols, Index batches)
-    {
-        if (_Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(_Rows == rows && "runtime row count does not match compile time row count");
-        if (_Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(_Columns == cols && "runtime row count does not match compile time row count");
-        if (_Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(_Batches == batches && "runtime row count does not match compile time row count");
-        return NullaryOp_t<functor::IdentityFunctor<_Scalar> >(
-            rows, cols, batches, functor::IdentityFunctor<_Scalar>());
-    }
-
-    /**
-     * \brief Generalized identity matrix.
-     * This version is only available if the number of batches is known on compile-time and rows and columns are dynamic.
-     * \param rows the number of rows
-     * \param cols the number of columns.
-     * \return  the operation that computes the identity matrix
-     */
-    template<typename T = std::enable_if<_Batches != Dynamic && _Rows == Dynamic && _Columns == Dynamic,
-        NullaryOp_t<functor::IdentityFunctor<_Scalar> >>>
-        static typename T::type Identity(Index rows, Index cols)
-    {
-        return NullaryOp_t<functor::IdentityFunctor<_Scalar> >(
-            rows, cols, _Batches, functor::IdentityFunctor<_Scalar>());
-    }
-    /**
-     * \brief Creates a square identity matrix.
-     * This version is only available if the number of batches is known on compile-time and rows and columns are dynamic.
-     * \param size the size of the matrix
-     * \return the operation that computes the identity matrix
-     */
-    template<typename T = std::enable_if<_Batches != Dynamic
-        && (_Rows == Dynamic && _Columns == Dynamic),
-        NullaryOp_t<functor::IdentityFunctor<_Scalar> >>>
-        static typename T::type Identity(Index size)
-    {
-        return NullaryOp_t<functor::IdentityFunctor<_Scalar> >(
-            size, size, _Batches, functor::IdentityFunctor<_Scalar>());
-    }
-    /**
-     * \brief Creates the identity matrix.
-     * This version is only available if the number of rows, columns and batches are available at compile-time.
-     * Note that the matrix must not necessarily be square.
-     * \return  the operation that computes the identity matrix
-     */
-    template<typename T = std::enable_if<_Batches != Dynamic && _Rows != Dynamic && _Columns != Dynamic,
-        NullaryOp_t<functor::IdentityFunctor<_Scalar> >>>
-        static typename T::type Identity()
-    {
-        return NullaryOp_t<functor::IdentityFunctor<_Scalar> >(
-            _Rows, _Columns, _Batches, functor::IdentityFunctor<_Scalar>());
-    }
-
+#include "MatrixNullaryOpsPlugin.h"
 #include "MatrixBlockPluginLvalue.h"
 
     //TODO: find a better place for the following two methods:
@@ -1223,6 +1165,34 @@ __host__ std::ostream& operator<<(std::ostream& os, const Matrix<_Scalar, _Rows,
     return os;
 }
 
+namespace internal
+{
+    template<typename _Matrix>
+    class MatrixInplaceAssignment
+    {
+    private:
+        _Matrix * matrix_;
+    public:
+        MatrixInplaceAssignment(_Matrix* matrix) : matrix_(matrix) {}
+
+        /**
+         * \brief Evaluates the expression inline inplace into the current matrix.
+         * No new memory is created, it is reused!
+         * This operator fails with an exception if the dimensions don't match.
+         * \param expr the other expression
+         * \return the underlying matrix
+         */
+        template<typename Derived>
+        CUMAT_STRONG_INLINE _Matrix& operator=(const MatrixBase<Derived>& expr)
+        {
+            CUMAT_ASSERT_DIMENSION(matrix_->rows() == expr.rows());
+            CUMAT_ASSERT_DIMENSION(matrix_->cols() == expr.cols());
+            CUMAT_ASSERT_DIMENSION(matrix_->batches() == expr.batches());
+            expr.evalTo(*matrix_);
+            return *matrix_;
+        }
+    };
+}
 
 //Common typedefs
 

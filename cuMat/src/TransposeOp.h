@@ -121,7 +121,7 @@ protected:
     const _Derived matrix_;
 
 public:
-    TransposeOp(const MatrixBase<_Derived>& child)
+    explicit TransposeOp(const MatrixBase<_Derived>& child)
         : matrix_(child.derived())
     {}
 

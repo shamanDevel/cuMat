@@ -98,6 +98,8 @@
 	if (!(x)) throw std::out_of_range(__FILE__ ":" CUMAT_STR(__LINE__) "Out of bounds: " #x);
 #define CUMAT_ASSERT_ERROR(x) \
 	if (!(x)) throw std::runtime_error(__FILE__ ":" CUMAT_STR(__LINE__) "Runtime Error: " #x);
+#define CUMAT_ASSERT_DIMENSION(x) \
+	if (!(x)) throw std::invalid_argument(__FILE__ ":" CUMAT_STR(__LINE__) ": Invalid dimensions: " #x);
 
 /**
  * \brief Assertions in device code (if supported)

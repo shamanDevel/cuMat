@@ -54,6 +54,9 @@ template<typename _Derived> class MatrixBase;
 
 template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags> class Matrix;
 template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, typename _MatrixType> class MatrixBlock;
+namespace internal {
+    template <typename _MatrixType> class MatrixInplaceAssignment;
+}
 
 template<typename _Derived> class CwiseOp;
 template<typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, typename _NullaryFunctor> class NullaryOp;

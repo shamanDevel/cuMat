@@ -5,7 +5,7 @@
 	BinaryOp<_Derived, _Right, functor::BinaryMathFunctor_ ## Name <Scalar>, false > Name (const MatrixBase<_Right>& rhs) const { \
 		return BinaryOp<_Derived, _Right, functor::BinaryMathFunctor_ ## Name <Scalar>, false >(derived(), rhs.derived()); \
 	} \
-    template<typename _Right, typename T = typename std::enable_if<std::is_convertible<_Right, Scalar>::value, \
+    template<typename _Right, typename T = typename std::enable_if<CUMAT_NAMESPACE internal::canBroadcast<_Right, Scalar>::value, \
         BinaryOp<_Derived, HostScalar<Scalar>, functor::BinaryMathFunctor_ ## Name <Scalar>, false > >::type > \
     T Name(const _Right& rhs) const { \
 		return BinaryOp<_Derived, HostScalar<Scalar>, functor::BinaryMathFunctor_ ## Name <Scalar>, false >(derived(), HostScalar<Scalar>(rhs)); \
@@ -15,7 +15,7 @@
         BinaryOp<_Left, _Derived, functor::BinaryMathFunctor_ ## Name <Scalar>, false > Name ## Inv(const MatrixBase<_Left>& lhs) const { \
 		return BinaryOp<_Left, _Derived, functor::BinaryMathFunctor_ ## Name <Scalar>, false >(lhs.derived(), derived()); \
 	} \
-    template<typename _Left, typename T = typename std::enable_if<std::is_convertible<_Left, Scalar>::value, \
+    template<typename _Left, typename T = typename std::enable_if<CUMAT_NAMESPACE internal::canBroadcast<_Left, Scalar>::value, \
         BinaryOp<HostScalar<Scalar>, _Derived, functor::BinaryMathFunctor_ ## Name <Scalar>, false > >::type > \
     T Name ## Inv(const _Left& lhs) const { \
 		return BinaryOp<HostScalar<Scalar>, _Derived, functor::BinaryMathFunctor_ ## Name <Scalar>, false >(HostScalar<Scalar>(lhs), derived()); \

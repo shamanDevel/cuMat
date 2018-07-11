@@ -5,6 +5,7 @@
 
 #include "Macros.h"
 #include "ForwardDeclarations.h"
+#include <type_traits>
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -68,6 +69,20 @@ namespace internal
             IsComplex = true,
         };
 	};
+
+    template <typename T>
+    struct isPrimitive : std::is_arithmetic<T> {};
+    template <> struct isPrimitive<cfloat> : std::integral_constant<bool, true> {};
+    template <> struct isPrimitive<cdouble> : std::integral_constant<bool, true> {};
+
+    /**
+     * \brief Can the type T be used for broadcasting when the scalar type of the other matrix is S?
+     */
+    template<typename T, typename S>
+    struct canBroadcast : std::integral_constant<bool,
+        (std::is_convertible<T, S>::value && CUMAT_NAMESPACE internal::isPrimitive<T>::value)  \
+        || std::is_same<typename std::remove_cv<T>::type, typename std::remove_cv<S>::type>::value
+    > {};
 }
 
 CUMAT_NAMESPACE_END
