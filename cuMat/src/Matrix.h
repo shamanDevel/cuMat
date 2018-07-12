@@ -445,7 +445,7 @@ namespace internal {
 			RowsAtCompileTime = _Rows,
 			ColsAtCompileTime = _Columns,
 			BatchesAtCompileTime = _Batches,
-            AccessFlags = ReadCwise | ReadDirect | WriteCwise | WriteDirect
+            AccessFlags = ReadCwise | ReadDirect | WriteCwise | WriteDirect | RWCwise | RWCwiseRef
 		};
 	};
 
@@ -578,7 +578,8 @@ public:
 	// COEFFICIENT ACCESS
 
 	/**
-	 * \brief Converts from the linear index back to row, column and batch index
+	 * \brief Converts from the linear index back to row, column and batch index.
+	 * Requirement of \c AccessFlags::WriteCwise 
 	 * \param index the linear index
 	 * \param row the row index (output)
 	 * \param col the column index (output)
@@ -643,6 +644,7 @@ public:
 	* \brief Accesses the coefficient at the specified coordinate for reading.
 	* If the device supports it (CUMAT_ASSERT_CUDA is defined), the
 	* access is checked for out-of-bound tests by assertions.
+	* Requirement of \c AccessFlags::ReadCwise 
 	* \param row the row index
 	* \param col the column index
 	* \param batch the batch index
@@ -657,6 +659,7 @@ public:
 	 * \brief Access to the linearized coefficient, write-only.
 	 * The format of the indexing depends on whether this
 	 * matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
+	 * Requirement of \c AccessFlags::WriteCwise 
 	 * \param index the linearized index of the entry.
 	 * \param newValue the new value at that entry
 	 */
@@ -671,18 +674,35 @@ public:
 	* \brief Access to the linearized coefficient, read-only.
 	* The format of the indexing depends on whether this
 	* matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
+	* Requirement of \c AccessFlags::RWCwise .
 	* \param index the linearized index of the entry.
 	* \return the entry at that index
 	*/
-	__device__ CUMAT_STRONG_INLINE const _Scalar& rawCoeff(Index index) const
+	__device__ CUMAT_STRONG_INLINE const _Scalar& getRawCoeff(Index index) const
 	{
 		CUMAT_ASSERT_CUDA(index >= 0);
 		CUMAT_ASSERT_CUDA(index < size());
 		return cuda::load(data_.data() + index);
 	}
 
+    /**
+    * \brief Access to the linearized coefficient, read-only.
+    * The format of the indexing depends on whether this
+    * matrix is column major (ColumnMajorBit) or row major (RowMajorBit).
+    * Requirement of \c AccessFlags::RWCwiseRef .
+    * \param index the linearized index of the entry.
+    * \return the entry at that index
+    */
+    __device__ CUMAT_STRONG_INLINE _Scalar& rawCoeff(Index index)
+    {
+        CUMAT_ASSERT_CUDA(index >= 0);
+        CUMAT_ASSERT_CUDA(index < size());
+        return data_.data()[index];
+    }
+
 	/**
-	 * \brief Allows raw read and write access to the underlying buffer
+	 * \brief Allows raw read and write access to the underlying buffer.
+	 * Requirement of \c AccessFlags::WriteDirect.
 	 * \return the underlying device buffer
 	 */
 	__host__ __device__ CUMAT_STRONG_INLINE _Scalar* data()
@@ -691,7 +711,8 @@ public:
 	}
 
 	/**
-	* \brief Allows raw read-only access to the underlying buffer
+	* \brief Allows raw read-only access to the underlying buffer.
+	* Requirement of \c AccessFlags::ReadDirect. 
 	* \return the underlying device buffer
 	*/
 	__host__ __device__ CUMAT_STRONG_INLINE const _Scalar* data() const
@@ -922,12 +943,16 @@ public:
 	Matrix(const Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, _OtherFlags>& other)
 		: data_(other.dataPointer(), other.rows(), other.cols(), other.batches()) //shallow copy
 	{
-		CUMAT_STATIC_ASSERT(_Rows == Dynamic || _OtherRows == _Rows, 
+		CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Rows != Dynamic && _OtherRows != Dynamic, _OtherRows == _Rows), 
 			"unable to assign a matrix to another matrix with a different compile time row count");
-		CUMAT_STATIC_ASSERT(_Columns == Dynamic || _OtherColumns == _Columns, 
+		CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Columns != Dynamic && _OtherColumns != Dynamic, _OtherColumns == _Columns),
 			"unable to assign a matrix to another matrix with a different compile time column count");
-		CUMAT_STATIC_ASSERT(_Batches == Dynamic || _OtherBatches == _Batches, 
+		CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Batches != Dynamic && _OtherBatches != Dynamic, _OtherBatches == _Batches),
 			"unable to assign a matrix to another matrix with a different compile time batch count");
+
+        CUMAT_ASSERT_DIMENSION(CUMAT_IMPLIES(_Rows != Dynamic, _Rows == other.rows()));
+        CUMAT_ASSERT_DIMENSION(CUMAT_IMPLIES(_Columns != Dynamic, _Columns == other.cols()));
+        CUMAT_ASSERT_DIMENSION(CUMAT_IMPLIES(_Batches != Dynamic, _Batches == other.batches()));
 
 		//Only allow implicit transposing if we have vectors
 		CUMAT_STATIC_ASSERT(_OtherFlags == _Flags || _Rows==1 || _Columns==1,
@@ -999,7 +1024,37 @@ public:
 		return *this;
 	}
 
-    //TODO: add operator+=, -=, ....
+#define CUMAT_COMPOUND_ASSIGNMENT(op, mode)                                                             \
+    /**                                                                                                 \
+    * \brief Compound-assignment with evaluation, modifies this matrix in-place.                        \
+    * Warning: if this matrix shares the data with another matrix, this matrix is modified as well.     \
+    * If you don't intend this, call \ref makeExclusiveUse() first.                                     \
+    *                                                                                                   \
+    * No broadcasting is supported, use the verbose \code mat = mat + expr \endcode instead.            \
+    * Further, not all expressions might support inplace-assignment.                                    \
+    *                                                                                                   \
+    * \tparam Derived the type of the other expression                                                  \
+    * \param expr the other expression                                                                  \
+    * \return                                                                                           \
+    */                                                                                                  \
+    template<typename Derived>                                                                          \
+    CUMAT_STRONG_INLINE Type& op (const MatrixBase<Derived>& expr)                                      \
+    {                                                                                                   \
+        expr.template evalTo<Type, AssignmentMode:: mode >(*this);                                      \
+        return *this;                                                                                   \
+    }
+
+    CUMAT_COMPOUND_ASSIGNMENT(operator+=, ADD)
+    CUMAT_COMPOUND_ASSIGNMENT(operator-=, SUB)
+    //CUMAT_COMPOUND_ASSIGNMENT(operator*=, MUL) //multiplication is ambigious: do you want cwise or matrix multiplication?
+    CUMAT_COMPOUND_ASSIGNMENT(operator/=, DIV)
+    CUMAT_COMPOUND_ASSIGNMENT(operator%=, MOD)
+    CUMAT_COMPOUND_ASSIGNMENT(operator&=, AND)
+    CUMAT_COMPOUND_ASSIGNMENT(operator|=, OR)
+
+#undef CUMAT_COMPOUND_ASSIGNMENT
+
+    //TODO: explicit overloading of operator*= : scalar -> cwise, matrix -> matmul
 
     /**
      * \brief Forces inplace assignment.

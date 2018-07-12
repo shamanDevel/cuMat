@@ -70,13 +70,53 @@ enum AccessFlags
      * \endcode
      */
     WriteDirect = 0x20,
+    /**
+     * \brief This extends \c WriteCwise and allows inplace modifications (compound operators) by additionally providing the function
+     * \code __device__ const Scalar& getRawCoeff(Index index) const; \endcode .
+     * To enable compound assignment with this as target type, either RWCwise or RWCwiseRef (or both) have to be defined.
+     */
+    RWCwise = 0x40,
+    /**
+    * \brief This extends \c WriteCwise and allows inplace modifications (compound operators) by additionally providing the function
+    * \code __device__ Scalar& rawCoeff(Index index); \endcode for read-write access to that entry.
+    * To enable compound assignment with this as target type, either RWCwise or RWCwiseRef (or both) have to be defined.
+    */
+    RWCwiseRef = 0x80,
 };
 
+/**
+ * \brief The axis over which reductions are performed.
+ */
 enum ReductionAxis
 {
     Row = 1,
     Column = 2,
-    Batch = 4
+    Batch = 4,
+    All = Row | Column | Batch
+};
+
+/**
+* \brief Specifies the assignment mode in \c evalTo() .
+* This is the difference between regular assignment (operator==, \c AssignmentMode::ASSIGN)
+* and inplace modifications like operator+= (\c AssignmentMode::ADD).
+*
+* Note that not all assignment modes have to be supported for all scalar types
+* and all right hand sides.
+* For example:
+*  - MUL (=*) and DIV (=\) are only supported for scalar right hand sides (broadcasting)
+*    to avoid the ambiguity if component-wise or matrix operations are meant
+*  - MOD (%=), AND (&=), OR (|=) are only supported for integer types
+*/
+enum class AssignmentMode
+{
+    ASSIGN,
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    MOD,
+    AND,
+    OR,
 };
 
 CUMAT_NAMESPACE_END

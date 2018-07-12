@@ -291,7 +291,8 @@ EXPAND_AS_DEFINED      = CUMAT_NAMESPACE_BEGIN \
                          CUMAT_DEF_MATRIX1 \
                          BINARY_OP \
                          BINARY_OP_SCALAR \
-                         UNARY_OP
+                         UNARY_OP \
+						 CUMAT_COMPOUND_ASSIGNMENT
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 # Configuration options related to external references

@@ -10,33 +10,6 @@
 CUMAT_NAMESPACE_BEGIN
 
 /**
- * \brief Specifies the assignment mode in \c evalTo() .
- * This is the difference between regular assignment (operator==, \c AssignmentMode::ASSIGN)
- * and inplace modifications like operator+= (\c AssignmentMode::ADD).
- * 
- * Note that not all assignment modes have to be supported for all scalar types
- * and all right hand sides.
- * For example:
- *  - MUL (=*) and DIV (=\) are only supported for scalar right hand sides (broadcasting)
- *    to avoid the ambiguity if component-wise or matrix operations are meant
- *  - MOD (%=), BINARY_AND (&=), BINARY_OR (|=) are only supported for integer types
- *  - LOGICAL_AND (&&=), LOGICAL_OR (||=) are only supported for boolean matrices
- */
-enum class AssignmentMode
-{
-    ASSIGN,
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    MOD,
-    BINARY_AND,
-    BINARY_OR,
-    LOGICAL_AND,
-    LOGICAL_OR
-};
-
-/**
  * \brief The base class of all matrix types and matrix expressions.
  * \tparam _Derived 
  */
