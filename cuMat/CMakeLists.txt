@@ -18,18 +18,18 @@ set(CUMAT_HEADERS
   src/Matrix.h
   src/CwiseOp.h
   src/MatrixBlock.h
-  src/MatrixBlockPluginLvalue.h
-  src/MatrixBlockPluginRvalue.h
+  src/MatrixBlockPluginLvalue.inl
+  src/MatrixBlockPluginRvalue.inl
   src/NullaryOps.h
-  src/MatrixNullaryOpsPlugin.h
+  src/MatrixNullaryOpsPlugin.inl
   src/UnaryOps.h
-  src/UnaryOpsPlugin.h
+  src/UnaryOpsPlugin.inl
   src/CudaUtils.h
   src/TransposeOp.h
   src/BinaryOps.h
-  src/BinaryOpsPlugin.h
+  src/BinaryOpsPlugin.inl
   src/ReductionOps.h
-  src/ReductionOpsPlugin.h
+  src/ReductionOpsPlugin.inl
   src/Iterator.h
   src/CublasApi.h
   src/SimpleRandom.h
@@ -41,7 +41,7 @@ set(CUMAT_HEADERS
   src/LUDecomposition.h
   src/CholeskyDecomposition.h
   src/DenseLinAlgOps.h
-  src/DenseLinAlgPlugin.h
+  src/DenseLinAlgPlugin.inl
   Dense
   )
 

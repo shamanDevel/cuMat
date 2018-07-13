@@ -106,11 +106,11 @@ public:
 
 
 	// CWISE EXPRESSIONS
-#include "MatrixBlockPluginRvalue.h"
-#include "UnaryOpsPlugin.h"
-#include "BinaryOpsPlugin.h"
-#include "ReductionOpsPlugin.h"
-#include "DenseLinAlgPlugin.h"
+#include "MatrixBlockPluginRvalue.inl"
+#include "UnaryOpsPlugin.inl"
+#include "BinaryOpsPlugin.inl"
+#include "ReductionOpsPlugin.inl"
+#include "DenseLinAlgPlugin.inl"
 };
 
 

@@ -1240,8 +1240,8 @@ public:
 		}
 	}
 
-#include "MatrixNullaryOpsPlugin.h"
-#include "MatrixBlockPluginLvalue.h"
+#include "MatrixNullaryOpsPlugin.inl"
+#include "MatrixBlockPluginLvalue.inl"
 
     //TODO: find a better place for the following two methods:
 
