@@ -45,7 +45,7 @@ namespace internal {
 
     CUMAT_DECLARE_ASSIGNMENT_HANDLER(ADD, +=, +)
     CUMAT_DECLARE_ASSIGNMENT_HANDLER(SUB, -=, -)
-    //CUMAT_DECLARE_ASSIGNMENT_HANDLER(MUL, *=, *)  //multiplication is ambiguous with matrix multiplication. Enable manually for scalars.
+    CUMAT_DECLARE_ASSIGNMENT_HANDLER(MUL, *=, *)
     CUMAT_DECLARE_ASSIGNMENT_HANDLER(DIV, /=, /)
     CUMAT_DECLARE_ASSIGNMENT_HANDLER(MOD, %=, %)
     CUMAT_DECLARE_ASSIGNMENT_HANDLER(AND, &=, &)

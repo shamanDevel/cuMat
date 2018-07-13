@@ -146,7 +146,7 @@ public:
 
 private:
     template<int _Rows, int _Columns, int _Batches, int _Flags>
-    void evalImpl(Matrix<Scalar, _Rows, _Columns, _Batches, _Flags>& mat) const
+    void evalImpl(Matrix<Scalar, _Rows, _Columns, _Batches, _Flags>& mat, float betaIn) const
     {
         CUMAT_ASSERT_ARGUMENT(mat.rows() == rows());
         CUMAT_ASSERT_ARGUMENT(mat.cols() == cols());
@@ -200,7 +200,7 @@ private:
         //This hack enforces that.
 #ifdef _MSC_VER
         __declspec(align(16)) Scalar alpha(1);
-        __declspec(align(16)) Scalar beta(0);
+        __declspec(align(16)) Scalar beta(betaIn);
 #else
         Scalar alpha __attribute__((aligned(16))) = 1;
         Scalar beta __attribute__((aligned(16))) = 0;
@@ -237,8 +237,10 @@ public:
     void evalTo(MatrixBase<Derived>& m) const
     {
         //TODO: Handle different assignment modes
-        static_assert(Mode == AssignmentMode::ASSIGN, "Currently, only AssignmentMode::ASSIGN is supported");
-        evalImpl(m.derived());
+        static_assert((Mode == AssignmentMode::ASSIGN || Mode == AssignmentMode::ADD),
+            "Matrix multiplication only supports the following assignment modes: =, +=");
+        float beta = Mode == AssignmentMode::ASSIGN ? 0 : 1;
+        evalImpl(m.derived(), beta);
     }
 
     //Overwrites transpose()

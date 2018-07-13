@@ -1054,7 +1054,61 @@ public:
 
 #undef CUMAT_COMPOUND_ASSIGNMENT
 
-    //TODO: explicit overloading of operator*= : scalar -> cwise, matrix -> matmul
+    /**
+     * \brief Explicit overloading of \c operator*= for scalar right hand sides.
+     * This is needed to disambiguate the difference between component-wise operations and matrix operations.
+     * All other compount-assignment operators (+=, -=, /=, ...) act component-wise.
+     * 
+     * The operator *= is special: if call with a scalar argument, it simply scales the argument;
+     * if called with a matrix as argument, it performs an inplace matrix multiplication.
+     * \tparam S the type of the scalar
+     * \param scalar the scalar value
+     * \return *this
+     */
+    template<
+        typename S,
+        typename T = typename std::enable_if<CUMAT_NAMESPACE internal::canBroadcast<Scalar, S>::value, Type>::type >
+    CUMAT_STRONG_INLINE T& operator*= (const S& scalar)
+	{
+        Type::Constant(rows(), cols(), batches(), scalar).template evalTo<Type, AssignmentMode::MUL>(*this);
+        return *this;
+	}
+
+    /**
+    * \brief Explicit overloading of \c operator*= for matrix right hand sides.
+    * It performs an inplace matrix multiplication \code *this = *this * rhs \endcode.
+    * Note that \c rhs must be square because the size of *this must not change.
+    * 
+    * This is needed to disambiguate the difference between component-wise operations and matrix operations.
+    * All other compount-assignment operators (+=, -=, /=, ...) act component-wise.
+    *
+    * \tparam _Derived the type of the matrix
+    * \param rhs the right hand side matrix
+    * \return *this
+    */
+    template<typename _Derived>
+    CUMAT_STRONG_INLINE Type& operator*= (const MatrixBase<_Derived>& rhs)
+    {
+        //check that the rhs is in fact square
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(internal::traits<_Derived>::RowsAtCompileTime != Dynamic && internal::traits<_Derived>::ColsAtCompileTime != Dynamic,
+            internal::traits<_Derived>::RowsAtCompileTime == internal::traits<_Derived>::ColsAtCompileTime),
+            "The right hand side must be a static matrix");
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Columns != Dynamic && internal::traits<_Derived>::RowsAtCompileTime != Dynamic,
+            _Columns == internal::traits<_Derived>::RowsAtCompileTime),
+            "The right hand side is not compatible with this matrix");
+        CUMAT_ASSERT_DIMENSION(rhs.rows() == rhs.cols());
+        CUMAT_ASSERT_DIMENSION(cols() == rhs.rows());
+        //check that the batch size matches (broadcasting only over rhs)
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Batches != Dynamic && internal::traits<_Derived>::BatchesAtCompileTime != Dynamic,
+            _Batches == internal::traits<_Derived>::BatchesAtCompileTime || internal::traits<_Derived>::BatchesAtCompileTime==1),
+            "Batches must match or attempt to broadcast over this matrix");
+        CUMAT_ASSERT_DIMENSION(batches() == rhs.batches() || rhs.batches() == 1);
+
+        //cuBLAS GEMM can't work inplace -> clone this and place the result inplace
+        inplace() = deepClone() * rhs;
+
+        return *this;
+    }
 
     /**
      * \brief Forces inplace assignment.
@@ -1265,7 +1319,7 @@ namespace internal
             CUMAT_ASSERT_DIMENSION(matrix_->rows() == expr.rows());
             CUMAT_ASSERT_DIMENSION(matrix_->cols() == expr.cols());
             CUMAT_ASSERT_DIMENSION(matrix_->batches() == expr.batches());
-            expr.template evalTo<MatrixBase<Derived>, AssignmentMode::ASSIGN>(*matrix_);
+            expr.template evalTo<_Matrix, AssignmentMode::ASSIGN>(*matrix_);
             return *matrix_;
         }
     };
