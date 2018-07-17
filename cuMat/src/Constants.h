@@ -119,6 +119,21 @@ enum class AssignmentMode
     OR,
 };
 
+/**
+ * \brief Flags for the SparseMatrix class.
+ */
+enum SparseFlags
+{
+    /**
+     * \brief Matrix stored in the Compressed Sparse Column format.
+     */
+    CSC = 1,
+    /**
+    * \brief Matrix stored in the Compressed Sparse Row format.
+    */
+    CSR = 2
+};
+
 CUMAT_NAMESPACE_END
 
 #endif

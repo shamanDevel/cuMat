@@ -43,6 +43,9 @@ set(CUMAT_HEADERS
   src/DenseLinAlgOps.h
   src/DenseLinAlgPlugin.inl
   Dense
+  
+  src/SparseMatrix.h
+  Sparse
   )
 
 add_library(cuMat INTERFACE) # 'moduleA' is an INTERFACE pseudo target

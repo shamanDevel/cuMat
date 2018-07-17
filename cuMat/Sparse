@@ -1,0 +1,10 @@
+/*
+ * Specifies sparse linear algebra routines
+ * This needs cuSparse.
+ */
+
+// Core is always needed
+#include "Core"
+
+// sparse classes
+#include "src/Sparse.h"

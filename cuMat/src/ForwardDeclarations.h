@@ -147,6 +147,10 @@ template<typename _MatrixType> class CholeskyDecomposition;
 template<typename _Solver, typename _RHS> class SolveOp;
 template<typename _Child> class DeterminantOp;
 
+// SPARSE
+
+template<typename _Scalar, int _Batches, int _Flags> class SparseMatrix;
+
 CUMAT_NAMESPACE_END
 
 #endif
