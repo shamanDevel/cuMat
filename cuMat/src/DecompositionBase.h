@@ -127,12 +127,8 @@ public:
     __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return rhs_.cols(); }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return rhs_.batches(); }
 
-    template<typename Derived, AssignmentMode Mode>
-    void evalTo(MatrixBase<Derived>& m) const
-    {
-        static_assert(Mode == AssignmentMode::ASSIGN, "Decompositions only support AssignmentMode::ASSIGN (operator=)");
-        decomposition_->_solver_impl(rhs_, m);
-    }
+    const _Solver* getDecomposition() const { return decomposition_; }
+    const _RHS& getRhs() const { return rhs_; }
 };
 
 namespace internal
@@ -143,9 +139,8 @@ namespace internal
     {
         static void assign(_Dst& dst, const _Src& src)
         {
-            typedef typename _Dst::Type DstActual;
-            typedef typename _Src::Type SrcActual;
-            src.derived().template evalTo<DstActual, _Mode>(dst.derived());
+            static_assert(_Mode == AssignmentMode::ASSIGN, "Decompositions only support AssignmentMode::ASSIGN (operator=)");
+            src.derived().getDecomposition()->_solver_impl(src.derived().getRhs(), dst.derived());
         }
     };
 }

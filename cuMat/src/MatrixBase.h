@@ -73,20 +73,6 @@ public:
 		return eval_t(derived());
 	}
 
-#if 0
-	/**
-	 * \brief Evaluates this into the the specified matrix.
-	 * This is called within eval() and the constructor of Matrix,
-	 * don't call it in user-code.
-     * Every derived class must implement it's own version of \c evalTo !
-     * \param m the target matrix, already properly resized
-     * \tparam Mode the assignment mode for inplace modifications
-	 */
-	template<typename Derived, AssignmentMode Mode>
-    [[deprecated("deprecated, will be replaced by internal::Assignment")]]
-	void evalTo(MatrixBase<Derived>& m) const { derived().template evalTo<Derived, Mode>(m.derived()); }
-#endif
-
     /**
      * \brief Conversion: Matrix of size 1-1-1 (scalar) in device memory to the host memory scalar.
      * 

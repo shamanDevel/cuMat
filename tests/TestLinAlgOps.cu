@@ -14,7 +14,7 @@ template<typename Scalar, int Flags, int Dims>
 void testLinAlgOpsReal()
 {
     INFO("Size=" << Dims << ", Flags=" << Flags);
-    const int batches = 50;
+    const int batches = 5;
     typedef Matrix<Scalar, Dims, Dims, Dynamic, Flags> mat_t;
     typedef typename mat_t::EigenMatrix_t emat_t;
 
@@ -107,7 +107,7 @@ void testlinAlgOps2()
         }
         SECTION("column major")
         {
-            //testLinAlgOpsReal<float, ColumnMajor, Dims>();
+            testLinAlgOpsReal<float, ColumnMajor, Dims>();
         }
     }
     SECTION("double")
@@ -118,13 +118,12 @@ void testlinAlgOps2()
         }
         SECTION("column major")
         {
-            //testLinAlgOpsReal<double, ColumnMajor, Dims>();
+            testLinAlgOpsReal<double, ColumnMajor, Dims>();
         }
     }
 }
 TEST_CASE("dense lin-alg", "[Dense]")
 {
-    /*
     SECTION("1x1")
     {
         testlinAlgOps2<1>();
@@ -137,7 +136,6 @@ TEST_CASE("dense lin-alg", "[Dense]")
     {
         testlinAlgOps2<3>();
     }
-    */
     SECTION("4x4")
     {
         testlinAlgOps2<4>();
@@ -146,8 +144,8 @@ TEST_CASE("dense lin-alg", "[Dense]")
     {
         testlinAlgOps2<5>();
     }
-    SECTION("10x10")
-    {
-        testlinAlgOps2<10>();
-    }
+    //SECTION("10x10") //This would exceed the per-file object count
+    //{
+    //    testlinAlgOps2<10>();
+    //}
 }

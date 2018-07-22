@@ -249,6 +249,7 @@ namespace
 
 namespace internal
 {
+    struct DeterminantSrcTag {};
     template<typename _Child>
     struct traits<DeterminantOp<_Child> >
     {
@@ -263,6 +264,8 @@ namespace internal
             InputSize = internal::traits<_Child>::RowsAtCompileTime>internal::traits<_Child>::ColsAtCompileTime ? internal::traits<_Child>::RowsAtCompileTime : internal::traits<_Child>::ColsAtCompileTime,
             AccessFlags = InputSize<=3 ? ReadCwise : 0 //for matrices <=3, we also support cwise evaluation
         };
+        typedef DeterminantSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
     };
 }
 
@@ -272,6 +275,7 @@ class DeterminantOp : public MatrixBase<DeterminantOp<_Child> >
 public:
     typedef MatrixBase<DeterminantOp<_Child> > Base;
     using Scalar = typename internal::traits<_Child>::Scalar;
+    using Child = _Child;
     enum
     {
         Flags = internal::traits<_Child>::Flags,
@@ -290,96 +294,11 @@ public:
         : matrix_(matrix.derived())
     {}
 
+    const _Child& getMatrix() const { return matrix_; }
+
     __host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return 1; }
     __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return 1; }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return matrix_.batches(); }
-
-private:
-    template<typename Derived>
-    void evalImpl(Derived& m, std::integral_constant<int, 1>) const
-    {
-        //we need at least cwise-read
-        typedef typename MatrixReadWrapper<_Child, ReadCwise>::type Child_wrapped;
-        Child_wrapped inWrapped(matrix_);
-
-        //launch kernel
-        Context& ctx = Context::current();
-        KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
-        DeterminantKernel<Child_wrapped, Derived, 1> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
-        CUMAT_CHECK_ERROR();
-    }
-
-    template<typename Derived>
-    void evalImpl(Derived& m, std::integral_constant<int, 2>) const
-    {
-        //we need at least cwise-read
-        typedef typename MatrixReadWrapper<_Child, ReadCwise>::type Child_wrapped;
-        Child_wrapped inWrapped(matrix_);
-
-        //launch kernel
-        Context& ctx = Context::current();
-        KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
-        DeterminantKernel<Child_wrapped, Derived, 2> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
-        CUMAT_CHECK_ERROR();
-    }
-
-    template<typename Derived>
-    void evalImpl(Derived& m, std::integral_constant<int, 3>) const
-    {
-        //we need at least cwise-read
-        typedef typename MatrixReadWrapper<_Child, ReadCwise>::type Child_wrapped;
-        Child_wrapped inWrapped(matrix_);
-
-        //launch kernel
-        Context& ctx = Context::current();
-        KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
-        DeterminantKernel<Child_wrapped, Derived, 3> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
-        CUMAT_CHECK_ERROR();
-    }
-
-    template<typename Derived, int DynamicSize>
-    void evalImpl(Derived& m, std::integral_constant<int, DynamicSize>) const
-    {
-        int size = matrix_.rows();
-        CUMAT_ASSERT(matrix_.rows() == matrix_.cols());
-
-        if (size <= 3)
-        {
-            //now we need to evaluate the input to direct read
-            typedef typename MatrixReadWrapper<_Child, ReadDirect>::type Child_wrapped;
-            Child_wrapped inWrapped(matrix_);
-            //short-cuts
-            Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
-            if (size == 1)
-            {
-                DeterminantKernel<Child_wrapped, Derived, 1> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
-            } else if (size == 2)
-            {
-                DeterminantKernel<Child_wrapped, Derived, 2> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
-            } else if (size == 3)
-            {
-                DeterminantKernel<Child_wrapped, Derived, 3> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
-            }
-        } else
-        {
-            //use LU Decomposition
-            //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
-            LUDecomposition<_Child> lu(matrix_);
-            typedef typename LUDecomposition<_Child>::DeterminantMatrix DetType;
-            internal::Assignment<Derived, DetType, AssignmentMode::ASSIGN, typename Derived::DstTag, typename DetType::SrcTag>
-                ::assign(lu.determinant(), m.derived());
-            //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
-        }
-    }
-
-public:
-    template<typename Derived, AssignmentMode Mode>
-    void evalTo(MatrixBase<Derived>& m) const
-    {
-        static_assert(Mode == AssignmentMode::ASSIGN, "Currently only AssignmentMode::ASSIGN is supported");
-        evalImpl(m.derived(), std::integral_constant<int, InputSize>());
-    }
 
     template<int Dims = InputSize>
     __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
@@ -391,6 +310,105 @@ public:
         return det;
     }
 };
+
+namespace internal
+{
+    template<typename _Dst, typename _Src, AssignmentMode _AssignmentMode, typename _DstTag>
+    struct Assignment<_Dst, _Src, _AssignmentMode, _DstTag, DeterminantSrcTag>
+    {
+    private:
+        using Op = typename _Src::Type;
+        using Child = typename Op::Child;
+
+        template<typename Derived>
+        static void evalImpl(const Op& op, Derived& m, std::integral_constant<int, 1>)
+        {
+            //we need at least cwise-read
+            typedef typename MatrixReadWrapper<Child, ReadCwise>::type Child_wrapped;
+            Child_wrapped inWrapped(op.getMatrix());
+
+            //launch kernel
+            Context& ctx = Context::current();
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
+            DeterminantKernel<Child_wrapped, Derived, 1> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+            CUMAT_CHECK_ERROR();
+        }
+
+        template<typename Derived>
+        static void evalImpl(const Op& op, Derived& m, std::integral_constant<int, 2>)
+        {
+            //we need at least cwise-read
+            typedef typename MatrixReadWrapper<Child, ReadCwise>::type Child_wrapped;
+            Child_wrapped inWrapped(op.getMatrix());
+
+            //launch kernel
+            Context& ctx = Context::current();
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
+            DeterminantKernel<Child_wrapped, Derived, 2> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+            CUMAT_CHECK_ERROR();
+        }
+
+        template<typename Derived>
+        static void evalImpl(const Op& op, Derived& m, std::integral_constant<int, 3>)
+        {
+            //we need at least cwise-read
+            typedef typename MatrixReadWrapper<Child, ReadCwise>::type Child_wrapped;
+            Child_wrapped inWrapped(op.getMatrix());
+
+            //launch kernel
+            Context& ctx = Context::current();
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
+            DeterminantKernel<Child_wrapped, Derived, 3> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+            CUMAT_CHECK_ERROR();
+        }
+
+        template<typename Derived, int DynamicSize>
+        static void evalImpl(const Op& op, Derived& m, std::integral_constant<int, DynamicSize>)
+        {
+            int size = op.getMatrix().rows();
+            CUMAT_ASSERT(op.rows() == op.cols());
+
+            if (size <= 3)
+            {
+                //now we need to evaluate the input to direct read
+                typedef typename MatrixReadWrapper<Child, ReadCwise>::type Child_wrapped;
+                Child_wrapped inWrapped(op.getMatrix());
+                //short-cuts
+                Context& ctx = Context::current();
+                KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
+                if (size == 1)
+                {
+                    DeterminantKernel<Child_wrapped, Derived, 1> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+                }
+                else if (size == 2)
+                {
+                    DeterminantKernel<Child_wrapped, Derived, 2> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+                }
+                else if (size == 3)
+                {
+                    DeterminantKernel<Child_wrapped, Derived, 3> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+                }
+            }
+            else
+            {
+                //use LU Decomposition
+                //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
+                LUDecomposition<Child> lu(op.getMatrix());
+                typedef typename LUDecomposition<Child>::DeterminantMatrix DetType;
+                internal::Assignment<Derived, DetType, AssignmentMode::ASSIGN, typename Derived::DstTag, typename DetType::SrcTag>
+                    ::assign(m.derived(), lu.determinant());
+                //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
+            }
+        }
+
+    public:
+        static void assign(_Dst& dst, const _Src& src)
+        {
+            static_assert(_AssignmentMode == AssignmentMode::ASSIGN, "Currently only AssignmentMode::ASSIGN is supported");
+            evalImpl(src.derived(), dst.derived(), std::integral_constant<int, Op::InputSize>());
+        }
+    };
+}
 
 
 CUMAT_NAMESPACE_END

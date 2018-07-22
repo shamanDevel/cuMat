@@ -165,7 +165,7 @@ public:
         Index strideA = Batches == 1 ? 1 : rows()*rows();
 
         //1. copy the rhs into m (with optional transposition)
-        rhs.derived().template evalTo<_Target, AssignmentMode::ASSIGN>(target.derived());
+        internal::Assignment<_Target, const _RHS, AssignmentMode::ASSIGN, typename _Target::DstTag, typename _RHS::SrcTag>::assign(target.derived(), rhs.derived());
 
         //2. assemble arguments to GETRS
         cublasOperation_t trans = Transposed ? CUBLAS_OP_T : CUBLAS_OP_N;
