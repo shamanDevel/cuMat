@@ -49,6 +49,8 @@ namespace internal {
 
             AccessFlags = ReadCwise
         };
+        typedef CwiseSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
     };
 }
 
@@ -69,7 +71,9 @@ class BinaryOp : public CwiseOp<BinaryOp<_Left, _Right, _BinaryFunctor, _IsLogic
 {
 public:
     typedef CwiseOp<BinaryOp<_Left, _Right, _BinaryFunctor, _IsLogic>> Base;
-    using Scalar = typename std::conditional<_IsLogic, bool, typename internal::traits<_Left>::Scalar>::type;
+    typedef BinaryOp<_Left, _Right, _BinaryFunctor, _IsLogic> Type;
+    CUMAT_PUBLIC_API
+
     using ArgScalar = typename internal::traits<_Left>::Scalar;
     enum
     {
@@ -91,16 +95,7 @@ public:
         ColumnsRight = internal::traits<_Right>::ColsAtCompileTime,
         BatchesRight = internal::traits<_Right>::BatchesAtCompileTime,
 
-        Flags = (BroadcastRowsRight || BroadcastColsRight) ? FlagsLeft : FlagsRight, //use the flags of the matrix type
-        Rows =    (RowsLeft==Dynamic || RowsRight==Dynamic) ?
-                  Dynamic :
-                  (BroadcastRowsRight ? RowsLeft : RowsRight),
-        Columns = (ColumnsLeft==Dynamic || ColumnsRight==Dynamic) ?
-                  Dynamic :
-                  (BroadcastColsRight ? ColumnsLeft : ColumnsLeft),
-        Batches = (BatchesLeft==Dynamic || BatchesRight==Dynamic) ?
-                  Dynamic :
-                  (BroadcastBatchesRight ? BatchesLeft : BatchesRight)
+        //Flags, Rows, Columns, Batches defined in CUMAT_PUBLIC_API
     };
 
 protected:

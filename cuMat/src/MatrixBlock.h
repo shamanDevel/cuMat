@@ -21,6 +21,8 @@ namespace internal {
 			BatchesAtCompileTime = _Batches,
             AccessFlags = ReadCwise | WriteCwise
 		};
+        typedef CwiseSrcTag SrcTag;
+        typedef DenseDstTag DstTag;
 	};
 
 } //end namespace internal
@@ -29,19 +31,10 @@ template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, t
 class MatrixBlock : public CwiseOp<MatrixBlock<_Scalar, _Rows, _Columns, _Batches, _Flags, _MatrixType> >
 {
 public:
-	enum
-	{
-		Flags = _Flags,
-		Rows = _Rows,
-		Columns = _Columns,
-		Batches = _Batches
-	};
-	using Scalar = _Scalar;
 	using Type = MatrixBlock<_Scalar, _Rows, _Columns, _Batches, _Flags, _MatrixType>;
-
 	using MatrixType = _MatrixType;
 	using Base = MatrixBase<MatrixBlock<_Scalar, _Rows, _Columns, _Batches, _Flags, _MatrixType> >;
-	using Base::eval_t;
+    CUMAT_PUBLIC_API
 
 protected:
 
@@ -157,7 +150,8 @@ public:
 		CUMAT_ASSERT_ARGUMENT(rows() == expr.rows());
 		CUMAT_ASSERT_ARGUMENT(cols() == expr.cols());
 		CUMAT_ASSERT_ARGUMENT(batches() == expr.batches());
-		expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
+		//expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
+        internal::Assignment<Type, Derived, AssignmentMode::ASSIGN, internal::DenseDstTag, typename internal::traits<Derived>::SrcTag>::assign(*this, expr.derived());
 		return *this;
 	}
 

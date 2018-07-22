@@ -112,20 +112,20 @@ template<typename _Derived>
 class CwiseOp : public MatrixBase<_Derived>
 {
 public:
+    typedef _Derived Type;
 	typedef MatrixBase<_Derived> Base;
-    typedef typename internal::traits<_Derived>::Scalar Scalar;
+    CUMAT_PUBLIC_API
 	using Base::rows;
 	using Base::cols;
 	using Base::batches;
 	using Base::size;
-	using Base::derived;
-	using Base::eval_t;
 
 	__device__ CUMAT_STRONG_INLINE const Scalar& coeff(Index row, Index col, Index batch) const
 	{
 		return derived().coeff(row, col, batch);
 	}
 
+    /*
 	template<typename Derived, AssignmentMode Mode>
 	void evalTo(MatrixBase<Derived>& m) const
 	{
@@ -146,7 +146,38 @@ public:
 		CUMAT_CHECK_ERROR();
 		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
 	}
+    */
 };
+
+namespace internal
+{
+    //General assignment for everything that fullfills CwiseSrcTag into DenseDstTag (cwise dense evaluation)
+    template<typename _Dst, typename _Src, AssignmentMode _Mode>
+    struct Assignment<_Dst, _Src, _Mode, DenseDstTag, CwiseSrcTag>
+    {
+        static void assign(_Dst& dst, const _Src& src)
+        {
+            typedef typename _Dst::Type DstActual;
+            typedef typename _Src::Type SrcActual;
+            CUMAT_PROFILING_INC(EvalCwise);
+            CUMAT_PROFILING_INC(EvalAny);
+            if (dst.size() == 0) return;
+            CUMAT_ASSERT(src.rows() == dst.rows());
+            CUMAT_ASSERT(src.cols() == dst.cols());
+            CUMAT_ASSERT(src.batches() == dst.batches());
+
+            CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluate component wise expression " << typeid(src.derived()).name();
+            CUMAT_LOG(CUMAT_LOG_DEBUG) << " rows=" << src.rows() << ", cols=" << src.cols() << ", batches=" << src.batches();
+
+            //here is now the real logic
+            Context& ctx = Context::current();
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size());
+            CwiseEvaluationKernel<SrcActual, DstActual, _Mode> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, src.derived(), dst.derived());
+            CUMAT_CHECK_ERROR();
+            CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
+        }
+    };
+}
 
 CUMAT_NAMESPACE_END
 

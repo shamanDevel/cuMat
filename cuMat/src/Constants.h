@@ -96,7 +96,7 @@ enum ReductionAxis
 };
 
 /**
-* \brief Specifies the assignment mode in \c evalTo() .
+* \brief Specifies the assignment mode in \c Assignment::assign() .
 * This is the difference between regular assignment (operator==, \c AssignmentMode::ASSIGN)
 * and inplace modifications like operator+= (\c AssignmentMode::ADD).
 *

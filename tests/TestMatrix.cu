@@ -414,6 +414,8 @@ TEST_CASE("implicit-transpose", "[matrix]")
     //cuMat::MatrixXiC v8c; v8c = v7;
 }
 
+//evalTo is deprecated
+/*
 // Matrix direct eval
 template<typename T>
 void testDirectEvalTo()
@@ -487,6 +489,7 @@ TEST_CASE("direct evalTo", "[matrix]")
         testDirectEvalTo<double>();    
     }
 }
+*/
 
 //Deep clone
 template<typename T>

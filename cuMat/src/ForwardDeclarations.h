@@ -2,6 +2,7 @@
 #define __CUMAT_FORWARD_DECLARATIONS_H__
 
 #include "Macros.h"
+#include "Constants.h"
 #include <thrust/complex.h>
 
 CUMAT_NAMESPACE_BEGIN
@@ -36,6 +37,7 @@ namespace internal {
 	*	BatchesAtCompileTime = ...;
 	*	AccessFlags = ...; //access flags, see \ref AccessFlags
 	* };
+	* typedef ... SrcTag; //The source tag for the assignment dispatch
 	* \endcode
 	*
 	* \tparam T
@@ -48,6 +50,31 @@ namespace internal {
 	//              traits<const Map<T> > == traits<Map<T> >
 	// DIRECTLY TAKEN FROM EIGEN
 	template<typename T> struct traits<const T> : traits<T> {};
+
+    /**
+     * \brief General assignment dispatcher.
+     * Implementations must have a \code static void assign(_Dst& dst, const _Src& src) \endcode function.
+     * \tparam _Dst 
+     * \tparam _Src 
+     * \tparam _AssignmentMode 
+     * \tparam _DstTag
+     * \tparam _SrcTag
+     */
+    template<typename _Dst, typename _Src, AssignmentMode _AssignmentMode, typename _DstTag, typename _SrcTag>
+    struct Assignment;
+
+    struct CwiseSrcTag {};
+    struct ProductSrcTag {};
+    struct TransposeSrcTag {};
+    /**
+     * \brief "Dense" destination, in the sense that there as a simple mapping from a 
+     * linear index (max index returned by \c size() ) to the row, column and batch index.
+     * Must follow the assignment mode CwiseWrite.
+     */
+    struct DenseDstTag {};
+    struct SparseDstTag{};
+    typedef void DeletedSrcTag;
+    typedef void DeletedDstTag;
 }
 
 template<typename _Derived> class MatrixBase;

@@ -129,4 +129,26 @@
 #define CUMAT_IMPLIES(a,b) (!(a) || (b))
 
 
+#define CUMAT_PUBLIC_API_NO_METHODS                                 \
+    enum                                                            \
+    {                                                               \
+    Flags = internal::traits<Type>::Flags,                          \
+    Rows = internal::traits<Type>::RowsAtCompileTime,               \
+    Columns = internal::traits<Type>::ColsAtCompileTime,            \
+    Batches = internal::traits<Type>::BatchesAtCompileTime          \
+    };                                                              \
+    using Scalar = typename internal::traits<Type>::Scalar;         \
+    using SrcTag = typename internal::traits<Type>::SrcTag;         \
+    using DstTag = typename internal::traits<Type>::DstTag;
+/**
+ * \brief Defines the basic API of each cumat class.
+ * The typedefs and enums that have to be exposed.
+ * But before that, you have to define the current class in \c Type
+ * and the base class in \c Base.
+ */
+#define CUMAT_PUBLIC_API                                            \
+    CUMAT_PUBLIC_API_NO_METHODS                                     \
+    using Base::derived;                                            \
+    using Base::eval_t;
+
 #endif

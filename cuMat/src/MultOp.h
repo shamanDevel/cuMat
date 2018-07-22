@@ -41,6 +41,8 @@ namespace internal {
 
             AccessFlags = 0 //must be fully evaluated
         };
+        typedef ProductSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
     };
 
 } //end namespace internal
@@ -58,12 +60,12 @@ namespace internal {
  * \tparam _TransposedOutput true iff the output shall be transposed
  */
 template<typename _Left, typename _Right, bool _TransposedLeft, bool _TransposedRight, bool _TransposedOutput>
-class MultOp : public MatrixBase<MultOp<_Left, _Right, _TransposedLeft, _TransposedRight, _TransposedOutput>>
+class MultOp : public MatrixBase<MultOp<_Left, _Right, _TransposedLeft, _TransposedRight, _TransposedOutput>> //TODO: Rename to ProductOp
 {
 public:
     typedef MatrixBase<MultOp<_Left, _Right, _TransposedLeft, _TransposedRight, _TransposedOutput>> Base;
-    using Scalar = typename internal::traits<_Left>::Scalar;
     using Type = MultOp<_Left, _Right, _TransposedLeft, _TransposedRight, _TransposedOutput>;
+    CUMAT_PUBLIC_API
 
     enum
     {
@@ -79,16 +81,9 @@ public:
 
         RowsNonT = _TransposedLeft ? ColumnsLeft : RowsLeft,
         ColumnsNonT = _TransposedRight ? RowsRight : ColumnsRight,
-
-        Flags = ColumnMajor, //TODO: pick best flag
-        Rows = _TransposedOutput ? ColumnsNonT : RowsNonT,
-        Columns = _TransposedOutput ? RowsNonT : ColumnsNonT,
-        Batches = BatchesLeft, //TODO: add broadcasting of batches
     };
-
     using Base::size;
-    using Base::derived;
-    using Base::eval_t;
+
 
 private:
     //wrapper that evaluate any cwise-expression to a matrix.

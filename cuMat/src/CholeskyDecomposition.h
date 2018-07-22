@@ -128,7 +128,7 @@ public:
         Index strideA = Batches == 1 ? 1 : rows()*rows();
 
         //1. copy the rhs into m (with optional transposition)
-        rhs.derived().template evalTo<_Target, AssignmentMode::ASSIGN>(target.derived());
+        internal::Assignment<_Target, const _RHS, AssignmentMode::ASSIGN, typename _Target::DstTag, typename _RHS::SrcTag>::assign(rhs.derived(), target.derived());
 
         //2. assemble arguments to POTRS
         int n = rhs.rows();

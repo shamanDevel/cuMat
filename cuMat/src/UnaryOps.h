@@ -24,6 +24,8 @@ namespace internal {
 			BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
             AccessFlags = ReadCwise
 		};
+        typedef CwiseSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
 	};
 }
 
@@ -41,16 +43,9 @@ template<typename _Child, typename _UnaryFunctor>
 class UnaryOp : public CwiseOp<UnaryOp<_Child, _UnaryFunctor> >
 {
 public:
+    typedef UnaryOp<_Child, _UnaryFunctor> Type;
 	typedef CwiseOp<UnaryOp<_Child, _UnaryFunctor> > Base;
-	//using Scalar = typename internal::traits<_Child>::Scalar;
-    using Scalar = typename _UnaryFunctor::ReturnType;
-	enum
-	{
-		Flags = internal::traits<_Child>::Flags,
-		Rows = internal::traits<_Child>::RowsAtCompileTime,
-		Columns = internal::traits<_Child>::ColsAtCompileTime,
-		Batches = internal::traits<_Child>::BatchesAtCompileTime
-	};
+    CUMAT_PUBLIC_API
 
 protected:
     typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
@@ -247,6 +242,8 @@ namespace internal {
 			BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
             AccessFlags = ReadCwise
 		};
+        typedef CwiseSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
 	};
 }
 
@@ -261,16 +258,11 @@ class CastingOp : public CwiseOp<CastingOp<_Child, _Target> >
 {
 public:
 	typedef CwiseOp<CastingOp<_Child, _Target> > Base;
+    typedef CastingOp<_Child, _Target> Type;
+    CUMAT_PUBLIC_API
+
 	using SourceType = typename internal::traits<_Child>::Scalar;
 	using TargetType = _Target;
-	using Scalar = TargetType;
-	enum
-	{
-		Flags = internal::traits<_Child>::Flags,
-		Rows = internal::traits<_Child>::RowsAtCompileTime,
-		Columns = internal::traits<_Child>::ColsAtCompileTime,
-		Batches = internal::traits<_Child>::BatchesAtCompileTime
-	};
 
 protected:
     typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
@@ -308,6 +300,8 @@ namespace internal {
             BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
             AccessFlags = ReadCwise
         };
+        typedef CwiseSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
     };
 }
 /**
@@ -320,15 +314,12 @@ class AsDiagonalOp : public CwiseOp<AsDiagonalOp<_Child> >
 {
 public:
     typedef CwiseOp<AsDiagonalOp<_Child> > Base;
-    using Scalar = typename internal::traits<_Child>::Scalar;
+    typedef AsDiagonalOp<_Child> Type;
+    CUMAT_PUBLIC_API
     enum
     {
-        Flags = internal::traits<_Child>::Flags,
-        Size = internal::traits<_Child>::RowsAtCompileTime == 1 ? internal::traits<_Child>::ColsAtCompileTime : internal::traits<_Child>::RowsAtCompileTime,
+        Size = internal::traits<Type>::Size,
         IsRowVector = internal::traits<_Child>::RowsAtCompileTime == 1,
-        Rows = Size,
-        Columns = Size,
-        Batches = internal::traits<_Child>::BatchesAtCompileTime
     };
 
 protected:
@@ -380,8 +371,10 @@ namespace internal {
                     : internal::traits<_Child>::RowsAtCompileTime),
             ColsAtCompileTime = 1,
             BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
-            AccessFlags = ReadCwise
+            AccessFlags = ReadCwise | WriteCwise
         };
+        typedef CwiseSrcTag SrcTag;
+        typedef DenseDstTag DstTag;
     };
 }
 /**
@@ -395,18 +388,9 @@ class ExtractDiagonalOp : public CwiseOp<ExtractDiagonalOp<_Child> >
 {
 public:
     typedef CwiseOp<ExtractDiagonalOp<_Child> > Base;
-    using Scalar = typename internal::traits<_Child>::Scalar;
-    enum
-    {
-        Flags = internal::traits<_Child>::Flags,
-        Rows = (internal::traits<_Child>::RowsAtCompileTime == Dynamic || internal::traits<_Child>::RowsAtCompileTime == Dynamic)
-            ? Dynamic 
-            : (internal::traits<_Child>::ColsAtCompileTime < internal::traits<_Child>::RowsAtCompileTime
-                ? internal::traits<_Child>::ColsAtCompileTime
-                : internal::traits<_Child>::RowsAtCompileTime),
-        Columns = 1,
-        Batches = internal::traits<_Child>::BatchesAtCompileTime
-    };
+    typedef ExtractDiagonalOp<_Child> Type;
+    CUMAT_PUBLIC_API
+
 
 protected:
     typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
@@ -446,6 +430,8 @@ namespace internal {
             BatchesAtCompileTime = traits<_Child>::BatchesAtCompileTime,
             AccessFlags = ReadCwise | WriteCwise
         };
+        typedef CwiseSrcTag SrcTag;
+        typedef DenseDstTag DstTag;
     };
 
 } //end namespace internal
@@ -461,20 +447,9 @@ template <typename _Child, bool _Imag>
 class ExtractComplexPartOp<_Child, _Imag, false> : public CwiseOp<ExtractComplexPartOp<_Child, _Imag, false> >
 {
 public:
-    typedef typename internal::NumTraits<typename internal::traits<_Child>::Scalar>::RealType Scalar;
-
-    enum
-    {
-        Flags = internal::traits<_Child>::Flags,
-        Rows = internal::traits<_Child>::RowsAtCompileTime,
-        Columns = internal::traits<_Child>::ColsAtCompileTime,
-        Batches = internal::traits<_Child>::BatchesAtCompileTime,
-        IsComplex = internal::NumTraits<typename internal::traits<_Child>::Scalar>::IsComplex
-    };
-
     using Base = CwiseOp<ExtractComplexPartOp<_Child, _Imag, false> >;
     using Type = ExtractComplexPartOp<_Child, _Imag, false>;
-    using Base::eval_t;
+    CUMAT_PUBLIC_API
 
 protected:
     typedef typename MatrixReadWrapper<_Child, ReadCwise>::type wrapped_matrix_t;
@@ -531,20 +506,9 @@ template <typename _Child, bool _Imag>
 class ExtractComplexPartOp<_Child, _Imag, true> : public CwiseOp<ExtractComplexPartOp<_Child, _Imag, true> >
 {
 public:
-    typedef typename internal::NumTraits<typename internal::traits<_Child>::Scalar>::RealType Scalar;
-
-    enum
-    {
-        Flags = internal::traits<_Child>::Flags,
-        Rows = internal::traits<_Child>::RowsAtCompileTime,
-        Columns = internal::traits<_Child>::ColsAtCompileTime,
-        Batches = internal::traits<_Child>::BatchesAtCompileTime,
-        IsComplex = internal::NumTraits<typename internal::traits<_Child>::Scalar>::IsComplex
-    };
-
     using Base = CwiseOp<ExtractComplexPartOp<_Child, _Imag, true> >;
     using Type = ExtractComplexPartOp<_Child, _Imag, true>;
-    using Base::eval_t;
+    CUMAT_PUBLIC_API
 
 protected:
     _Child matrix_;
@@ -585,22 +549,6 @@ public:
     __host__ __device__ CUMAT_STRONG_INLINE void index(Index index, Index& row, Index& col, Index& batch) const
     {
         matrix_.index(index, row, col, batch);
-        /*
-        if (CUMAT_IS_ROW_MAJOR(Flags)) {
-            batch = index / (rows() * cols());
-            index -= batch * rows() * cols();
-            row = index / cols();
-            index -= row * cols();
-            col = index;
-        }
-        else {
-            batch = index / (rows() * cols());
-            index -= batch * rows() * cols();
-            col = index / rows();
-            index -= col * rows();
-            row = index;
-        }
-        */
     }
 
     /**
@@ -661,7 +609,7 @@ public:
         CUMAT_ASSERT_ARGUMENT(rows() == expr.rows());
         CUMAT_ASSERT_ARGUMENT(cols() == expr.cols());
         CUMAT_ASSERT_ARGUMENT(batches() == expr.batches());
-        expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
+        internal::Assignment<Type, Derived, AssignmentMode::ASSIGN, internal::DenseDstTag, typename internal::traits<Derived>::SrcTag>::assign(*this, expr.derived());
         return *this;
     }
 };

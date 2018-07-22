@@ -20,6 +20,8 @@ namespace internal {
 			BatchesAtCompileTime = _Batches,
             AccessFlags = ReadCwise
 		};
+        typedef CwiseSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
 	};
 }
 
@@ -39,14 +41,8 @@ class NullaryOp : public CwiseOp<NullaryOp<_Scalar, _Rows, _Columns, _Batches, _
 {
 public:
 	typedef CwiseOp<NullaryOp<_Scalar, _Rows, _Columns, _Batches, _Flags, _NullaryFunctor> > Base;
-	using Scalar = _Scalar;
-	enum
-	{
-		Flags = _Flags,
-		Rows = _Rows,
-		Columns = _Columns,
-		Batches = _Batches
-	};
+    typedef NullaryOp<_Scalar, _Rows, _Columns, _Batches, _Flags, _NullaryFunctor> Type;
+	CUMAT_PUBLIC_API
 
 protected:
 	const Index rows_;

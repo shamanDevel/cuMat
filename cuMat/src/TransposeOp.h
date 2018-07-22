@@ -26,6 +26,8 @@ namespace internal {
 			BatchesAtCompileTime = internal::traits<_Derived>::BatchesAtCompileTime,
             AccessFlags = ReadCwise | WriteCwise
 		};
+        typedef CwiseSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
 	};
 
 } //end namespace internal
@@ -99,23 +101,17 @@ class TransposeOp : public CwiseOp<TransposeOp<_Derived, _Conjugated>>
 {
 public:
     typedef CwiseOp<TransposeOp<_Derived, _Conjugated>> Base;
-    typedef typename internal::traits<_Derived>::Scalar Scalar;
     using Type = TransposeOp<_Derived, _Conjugated>;
+    CUMAT_PUBLIC_API
 
     enum
     {
         OriginalFlags = internal::traits<_Derived>::Flags,
-        Flags = (internal::traits<_Derived>::Flags == RowMajor) ? ColumnMajor : RowMajor,
-        Rows = internal::traits<_Derived>::ColsAtCompileTime,
-        Columns = internal::traits<_Derived>::RowsAtCompileTime,
-        Batches = internal::traits<_Derived>::BatchesAtCompileTime,
         IsMatrix = std::is_same< _Derived, Matrix<Scalar, Columns, Rows, Batches, OriginalFlags> >::value,
         IsConjugated = _Conjugated && internal::NumTraits<typename internal::traits<_Derived>::Scalar>::IsComplex
     };
 
     using Base::size;
-    using Base::derived;
-    using Base::eval_t;
 
 protected:
     const _Derived matrix_;

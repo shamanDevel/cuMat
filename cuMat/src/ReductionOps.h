@@ -183,6 +183,18 @@ namespace internal
             CUMAT_SAFE_CALL(cub::DeviceReduce::Reduce(static_cast<void*>(temp_storage.pointer()), temp_storage_bytes, iterIn, iterOut, num_items, op, initial, ctx.stream(), CUMAT_CUB_DEBUG));
         }
     };
+
+    //We can already declare the assignment operator here
+    struct ReductionSrcTag {};
+    template<typename _Dst, typename _Src>
+    struct Assignment<_Dst, _Src, AssignmentMode::ASSIGN, DenseDstTag, ReductionSrcTag>
+    {
+        static void assign(_Dst& dst, const _Src& src)
+        {
+            //for now, use the simple version and delegate to evalTo.
+            src.template evalTo<typename _Dst::Type, AssignmentMode::ASSIGN>(dst.derived());
+        }
+    };
 } //end internal
 
 // now come the real ops
@@ -200,6 +212,8 @@ namespace internal {
             BatchesAtCompileTime = Dynamic,
             AccessFlags = 0 //must be completely evaluated
         };
+        typedef ReductionSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
     };
 }
 
@@ -208,18 +222,9 @@ class ReductionOp_DynamicSwitched : public MatrixBase<ReductionOp_DynamicSwitche
 {
 public:
     typedef MatrixBase<ReductionOp_DynamicSwitched<_Child, _ReductionOp> > Base;
-    using Scalar = typename internal::traits<_Child>::Scalar;
-    enum
-    {
-        Flags = internal::traits<_Child>::Flags,
-        Rows = Dynamic,
-        Columns = Dynamic,
-        Batches = Dynamic
-    };
-
+    typedef ReductionOp_DynamicSwitched<_Child, _ReductionOp> Type;
+    CUMAT_PUBLIC_API
     using Base::size;
-    using Base::derived;
-    using Base::eval_t;
 
 protected:
     const _Child child_;
@@ -296,6 +301,8 @@ namespace internal {
             BatchesAtCompileTime = ((_Axis & ReductionAxis::Batch) ? 1 : internal::traits<_Child>::BatchesAtCompileTime),
             AccessFlags = 0
         };
+        typedef ReductionSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
     };
 }
 
@@ -304,18 +311,9 @@ class ReductionOp_StaticSwitched : public MatrixBase<ReductionOp_StaticSwitched<
 {
 public:
     typedef MatrixBase<ReductionOp_StaticSwitched<_Child, _ReductionOp, _Axis> > Base;
-    using Scalar = typename internal::traits<_Child>::Scalar;
-    enum
-    {
-        Flags = internal::traits<_Child>::Flags,
-        Rows = Dynamic,
-        Columns = Dynamic,
-        Batches = Dynamic
-    };
-
+    typedef ReductionOp_StaticSwitched<_Child, _ReductionOp, _Axis> Type;
+    CUMAT_PUBLIC_API
     using Base::size;
-    using Base::derived;
-    using Base::eval_t;
 
 protected:
     const _Child child_;

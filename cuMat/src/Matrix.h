@@ -447,6 +447,8 @@ namespace internal {
 			BatchesAtCompileTime = _Batches,
             AccessFlags = ReadCwise | ReadDirect | WriteCwise | WriteDirect | RWCwise | RWCwiseRef
 		};
+        typedef CwiseSrcTag SrcTag;
+        typedef DenseDstTag DstTag;
 	};
 
 } //end namespace internal
@@ -480,20 +482,14 @@ protected:
 	using Storage_t = internal::DenseStorage<_Scalar, _Rows, _Columns, _Batches>;
 	Storage_t data_;
 public:
-	enum
-	{
-		Flags = _Flags,
-		Rows = _Rows,
-		Columns = _Columns,
-		Batches = _Batches,
-		TransposedFlags = CUMAT_IS_COLUMN_MAJOR(Flags) ? RowMajor : ColumnMajor
-	};
-	using Scalar = _Scalar;
-	using Type = Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>;
-
+	
+	typedef Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> Type;
 	typedef CwiseOp<Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> > Base;
-    using Base::derived;
-    using Base::eval_t;
+    CUMAT_PUBLIC_API
+    enum
+    {
+        TransposedFlags = CUMAT_IS_COLUMN_MAJOR(Flags) ? RowMajor : ColumnMajor
+    };
 	using Base::size;
 
 	/**
@@ -1002,7 +998,8 @@ public:
 	Matrix(const MatrixBase<Derived>& expr)
 		: data_(expr.rows(), expr.cols(), expr.batches())
 	{
-		expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
+		//expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
+        internal::Assignment<Type, Derived, AssignmentMode::ASSIGN, internal::DenseDstTag, typename internal::traits<Derived>::SrcTag>::assign(*this, expr.derived());
 	}
 
     /**
@@ -1020,7 +1017,8 @@ public:
             //allocate new memory for the result
             data_ = Storage_t(expr.rows(), expr.cols(), expr.batches());
         } //else: reuse memory
-		expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
+		//expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
+        internal::Assignment<Type, Derived, AssignmentMode::ASSIGN, internal::DenseDstTag, typename internal::traits<Derived>::SrcTag>::assign(*this, expr.derived());
 		return *this;
 	}
 
@@ -1040,7 +1038,8 @@ public:
     template<typename Derived>                                                                          \
     CUMAT_STRONG_INLINE Type& op (const MatrixBase<Derived>& expr)                                      \
     {                                                                                                   \
-        expr.template evalTo<Type, AssignmentMode:: mode >(*this);                                      \
+        /*expr.template evalTo<Type, AssignmentMode:: mode >(*this);*/                                  \
+        internal::Assignment<Type, Derived, AssignmentMode:: mode , internal::DenseDstTag, typename internal::traits<Derived>::SrcTag>::assign(*this, expr.derived());   \
         return *this;                                                                                   \
     }
 
@@ -1070,7 +1069,9 @@ public:
         typename T = typename std::enable_if<CUMAT_NAMESPACE internal::canBroadcast<Scalar, S>::value, Type>::type >
     CUMAT_STRONG_INLINE T& operator*= (const S& scalar)
 	{
-        Type::Constant(rows(), cols(), batches(), scalar).template evalTo<Type, AssignmentMode::MUL>(*this);
+        //Type::Constant(rows(), cols(), batches(), scalar).template evalTo<Type, AssignmentMode::MUL>(*this);
+        using Expr = decltype(Type::Constant(rows(), cols(), batches(), scalar));
+        internal::Assignment<Type, Expr, AssignmentMode::MUL, internal::DenseDstTag, typename internal::traits<Expr>::SrcTag>::assign(*this, Type::Constant(rows(), cols(), batches(), scalar));
         return *this;
 	}
 
@@ -1126,8 +1127,9 @@ public:
 	}
 
 private:
+
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
-    void evalToA(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, Flags>& mat) const
+    void deepCloneImpl(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, Flags>& mat) const
     {
         //optimized path: direct memcpy
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Rows!=Dynamic && _OtherRows!=Dynamic, _Rows == _OtherRows), 
@@ -1146,7 +1148,7 @@ private:
     }
     
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
-    void _evalTo_directTranspose(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat, std::integral_constant<bool, true>) const
+    void deepCloneImpl_directTranspose(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat, std::integral_constant<bool, true>) const
     {
         //optimized path: direct transpose
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Rows!=Dynamic && _OtherRows!=Dynamic, _Rows == _OtherRows), 
@@ -1165,7 +1167,7 @@ private:
         internal::directTranspose<_Scalar>(mat.data(), data(), m, n, batches());
     }
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
-    void _evalTo_directTranspose(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat, std::integral_constant<bool, false>) const
+    void deepCloneImpl_directTranspose(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat, std::integral_constant<bool, false>) const
     {
         //cuBLAS is not available for that type
         //default: cwise evaluation
@@ -1173,37 +1175,19 @@ private:
     }
 
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
-    void evalToA(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat) const
+    void deepCloneImpl(Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>& mat) const
     {
-        _evalTo_directTranspose(mat, std::integral_constant<bool, internal::NumTraits<_Scalar>::IsCudaNumeric>());
+        deepCloneImpl_directTranspose(mat, std::integral_constant<bool, internal::NumTraits<_Scalar>::IsCudaNumeric>());
     }
 
     template<typename Derived>
-    void evalToA(MatrixBase<Derived>& m) const
+    void deepCloneImpl(MatrixBase<Derived>& m) const
     {
         //default: cwise evaluation
-        Base::template evalTo<Derived, AssignmentMode::ASSIGN>(m);
-    }
-    template<typename Derived, AssignmentMode Mode>
-    void evalTo(MatrixBase<Derived>& m, std::integral_constant<bool, true>) const
-    {
-        static_assert(Mode == AssignmentMode::ASSIGN, "Internal error, this should never happen");
-        evalToA(m.derived());
-    }
-    template<typename Derived, AssignmentMode Mode>
-    void evalTo(MatrixBase<Derived>& m, std::integral_constant<bool, false>) const
-    {
-        //default: cwise evaluation
-        Base::template evalTo<Derived, Mode>(m);
+        internal::Assignment<Derived, Type, AssignmentMode::ASSIGN, internal::DenseDstTag, internal::CwiseSrcTag>::assign(m.derived(), *this);
     }
 
-public:    
-    template<typename Derived, AssignmentMode Mode>
-	void evalTo(MatrixBase<Derived>& m) const
-	{
-        //Fast track if Mode==ASSIGN and Derived is a Matrix
-        evalTo<Derived, Mode>(m, std::integral_constant<bool, Mode == AssignmentMode::ASSIGN>());
-	}	
+public:
 
     /**
      * \brief Performs a deep clone of the matrix.
@@ -1223,7 +1207,7 @@ public:
     CUMAT_STRONG_INLINE Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> deepClone() const
 	{
         Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> mat(rows(), cols(), batches());
-        evalTo<Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags>, AssignmentMode::ASSIGN>(mat);
+        deepCloneImpl<Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> >(mat);
         return mat;
 	}
 
@@ -1298,6 +1282,22 @@ __host__ std::ostream& operator<<(std::ostream& os, const Matrix<_Scalar, _Rows,
 
 namespace internal
 {
+    template<
+        typename _Dst, 
+        typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, 
+        AssignmentMode _Mode>
+    struct Assignment<_Dst, Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>, _Mode, DenseDstTag, CwiseSrcTag>
+    {
+        typedef Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags> Type;
+        static void assign(_Dst& dst, const Matrix<_Scalar, _Rows, _Columns, _Batches, _Flags>& src)
+        {
+            //Here is now the place to perform the fast track evaluations for specific destinations
+            //Memcopy + Direct transpose, if dst is a Matrix or a MatrixBlock of specific shape (a slice)
+            //For now, just delegate to Cwise evaluation
+            Assignment<_Dst, CwiseOp<Type>, _Mode, DenseDstTag, CwiseSrcTag>::assign(dst, src);
+        }
+    };
+
     template<typename _Matrix>
     class MatrixInplaceAssignment
     {
@@ -1319,7 +1319,7 @@ namespace internal
             CUMAT_ASSERT_DIMENSION(matrix_->rows() == expr.rows());
             CUMAT_ASSERT_DIMENSION(matrix_->cols() == expr.cols());
             CUMAT_ASSERT_DIMENSION(matrix_->batches() == expr.batches());
-            expr.template evalTo<_Matrix, AssignmentMode::ASSIGN>(*matrix_);
+            Assignment<_Matrix, Derived, AssignmentMode::ASSIGN, DenseDstTag, typename Derived::SrcTag>::assign(*matrix_, expr.derived());
             return *matrix_;
         }
     };

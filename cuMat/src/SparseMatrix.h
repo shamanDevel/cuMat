@@ -44,18 +44,13 @@ class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar, _Batches, _Flags> >
 {
 public:
 
+    using Type = SparseMatrix<_Scalar, _Batches, _Flags>;
+    typedef MatrixBase<SparseMatrix<_Scalar, _Batches, _Flags> > Base;
+    CUMAT_PUBLIC_API
     enum
     {
-        Flags = _Flags,
-        Rows = Dynamic,
-        Columns = Dynamic,
-        Batches = _Batches,
         TransposedFlags = Flags == SparseFlags::CSR ? RowMajor : ColumnMajor
     };
-    using Scalar = _Scalar;
-    using Type = SparseMatrix<_Scalar, _Batches, _Flags>;
-
-    typedef MatrixBase<SparseMatrix<_Scalar, _Batches, _Flags> > Base;
     using Base::derived;
     using Base::eval_t;
 

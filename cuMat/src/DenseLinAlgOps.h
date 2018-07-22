@@ -366,7 +366,9 @@ private:
             //use LU Decomposition
             //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
             LUDecomposition<_Child> lu(matrix_);
-            lu.determinant().template evalTo<Derived, AssignmentMode::ASSIGN>(m);
+            typedef typename LUDecomposition<_Child>::DeterminantMatrix DetType;
+            internal::Assignment<Derived, DetType, AssignmentMode::ASSIGN, typename Derived::DstTag, typename DetType::SrcTag>
+                ::assign(lu.determinant(), m.derived());
             //CUMAT_SAFE_CALL(cudaDeviceSynchronize());
         }
     }

@@ -17,8 +17,9 @@ template<typename _Derived>
 class MatrixBase
 {
 public:
-
-	typedef typename internal::traits<_Derived>::Scalar Scalar;
+    typedef _Derived Type;
+    typedef MatrixBase<_Derived> Base;
+    CUMAT_PUBLIC_API_NO_METHODS
 
 	/** 
 	 * \returns a reference to the _Derived object 
@@ -72,6 +73,7 @@ public:
 		return eval_t(derived());
 	}
 
+#if 0
 	/**
 	 * \brief Evaluates this into the the specified matrix.
 	 * This is called within eval() and the constructor of Matrix,
@@ -81,8 +83,9 @@ public:
      * \tparam Mode the assignment mode for inplace modifications
 	 */
 	template<typename Derived, AssignmentMode Mode>
+    [[deprecated("deprecated, will be replaced by internal::Assignment")]]
 	void evalTo(MatrixBase<Derived>& m) const { derived().template evalTo<Derived, Mode>(m.derived()); }
-
+#endif
 
     /**
      * \brief Conversion: Matrix of size 1-1-1 (scalar) in device memory to the host memory scalar.

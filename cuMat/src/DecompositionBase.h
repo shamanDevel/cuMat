@@ -60,6 +60,7 @@ public:
 
 namespace internal
 {
+    struct DecompositionSrcTag {};
     template<typename _Solver, typename _RHS>
     struct traits<SolveOp<_Solver, _RHS> >
     {
@@ -73,6 +74,8 @@ namespace internal
             BatchesAtCompileTime = internal::traits<_RHS>::BatchesAtCompileTime,
             AccessFlags = 0
         };
+        typedef DecompositionSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
     };
 }
 
@@ -131,6 +134,21 @@ public:
         decomposition_->_solver_impl(rhs_, m);
     }
 };
+
+namespace internal
+{
+    //Assignment for decompositions that call SolveOp::evalTo
+    template<typename _Dst, typename _Src, AssignmentMode _Mode>
+    struct Assignment<_Dst, _Src, _Mode, DenseDstTag, DecompositionSrcTag>
+    {
+        static void assign(_Dst& dst, const _Src& src)
+        {
+            typedef typename _Dst::Type DstActual;
+            typedef typename _Src::Type SrcActual;
+            src.derived().template evalTo<DstActual, _Mode>(dst.derived());
+        }
+    };
+}
 
 CUMAT_NAMESPACE_END
 
