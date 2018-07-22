@@ -36,25 +36,31 @@ void testMatrixMatrixDynamic()
     matr Br = matr::fromArray(dataB);
     matr Cr = matr::fromArray(dataC);
 
+#define RESET_PROFILING Profiling::instance().resetAll()
+#define CHECK_PROFILING \
+    REQUIRE(Profiling::instance().get(Profiling::Counter::EvalAny) == 1); \
+    REQUIRE(Profiling::instance().get(Profiling::Counter::EvalMatmul) == 1); \
+    Profiling::instance().resetAll();
+
     SECTION("regular")
     {
         matc Ac = Ar.block(0, 0, 0, 2, 4, 1);
         matc Bc = Br.block(0, 0, 0, 4, 3, 1);
-        matr M11 = Ar * Br;
+        RESET_PROFILING; matr M11 = Ar * Br; CHECK_PROFILING;
         assertMatrixEquality(Cr, M11);
-        matc M12 = Ar * Br;
+        RESET_PROFILING; matc M12 = Ar * Br; CHECK_PROFILING;
         assertMatrixEquality(Cr, M12);
-        matr M13 = Ac * Br;
+        RESET_PROFILING; matr M13 = Ac * Br; CHECK_PROFILING;
         assertMatrixEquality(Cr, M13);
-        matc M14 = Ac * Br;
+        RESET_PROFILING; matc M14 = Ac * Br; CHECK_PROFILING;
         assertMatrixEquality(Cr, M14);
-        matr M15 = Ar * Bc;
+        RESET_PROFILING; matr M15 = Ar * Bc; CHECK_PROFILING;
         assertMatrixEquality(Cr, M15);
-        matc M16 = Ar * Bc;
+        RESET_PROFILING; matc M16 = Ar * Bc; CHECK_PROFILING;
         assertMatrixEquality(Cr, M16);
-        matr M17 = Ac * Bc;
+        RESET_PROFILING; matr M17 = Ac * Bc; CHECK_PROFILING;
         assertMatrixEquality(Cr, M17);
-        matc M18 = Ac * Bc;
+        RESET_PROFILING; matc M18 = Ac * Bc; CHECK_PROFILING;
         assertMatrixEquality(Cr, M18);
     }
 
@@ -63,21 +69,21 @@ void testMatrixMatrixDynamic()
         Ar = Ar.transpose();
         matc Ac = Ar.block(0, 0, 0, 4, 2, 1);
         matc Bc = Br.block(0, 0, 0, 4, 3, 1);
-        matr M11 = Ar.transpose() * Br;
+        RESET_PROFILING; matr M11 = Ar.transpose() * Br; CHECK_PROFILING;
         assertMatrixEquality(Cr, M11);
-        matc M12 = Ar.transpose() * Br;
+        RESET_PROFILING; matc M12 = Ar.transpose() * Br; CHECK_PROFILING;
         assertMatrixEquality(Cr, M12);
-        matr M13 = Ac.transpose() * Br;
+        RESET_PROFILING; matr M13 = Ac.transpose() * Br; CHECK_PROFILING;
         assertMatrixEquality(Cr, M13);
-        matc M14 = Ac.transpose() * Br;
+        RESET_PROFILING; matc M14 = Ac.transpose() * Br; CHECK_PROFILING;
         assertMatrixEquality(Cr, M14);
-        matr M15 = Ar.transpose() * Bc;
+        RESET_PROFILING; matr M15 = Ar.transpose() * Bc; CHECK_PROFILING;
         assertMatrixEquality(Cr, M15);
-        matc M16 = Ar.transpose() * Bc;
+        RESET_PROFILING; matc M16 = Ar.transpose() * Bc; CHECK_PROFILING;
         assertMatrixEquality(Cr, M16);
-        matr M17 = Ac.transpose() * Bc;
+        RESET_PROFILING; matr M17 = Ac.transpose() * Bc; CHECK_PROFILING;
         assertMatrixEquality(Cr, M17);
-        matc M18 = Ac.transpose() * Bc;
+        RESET_PROFILING; matc M18 = Ac.transpose() * Bc; CHECK_PROFILING;
         assertMatrixEquality(Cr, M18);
     }
 
@@ -86,21 +92,21 @@ void testMatrixMatrixDynamic()
         Br = Br.transpose();
         matc Ac = Ar.block(0, 0, 0, 2, 4, 1);
         matc Bc = Br.block(0, 0, 0, 3, 4, 1);
-        matr M11 = Ar * Br.transpose();
+        RESET_PROFILING; matr M11 = Ar * Br.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M11);
-        matc M12 = Ar * Br.transpose();
+        RESET_PROFILING; matc M12 = Ar * Br.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M12);
-        matr M13 = Ac * Br.transpose();
+        RESET_PROFILING; matr M13 = Ac * Br.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M13);
-        matc M14 = Ac * Br.transpose();
+        RESET_PROFILING; matc M14 = Ac * Br.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M14);
-        matr M15 = Ar * Bc.transpose();
+        RESET_PROFILING; matr M15 = Ar * Bc.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M15);
-        matc M16 = Ar * Bc.transpose();
+        RESET_PROFILING; matc M16 = Ar * Bc.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M16);
-        matr M17 = Ac * Bc.transpose();
+        RESET_PROFILING; matr M17 = Ac * Bc.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M17);
-        matc M18 = Ac * Bc.transpose();
+        RESET_PROFILING; matc M18 = Ac * Bc.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M18);
     }
 
@@ -110,21 +116,21 @@ void testMatrixMatrixDynamic()
         Br = Br.transpose();
         matc Ac = Ar.block(0, 0, 0, 4, 2, 1);
         matc Bc = Br.block(0, 0, 0, 3, 4, 1);
-        matr M11 = Ar.transpose() * Br.transpose();
+        RESET_PROFILING; matr M11 = Ar.transpose() * Br.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M11);
-        matc M12 = Ar.transpose() * Br.transpose();
+        RESET_PROFILING; matc M12 = Ar.transpose() * Br.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M12);
-        matr M13 = Ac.transpose() * Br.transpose();
+        RESET_PROFILING; matr M13 = Ac.transpose() * Br.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M13);
-        matc M14 = Ac.transpose() * Br.transpose();
+        RESET_PROFILING; matc M14 = Ac.transpose() * Br.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M14);
-        matr M15 = Ar.transpose() * Bc.transpose();
+        RESET_PROFILING; matr M15 = Ar.transpose() * Bc.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M15);
-        matc M16 = Ar.transpose() * Bc.transpose();
+        RESET_PROFILING; matc M16 = Ar.transpose() * Bc.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M16);
-        matr M17 = Ac.transpose() * Bc.transpose();
+        RESET_PROFILING; matr M17 = Ac.transpose() * Bc.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M17);
-        matc M18 = Ac.transpose() * Bc.transpose();
+        RESET_PROFILING; matc M18 = Ac.transpose() * Bc.transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M18);
     }
 
@@ -133,21 +139,21 @@ void testMatrixMatrixDynamic()
         Cr = Cr.transpose();
         matc Ac = Ar.block(0, 0, 0, 2, 4, 1);
         matc Bc = Br.block(0, 0, 0, 4, 3, 1);
-        matr M11 = (Ar * Br).transpose();
+        RESET_PROFILING; matr M11 = (Ar * Br).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M11);
-        matc M12 = (Ar * Br).transpose();
+        RESET_PROFILING; matc M12 = (Ar * Br).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M12);
-        matr M13 = (Ac * Br).transpose();
+        RESET_PROFILING; matr M13 = (Ac * Br).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M13);
-        matc M14 = (Ac * Br).transpose();
+        RESET_PROFILING; matc M14 = (Ac * Br).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M14);
-        matr M15 = (Ar * Bc).transpose();
+        RESET_PROFILING; matr M15 = (Ar * Bc).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M15);
-        matc M16 = (Ar * Bc).transpose();
+        RESET_PROFILING; matc M16 = (Ar * Bc).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M16);
-        matr M17 = (Ac * Bc).transpose();
+        RESET_PROFILING; matr M17 = (Ac * Bc).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M17);
-        matc M18 = (Ac * Bc).transpose();
+        RESET_PROFILING; matc M18 = (Ac * Bc).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M18);
     }
 
@@ -157,21 +163,21 @@ void testMatrixMatrixDynamic()
         Cr = Cr.transpose();
         matc Ac = Ar.block(0, 0, 0, 4, 2, 1);
         matc Bc = Br.block(0, 0, 0, 4, 3, 1);
-        matr M11 = (Ar.transpose() * Br).transpose();
+        RESET_PROFILING; matr M11 = (Ar.transpose() * Br).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M11);
-        matc M12 = (Ar.transpose() * Br).transpose();
+        RESET_PROFILING; matc M12 = (Ar.transpose() * Br).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M12);
-        matr M13 = (Ac.transpose() * Br).transpose();
+        RESET_PROFILING; matr M13 = (Ac.transpose() * Br).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M13);
-        matc M14 = (Ac.transpose() * Br).transpose();
+        RESET_PROFILING; matc M14 = (Ac.transpose() * Br).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M14);
-        matr M15 = (Ar.transpose() * Bc).transpose();
+        RESET_PROFILING; matr M15 = (Ar.transpose() * Bc).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M15);
-        matc M16 = (Ar.transpose() * Bc).transpose();
+        RESET_PROFILING; matc M16 = (Ar.transpose() * Bc).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M16);
-        matr M17 = (Ac.transpose() * Bc).transpose();
+        RESET_PROFILING; matr M17 = (Ac.transpose() * Bc).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M17);
-        matc M18 = (Ac.transpose() * Bc).transpose();
+        RESET_PROFILING; matc M18 = (Ac.transpose() * Bc).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M18);
     }
 
@@ -181,21 +187,21 @@ void testMatrixMatrixDynamic()
         Cr = Cr.transpose();
         matc Ac = Ar.block(0, 0, 0, 2, 4, 1);
         matc Bc = Br.block(0, 0, 0, 3, 4, 1);
-        matr M11 = (Ar * Br.transpose()).transpose();
+        RESET_PROFILING; matr M11 = (Ar * Br.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M11);
-        matc M12 = (Ar * Br.transpose()).transpose();
+        RESET_PROFILING; matc M12 = (Ar * Br.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M12);
-        matr M13 = (Ac * Br.transpose()).transpose();
+        RESET_PROFILING; matr M13 = (Ac * Br.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M13);
-        matc M14 = (Ac * Br.transpose()).transpose();
+        RESET_PROFILING; matc M14 = (Ac * Br.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M14);
-        matr M15 = (Ar * Bc.transpose()).transpose();
+        RESET_PROFILING; matr M15 = (Ar * Bc.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M15);
-        matc M16 = (Ar * Bc.transpose()).transpose();
+        RESET_PROFILING; matc M16 = (Ar * Bc.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M16);
-        matr M17 = (Ac * Bc.transpose()).transpose();
+        RESET_PROFILING; matr M17 = (Ac * Bc.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M17);
-        matc M18 = (Ac * Bc.transpose()).transpose();
+        RESET_PROFILING; matc M18 = (Ac * Bc.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M18);
     }
 
@@ -206,24 +212,26 @@ void testMatrixMatrixDynamic()
         Cr = Cr.transpose();
         matc Ac = Ar.block(0, 0, 0, 4, 2, 1);
         matc Bc = Br.block(0, 0, 0, 3, 4, 1);
-        matr M11 = (Ar.transpose() * Br.transpose()).transpose();
+        RESET_PROFILING; matr M11 = (Ar.transpose() * Br.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M11);
-        matc M12 = (Ar.transpose() * Br.transpose()).transpose();
+        RESET_PROFILING; matc M12 = (Ar.transpose() * Br.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M12);
-        matr M13 = (Ac.transpose() * Br.transpose()).transpose();
+        RESET_PROFILING; matr M13 = (Ac.transpose() * Br.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M13);
-        matc M14 = (Ac.transpose() * Br.transpose()).transpose();
+        RESET_PROFILING; matc M14 = (Ac.transpose() * Br.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M14);
-        matr M15 = (Ar.transpose() * Bc.transpose()).transpose();
+        RESET_PROFILING; matr M15 = (Ar.transpose() * Bc.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M15);
-        matc M16 = (Ar.transpose() * Bc.transpose()).transpose();
+        RESET_PROFILING; matc M16 = (Ar.transpose() * Bc.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M16);
-        matr M17 = (Ac.transpose() * Bc.transpose()).transpose();
+        RESET_PROFILING; matr M17 = (Ac.transpose() * Bc.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M17);
-        matc M18 = (Ac.transpose() * Bc.transpose()).transpose();
+        RESET_PROFILING; matc M18 = (Ac.transpose() * Bc.transpose()).transpose(); CHECK_PROFILING;
         assertMatrixEquality(Cr, M18);
     }
 
+#undef CHECK_PROFILING
+#undef RESET_PROFILING
 }
 TEST_CASE("matrix-matrix dynamic", "[matmul]")
 {
@@ -504,4 +512,48 @@ TEST_CASE("matrix-matrix complex", "[matmul]")
     SECTION("complex-double") {
         testMatrixMatrixComplex<cdouble>();
     }
+}
+
+//Test assignment to cwise output (block)
+TEST_CASE("write to cwise", "[matmul]")
+{
+    typedef float Scalar;
+    typedef Matrix<Scalar, Dynamic, Dynamic, Dynamic, RowMajor> matr;
+
+    Scalar dataA[1][2][4] {
+        {
+            {1, 4, 6, -3},
+            {-6, 8, 0, -2}
+        }
+    };
+    Scalar dataB[1][4][3] {
+        {
+            {-2, 1, 0},
+            {5, 7, -3},
+            {9, 6, 4},
+            {7, -2, -5}
+        }
+    };
+    Scalar dataC[1][4][5] { //C=A*B
+        {
+            {0, 0, 0, 0, 0},
+            {0, 51, 71, 27, 0},
+            {0, 38, 54, -14, 0},
+            { 0, 0, 0, 0, 0 }
+        }
+    };
+
+    matr Ar = matr::fromArray(dataA);
+    matr Br = matr::fromArray(dataB);
+    matr Cr = matr::fromArray(dataC);
+
+    matr M = matr::Zero(4, 5, 1);
+    Profiling::instance().resetAll();
+    M.block<2, 3, 1>(1, 1, 0) = Ar * Br;
+    REQUIRE(Profiling::instance().get(Profiling::Counter::DeviceMemAlloc) == 1); //one allocation of the temporary
+    REQUIRE(Profiling::instance().get(Profiling::Counter::DeviceMemFree) == 1); //one deallocation of the temporary
+    REQUIRE(Profiling::instance().get(Profiling::Counter::EvalMatmul) == 1); //matmul into temporary
+    REQUIRE(Profiling::instance().get(Profiling::Counter::EvalCwise) == 1); //cwise into matrix block
+    REQUIRE(Profiling::instance().get(Profiling::Counter::EvalAny) == 2); //nothing else
+    assertMatrixEquality(Cr, M);
 }

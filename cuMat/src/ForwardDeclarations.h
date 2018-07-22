@@ -93,7 +93,10 @@ template<typename _Child, typename _Target> class CastingOp;
 template<typename _Derived, bool _Conjugated> class TransposeOp;
 template<typename _Child, typename _ReductionOp> class ReductionOp_DynamicSwitched;
 template<typename _Child, typename _ReductionOp, int _Axis> class ReductionOp_StaticSwitched;
-template<typename _Left, typename _Right, bool _TransposedLeft, bool _TransposedRight, bool _TransposedOutput> class MultOp;
+
+namespace internal { enum class ProductArgOp; }
+template<typename _Left, typename _Right, internal::ProductArgOp _OpLeft, internal::ProductArgOp _OpRight, internal::ProductArgOp _OpOutput> class ProductOp;
+
 template<typename _Child> class AsDiagonalOp;
 template<typename _Child> class ExtractDiagonalOp;
 template <typename _Child, bool _Imag, bool _Lvalue> class ExtractComplexPartOp;
