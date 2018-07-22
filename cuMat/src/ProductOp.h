@@ -15,7 +15,7 @@
 CUMAT_NAMESPACE_BEGIN
 
 namespace internal {
-
+    struct ProductSrcTag {};
     /**
      * \brief Specifies the modifications on the two input arguments and the output argument.
      */

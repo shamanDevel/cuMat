@@ -30,7 +30,9 @@ namespace internal
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
             //No-op reduction, no axis selected -> copy in to out
-            in.template evalTo<_Output, AssignmentMode::ASSIGN>(out);
+            internal::Assignment<_Output, _Input, AssignmentMode::ASSIGN, 
+                typename internal::traits<_Output>::DstTag, typename internal::traits<_Input>::SrcTag>
+            ::assign(out, in);
         }
     };
 

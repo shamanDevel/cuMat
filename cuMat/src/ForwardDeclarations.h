@@ -64,8 +64,6 @@ namespace internal {
     struct Assignment;
 
     struct CwiseSrcTag {};
-    struct ProductSrcTag {};
-    struct TransposeSrcTag {};
     /**
      * \brief "Dense" destination, in the sense that there as a simple mapping from a 
      * linear index (max index returned by \c size() ) to the row, column and batch index.

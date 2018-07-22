@@ -10,10 +10,12 @@
 #include "Profiling.h"
 #include "NumTraits.h"
 #include "CublasApi.h"
+#include "cuMat/Dense"
 
 CUMAT_NAMESPACE_BEGIN
 
 namespace internal {
+    struct TransposeSrcTag {};
 	template<typename _Derived, bool _Conjugated>
 	struct traits<TransposeOp<_Derived, _Conjugated> >
 	{
@@ -26,7 +28,7 @@ namespace internal {
 			BatchesAtCompileTime = internal::traits<_Derived>::BatchesAtCompileTime,
             AccessFlags = ReadCwise | WriteCwise
 		};
-        typedef CwiseSrcTag SrcTag;
+        typedef TransposeSrcTag SrcTag;
         typedef DeletedDstTag DstTag;
 	};
 
@@ -142,72 +144,6 @@ public:
         return matrix_;
     }
 
-private:
-
-    //Everything else: Cwise-evaluation
-    template<typename Derived, bool _Conj>
-    CUMAT_STRONG_INLINE void evalToImpl(MatrixBase<Derived>& m, std::false_type, std::integral_constant<bool, _Conj>) const
-    {
-        //don't pass _Conj further, it is equal to IsConjugated
-        CwiseOp<TransposeOp<_Derived, _Conjugated>>::template evalTo<Derived, AssignmentMode::ASSIGN>(m);
-    }
-
-    // No-Op version, just reinterprets the result
-    template<int _Rows, int _Columns, int _Batches>
-    CUMAT_STRONG_INLINE void evalToImpl(Matrix<Scalar, _Rows, _Columns, _Batches, Flags>& m, std::true_type, std::false_type) const
-    {
-        m = Matrix<Scalar, _Rows, _Columns, _Batches, Flags>(matrix_.dataPointer(), rows(), cols(), batches());
-    }
-
-    // No-Op version, reinterprets the result + conjugates it
-    template<int _Rows, int _Columns, int _Batches>
-    CUMAT_STRONG_INLINE void evalToImpl(Matrix<Scalar, _Rows, _Columns, _Batches, Flags>& m, std::true_type, std::true_type) const
-    {
-        m = Matrix<Scalar, _Rows, _Columns, _Batches, Flags>(matrix_.dataPointer(), rows(), cols(), batches()).conjugate();
-    }
-
-    // Explicit transposition
-    template<int _Rows, int _Columns, int _Batches>
-    void evalToImplDirect(Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>& mat, std::true_type) const
-    {
-        //Call cuBlas for transposing
-
-        CUMAT_ASSERT_ARGUMENT(mat.rows() == rows());
-        CUMAT_ASSERT_ARGUMENT(mat.cols() == cols());
-        CUMAT_ASSERT_ARGUMENT(mat.batches() == batches());
-        
-        CUMAT_LOG(CUMAT_LOG_WARNING) << "Transpose: Direct transpose using cuBLAS";
-
-        cublasOperation_t transA = IsConjugated ? CUBLAS_OP_C : CUBLAS_OP_T;
-        int m = static_cast<int>(OriginalFlags == ColumnMajor ? mat.rows() : mat.cols());
-        int n = static_cast<int>(OriginalFlags == ColumnMajor ? mat.cols() : mat.rows());
-
-        //perform transposition
-        internal::directTranspose(mat.data(), matrix_.data(), m, n, batches(), transA);
-    }
-    template<int _Rows, int _Columns, int _Batches>
-    CUMAT_STRONG_INLINE void evalToImplDirect(Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>& mat, std::false_type) const
-    {
-        //fallback for integer types
-        CwiseOp<TransposeOp<_Derived, _Conjugated>>::template evalTo<Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>, AssignmentMode::ASSIGN>(mat);
-    }
-    template<int _Rows, int _Columns, int _Batches, bool _Conj>
-    CUMAT_STRONG_INLINE void evalToImpl(Matrix<Scalar, _Rows, _Columns, _Batches, OriginalFlags>& mat,
-        std::true_type, std::integral_constant<bool, _Conj>) const
-    {
-        //I don't need to pass _Conj further, because it is equal to IsConjugated
-        evalToImplDirect(mat, std::integral_constant<bool, internal::NumTraits<Scalar>::IsCudaNumeric>());
-    }
-
-public:
-    template<typename Derived, AssignmentMode Mode>
-    void evalTo(MatrixBase<Derived>& m) const
-	{
-        //TODO: Handle different assignment modes
-        static_assert(Mode == AssignmentMode::ASSIGN, "Currently, only AssignmentMode::ASSIGN is supported");
-        evalToImpl(m.derived(), std::integral_constant<bool, IsMatrix>(), std::integral_constant<bool, IsConjugated>());
-	}
-
 	//ASSIGNMENT
 	template<typename Derived>
 	CUMAT_STRONG_INLINE Type& operator=(const MatrixBase<Derived>& expr)
@@ -215,7 +151,9 @@ public:
 		CUMAT_ASSERT_ARGUMENT(rows() == expr.rows());
 		CUMAT_ASSERT_ARGUMENT(cols() == expr.cols());
 		CUMAT_ASSERT_ARGUMENT(batches() == expr.batches());
-		expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
+        internal::Assignment<Type, Derived, AssignmentMode::ASSIGN, internal::DenseDstTag, typename internal::traits<Derived>::SrcTag>
+            ::assign(*this, expr);
+		//expr.template evalTo<Type, AssignmentMode::ASSIGN>(*this);
 		return *this;
 	}
 
@@ -226,11 +164,85 @@ public:
         return matrix_;
     }
 
-    const TransposeOp<_Derived, !_Conjugated> conjugate() const
+    TransposeOp<_Derived, !_Conjugated> conjugate() const
     {
         return TransposeOp<_Derived, !_Conjugated>(matrix_);
     }
 };
+
+namespace internal
+{
+    template<typename _Dst, typename _Src, AssignmentMode _AssignmentMode, typename _DstTag>
+    struct Assignment<_Dst, _Src, _AssignmentMode, _DstTag, TransposeSrcTag>
+    {
+        using Scalar = typename _Src::Scalar;
+        using Op = typename _Src::Type;
+
+        //Everything else: Cwise-evaluation
+        template<typename Derived, bool _Conj>
+        static CUMAT_STRONG_INLINE void evalToImpl(const Op& src, MatrixBase<Derived>& m, std::false_type, std::integral_constant<bool, _Conj>)
+        {
+            //don't pass _Conj further, it is equal to IsConjugated
+            Assignment<Derived, Op, AssignmentMode::ASSIGN, typename Derived::DstTag, CwiseSrcTag>::assign(m.derived(), src);
+        }
+
+        // No-Op version, just reinterprets the result
+        template<int _Rows, int _Columns, int _Batches>
+        static CUMAT_STRONG_INLINE void evalToImpl(const Op& src, Matrix<Scalar, _Rows, _Columns, _Batches, Op::Flags>& m, std::true_type, std::false_type)
+        {
+            m = Matrix<Scalar, _Rows, _Columns, _Batches, Op::Flags>(src.getUnderlyingMatrix().dataPointer(), src.rows(), src.cols(), src.batches());
+        }
+
+        // No-Op version, reinterprets the result + conjugates it
+        template<int _Rows, int _Columns, int _Batches>
+        static CUMAT_STRONG_INLINE void evalToImpl(const Op& src, Matrix<Scalar, _Rows, _Columns, _Batches, Op::Flags>& m, std::true_type, std::true_type)
+        {
+            m = Matrix<Scalar, _Rows, _Columns, _Batches, Op::Flags>(src.getUnderlyingMatrix().dataPointer(), src.rows(), src.cols(), src.batches()).conjugate();
+        }
+
+        // Explicit transposition
+        template<int _Rows, int _Columns, int _Batches>
+        static void evalToImplDirect(const Op& src, Matrix<Scalar, _Rows, _Columns, _Batches, Op::OriginalFlags>& mat, std::true_type)
+        {
+            //Call cuBlas for transposing
+
+            CUMAT_ASSERT_ARGUMENT(mat.rows() == src.rows());
+            CUMAT_ASSERT_ARGUMENT(mat.cols() == src.cols());
+            CUMAT_ASSERT_ARGUMENT(mat.batches() == src.batches());
+
+            CUMAT_LOG(CUMAT_LOG_DEBUG) << "Transpose: Direct transpose using cuBLAS";
+
+            cublasOperation_t transA = Op::IsConjugated ? CUBLAS_OP_C : CUBLAS_OP_T;
+            int m = static_cast<int>(Op::OriginalFlags == ColumnMajor ? mat.rows() : mat.cols());
+            int n = static_cast<int>(Op::OriginalFlags == ColumnMajor ? mat.cols() : mat.rows());
+
+            //perform transposition
+            internal::directTranspose(mat.data(), src.getUnderlyingMatrix().data(), m, n, src.batches(), transA);
+        }
+        template<int _Rows, int _Columns, int _Batches>
+        static CUMAT_STRONG_INLINE void evalToImplDirect(const Op& src, Matrix<Scalar, _Rows, _Columns, _Batches, Op::OriginalFlags>& mat, std::false_type)
+        {
+            //fallback for integer types
+            using Derived = Matrix<Scalar, _Rows, _Columns, _Batches, Op::OriginalFlags>;
+            Assignment<Derived, Op, AssignmentMode::ASSIGN, typename Derived::DstTag, CwiseSrcTag>::assign(mat, src);
+        }
+        template<int _Rows, int _Columns, int _Batches, bool _Conj>
+        static CUMAT_STRONG_INLINE void evalToImpl(const Op& src, Matrix<Scalar, _Rows, _Columns, _Batches, Op::OriginalFlags>& mat,
+            std::true_type, std::integral_constant<bool, _Conj>)
+        {
+            //I don't need to pass _Conj further, because it is equal to IsConjugated
+            evalToImplDirect(src, mat, std::integral_constant<bool, internal::NumTraits<Scalar>::IsCudaNumeric>());
+        }
+
+        static void assign(_Dst& dst, const _Src& src)
+        {
+            typedef typename _Src::Type SrcActual; //instance of TransposeOp
+            //TODO: Handle different assignment modes
+            static_assert(_AssignmentMode == AssignmentMode::ASSIGN, "Currently, only AssignmentMode::ASSIGN is supported");
+            evalToImpl(src.derived(), dst.derived(), std::integral_constant<bool, SrcActual::IsMatrix>(), std::integral_constant<bool, SrcActual::IsConjugated>());
+        }
+    };
+}
 
 CUMAT_NAMESPACE_END
 
