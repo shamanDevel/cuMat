@@ -127,16 +127,16 @@ public:
     __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return matrix_.rows(); }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return matrix_.batches(); }
 
-    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     { //read acces (cwise)
-        Scalar val = matrix_.coeff(col, row, batch);
+        Scalar val = matrix_.coeff(col, row, batch, -1);
         val = conjugateCoeff<Scalar, IsConjugated>(val);
         return val;
     }
-    __device__ CUMAT_STRONG_INLINE Scalar& coeff(Index row, Index col, Index batch)
+    __device__ CUMAT_STRONG_INLINE Scalar& coeff(Index row, Index col, Index batch, Index index)
     { //write acces (cwise)
         //adjoint not allowed here
-        return matrix_.coeff(col, row, batch);
+        return matrix_.coeff(col, row, batch, -1);
     }
 
     const _Derived& getUnderlyingMatrix() const

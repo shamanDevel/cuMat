@@ -45,6 +45,7 @@ set(CUMAT_HEADERS
   Dense
   
   src/SparseMatrix.h
+  src/SparseEvaluation.h
   Sparse
   )
 

@@ -623,6 +623,9 @@ public:
 		}
 	}
 
+    //TODO: optimized path: implement a method 'sameLayout' that uses the linear index
+    //directly instead of the row+col+batch.
+
 	/**
 	 * \brief Accesses the coefficient at the specified coordinate for reading and writing.
 	 * If the device supports it (CUMAT_ASSERT_CUDA is defined), the
@@ -632,7 +635,7 @@ public:
 	 * \param batch the batch index
 	 * \return a reference to the entry
 	 */
-	__device__ CUMAT_STRONG_INLINE _Scalar& coeff(Index row, Index col, Index batch)
+	__device__ CUMAT_STRONG_INLINE _Scalar& coeff(Index row, Index col, Index batch, Index /*index*/)
 	{
 		return data_.data()[index(row, col, batch)];
 	}
@@ -646,7 +649,7 @@ public:
 	* \param batch the batch index
 	* \return a read-only reference to the entry
 	*/
-	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch) const
+	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch, Index /*index*/) const
 	{
 		return cuda::load(data_.data() + index(row, col, batch));
 	}
@@ -742,7 +745,6 @@ public:
     /**
     * \brief Checks if the underlying data is used by an other matrix expression and if so,
     * copies the data so that this matrix is the exclusive user of that data.
-    * This method is called by every operation that modifies the matrix in-place (e.g. block-write, += and similar operators).
     *
     * This method has no effect if \ref isExclusiveUse is already true.
     *

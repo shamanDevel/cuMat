@@ -53,6 +53,10 @@ public:
          * \brief Matrix-Matrix multiplication with cuBLAS
          */
         EvalMatmul,
+        /**
+         * \brief Sparse component-wise evaluation
+         */
+        EvalCwiseSparse,
 
         _NumCounter_
     };

@@ -79,7 +79,7 @@ namespace
 
             //there seems to be a bug in CUDA if the result of expr.coeff is directly passed to setRawCoeff.
             //By saving it in a local variable, this is prevented
-            auto val = expr.coeff(i, j, k);
+            auto val = expr.coeff(i, j, k, index);
             internal::CwiseAssignmentHandler<M, decltype(val), Mode>::assign(matrix, val, index);
 		    //matrix.setRawCoeff(index, val);
 		    //matrix.setRawCoeff(index, expr.coeff(i, j, k));
@@ -120,9 +120,9 @@ public:
 	using Base::batches;
 	using Base::size;
 
-	__device__ CUMAT_STRONG_INLINE const Scalar& coeff(Index row, Index col, Index batch) const
+	__device__ CUMAT_STRONG_INLINE const Scalar& coeff(Index row, Index col, Index batch, Index index) const
 	{
-		return derived().coeff(row, col, batch);
+		return derived().coeff(row, col, batch, index);
 	}
 
     /*

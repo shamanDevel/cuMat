@@ -61,9 +61,9 @@ public:
 	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return child_.cols(); }
 	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
 
-	__device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+	__device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
 	{
-		return functor_(child_.derived().coeff(row, col, batch), row, col, batch);
+		return functor_(child_.derived().coeff(row, col, batch, index), row, col, batch);
 	}
 };
 
@@ -277,9 +277,9 @@ public:
 	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return child_.cols(); }
 	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
 
-	__device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+	__device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
 	{
-		return functor::CastFunctor<SourceType, TargetType>::cast(child_.derived().coeff(row, col, batch));
+		return functor::CastFunctor<SourceType, TargetType>::cast(child_.derived().coeff(row, col, batch, index));
 	}
 };
 
@@ -340,14 +340,14 @@ public:
     __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return size_; }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
 
-    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     {
         if (row == col)
         {
             if (IsRowVector)
-                return child_.derived().coeff(0, col, batch);
+                return child_.derived().coeff(0, col, batch, -1);
             else
-                return child_.derived().coeff(row, 0, batch);
+                return child_.derived().coeff(row, 0, batch, -1);
         } else
         {
             return Scalar(0);
@@ -407,9 +407,9 @@ public:
     __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return 1; }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
 
-    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     {
-        return child_.derived().coeff(row, row, batch);
+        return child_.derived().coeff(row, row, batch, index);
     }
 };
 
@@ -487,12 +487,12 @@ public:
     * \param batch the batch index
     * \return a read-only reference to the entry
     */
-    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     {
         if (_Imag)
-            return matrix_.coeff(row, col, batch).imag();
+            return matrix_.coeff(row, col, batch, index).imag();
         else
-            return matrix_.coeff(row, col, batch).real();
+            return matrix_.coeff(row, col, batch, index).real();
     }
 };
 /**
@@ -560,12 +560,12 @@ public:
     * \param batch the batch index
     * \return a reference to the entry
     */
-    __device__ CUMAT_STRONG_INLINE Scalar& coeff(Index row, Index col, Index batch)
+    __device__ CUMAT_STRONG_INLINE Scalar& coeff(Index row, Index col, Index batch, Index index)
     {
         if (_Imag)
-            return matrix_.coeff(row, col, batch).imag();
+            return matrix_.coeff(row, col, batch, index).imag();
         else
-            return matrix_.coeff(row, col, batch).real();
+            return matrix_.coeff(row, col, batch, index).real();
     }
     /**
     * \brief Accesses the coefficient at the specified coordinate for reading.
@@ -576,12 +576,12 @@ public:
     * \param batch the batch index
     * \return a read-only reference to the entry
     */
-    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     {
         if (_Imag)
-            return matrix_.coeff(row, col, batch).imag();
+            return matrix_.coeff(row, col, batch, index).imag();
         else
-            return matrix_.coeff(row, col, batch).real();
+            return matrix_.coeff(row, col, batch, index).real();
     }
 
     /**

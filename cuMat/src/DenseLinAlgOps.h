@@ -33,7 +33,7 @@ namespace
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void load(const T& mat, Index batch)
         {
-            m00 = mat.coeff(0, 0, batch);
+            m00 = mat.coeff(0, 0, batch, -1);
         }
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void store(T& matrix, Index batch)
@@ -53,10 +53,10 @@ namespace
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void load(const T& mat, Index batch)
         {
-            m00 = mat.coeff(0, 0, batch);
-            m01 = mat.coeff(0, 1, batch);
-            m10 = mat.coeff(1, 0, batch);
-            m11 = mat.coeff(1, 1, batch);
+            m00 = mat.coeff(0, 0, batch, -1);
+            m01 = mat.coeff(0, 1, batch, -1);
+            m10 = mat.coeff(1, 0, batch, -1);
+            m11 = mat.coeff(1, 1, batch, -1);
         }
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void store(T& matrix, Index batch)
@@ -78,10 +78,10 @@ namespace
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void load(const T& mat, Index batch)
         {
-            m00 = mat.coeff(0, 0, batch);
-            m10 = mat.coeff(1, 0, batch);
-            m01 = mat.coeff(0, 1, batch);
-            m11 = mat.coeff(1, 1, batch);
+            m00 = mat.coeff(0, 0, batch, -1);
+            m10 = mat.coeff(1, 0, batch, -1);
+            m01 = mat.coeff(0, 1, batch, -1);
+            m11 = mat.coeff(1, 1, batch, 1);
         }
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void store(T& matrix, Index batch)
@@ -109,15 +109,15 @@ namespace
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void load(const T& mat, Index batch)
         {
-            m00 = mat.coeff(0, 0, batch);
-            m01 = mat.coeff(0, 1, batch);
-            m02 = mat.coeff(0, 2, batch);
-            m10 = mat.coeff(1, 0, batch);
-            m11 = mat.coeff(1, 1, batch);
-            m12 = mat.coeff(1, 2, batch);
-            m20 = mat.coeff(2, 0, batch);
-            m21 = mat.coeff(2, 1, batch);
-            m22 = mat.coeff(2, 2, batch);
+            m00 = mat.coeff(0, 0, batch, -1);
+            m01 = mat.coeff(0, 1, batch, -1);
+            m02 = mat.coeff(0, 2, batch, -1);
+            m10 = mat.coeff(1, 0, batch, -1);
+            m11 = mat.coeff(1, 1, batch, -1);
+            m12 = mat.coeff(1, 2, batch, -1);
+            m20 = mat.coeff(2, 0, batch, -1);
+            m21 = mat.coeff(2, 1, batch, -1);
+            m22 = mat.coeff(2, 2, batch, -1);
         }
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void store(T& matrix, Index batch)
@@ -149,15 +149,15 @@ namespace
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void load(const T& mat, Index batch)
         {
-            m00 = mat.coeff(0, 0, batch);
-            m10 = mat.coeff(1, 0, batch);
-            m20 = mat.coeff(2, 0, batch);
-            m01 = mat.coeff(0, 1, batch);
-            m11 = mat.coeff(1, 1, batch);
-            m21 = mat.coeff(2, 1, batch);
-            m02 = mat.coeff(0, 2, batch);
-            m12 = mat.coeff(1, 2, batch);
-            m22 = mat.coeff(2, 2, batch);
+            m00 = mat.coeff(0, 0, batch, -1);
+            m10 = mat.coeff(1, 0, batch, -1);
+            m20 = mat.coeff(2, 0, batch, -1);
+            m01 = mat.coeff(0, 1, batch, -1);
+            m11 = mat.coeff(1, 1, batch, -1);
+            m21 = mat.coeff(2, 1, batch, -1);
+            m02 = mat.coeff(0, 2, batch, -1);
+            m12 = mat.coeff(1, 2, batch, -1);
+            m22 = mat.coeff(2, 2, batch, -1);
         }
         template<typename T>
         __device__ CUMAT_STRONG_INLINE void store(T& matrix, Index batch)
@@ -301,7 +301,7 @@ public:
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return matrix_.batches(); }
 
     template<int Dims = InputSize>
-    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     {
         CUMAT_STATIC_ASSERT(Dims <= 3, "Cwise-evaluation of the determinant is only supported for matrices of size <= 3x3");
         typedef DeviceMatrix<Scalar, Dims, internal::traits<_Child>::Flags> Mat_t;

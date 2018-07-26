@@ -109,9 +109,9 @@ public:
 	* \param batch the batch index
 	* \return a reference to the entry
 	*/
-	__device__ CUMAT_STRONG_INLINE _Scalar& coeff(Index row, Index col, Index batch)
+	__device__ CUMAT_STRONG_INLINE _Scalar& coeff(Index row, Index col, Index batch, Index index)
 	{
-		return matrix_.coeff(row + start_row_, col + start_column_, batch + start_batch_);
+		return matrix_.coeff(row + start_row_, col + start_column_, batch + start_batch_, -1);
 	}
 	/**
 	* \brief Accesses the coefficient at the specified coordinate for reading.
@@ -122,9 +122,9 @@ public:
 	* \param batch the batch index
 	* \return a read-only reference to the entry
 	*/
-	__device__ CUMAT_STRONG_INLINE _Scalar coeff(Index row, Index col, Index batch) const
+	__device__ CUMAT_STRONG_INLINE _Scalar coeff(Index row, Index col, Index batch, Index index) const
 	{
-		return matrix_.coeff(row + start_row_, col + start_column_, batch + start_batch_);
+		return matrix_.coeff(row + start_row_, col + start_column_, batch + start_batch_, -1);
 	}
 
 	/**
@@ -139,7 +139,7 @@ public:
 		//This method is quite ineffective at the moment, since it has to convert the values back to row,col,batch
 		Index i, j, k;
 		index(idx, i, j, k);
-		coeff(i, j, k) = newValue;
+		coeff(i, j, k, -1) = newValue;
 	}
 
 	//ASSIGNMENT

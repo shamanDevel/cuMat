@@ -142,24 +142,26 @@ public:
         return BroadcastBatchesRight ? left_.batches() : right_.batches();
     }
 
-    __device__ CUMAT_STRONG_INLINE ArgScalar getLeft(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE ArgScalar getLeft(Index row, Index col, Index batch, Index linear) const
     {
         return left_.derived().coeff(
             BroadcastRowsLeft ? 0 : row,
             BroadcastColsLeft ? 0 : col,
-            BroadcastBatchesLeft ? 0 : batch);
+            BroadcastBatchesLeft ? 0 : batch,
+            linear);
     }
-    __device__ CUMAT_STRONG_INLINE ArgScalar getRight(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE ArgScalar getRight(Index row, Index col, Index batch, Index linear) const
     {
         return right_.derived().coeff(
             BroadcastRowsRight ? 0 : row,
             BroadcastColsRight ? 0 : col,
-            BroadcastBatchesRight ? 0 : batch);
+            BroadcastBatchesRight ? 0 : batch,
+            linear);
     }
 
-    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch) const
+    __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index linear) const
     {
-        return functor_(getLeft(row, col, batch), getRight(row, col, batch), row, col, batch);
+        return functor_(getLeft(row, col, batch, linear), getRight(row, col, batch, linear), row, col, batch);
     }
 };
 

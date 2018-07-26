@@ -7,4 +7,5 @@
 #include "Core"
 
 // sparse classes
-#include "src/Sparse.h"
+#include "src/SparseMatrix.h"
+#include "src/SparseEvaluation.h"

@@ -96,13 +96,13 @@ public:
     __device__ CUMAT_STRONG_INLINE value_type operator*() const
     {
         Index3 coords = fromLinear(index_, dims_, stride_);
-        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
+        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>(), -1);
     }
 
     __device__ CUMAT_STRONG_INLINE reference operator*()
     {
         Index3 coords = fromLinear(index_, dims_, stride_);
-        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
+        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>(), -1);
     }
 
     /// Addition
@@ -150,7 +150,7 @@ public:
     __device__ __forceinline__ value_type operator[](Distance n) const
     {
         Index3 coords = fromLinear(index_+n, dims_, stride_);
-        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
+        return mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>(), -1);
     }
 
     /// Equal to
@@ -203,7 +203,7 @@ public:
     __device__ __forceinline__ reference operator[](Distance n)
     {
         Index3 coords = fromLinear(Base::index_ + n, Base::dims_, Base::stride_);
-        return Base::mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>());
+        return Base::mat_.coeff(coords.get<0>(), coords.get<1>(), coords.get<2>(), -1);
     }
 };
 

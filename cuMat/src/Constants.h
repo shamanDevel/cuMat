@@ -39,8 +39,12 @@ enum AccessFlags
      * \brief component-wise read is available.
      * The following method must be provided:
      * \code
-     * __device__ const Scalar& coeff(Index row, Index col, Index batch) const;
+     * __device__ const Scalar& coeff(Index row, Index col, Index batch, Index index) const;
      * \endcode
+     * The parameter \c index is the same as the linear index from the writing procedure and is used
+     * by optimized routines only if the user explicitly enables them.
+     * (This is only supported by SparseMatrix yet)
+     * If some operation can't pass the linear index to the expressions, -1 might be used instead.
      */
     ReadCwise = 0x01,
     /**
