@@ -234,3 +234,37 @@ TEST_CASE("Dense -> Sparse", "[Sparse]")
         assertMatrixEquality(expectedDense, smatrix2);
     }
 }
+
+TEST_CASE("Sparse-Cwise", "[Sparse]")
+{
+    //create source sparse matrix
+    typedef SparseMatrix<float, 1, SparseFlags::CSC> SMatrix_t;
+    SMatrix_t::SparsityPattern pattern;
+    pattern.rows = 4;
+    pattern.cols = 5;
+    pattern.nnz = 9;
+    pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 2, 0, 1, 1, 3, 2, 2, 3).finished());
+    pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(6) << 0, 2, 4, 6, 7, 9).finished());
+    REQUIRE_NOTHROW(pattern.assertValid());
+    SMatrix_t smatrix(pattern);
+    smatrix.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 5, -4, 2, -3, 9, 7, -8, 6).finished());
+
+    //create target sparse matrix of the same pattern, but uninitialized
+    SMatrix_t tmatrix1(pattern);
+    SMatrix_t tmatrix2(pattern);
+
+    //some c-wise operations
+    tmatrix1 = SMatrix_t::Identity(4, 5) + smatrix.cwiseAbs2();
+    tmatrix2 = SMatrix_t::Identity(4, 5) + smatrix.direct().cwiseAbs2();
+
+    float expectedDense[1][4][5] = {
+            {
+                {2, 16, 0, 0, 0},
+                {0, 5, 9, 0, 0},
+                {25, 0, 0/*not 1*/, 49, 64},
+                {0, 0, 81, 0/*not 1*/, 36}
+            },
+    };
+    assertMatrixEquality(expectedDense, tmatrix1);
+    assertMatrixEquality(expectedDense, tmatrix2);
+}

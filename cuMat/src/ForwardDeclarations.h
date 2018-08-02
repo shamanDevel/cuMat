@@ -83,6 +83,7 @@ template <typename _Scalar, int _Rows, int _Columns, int _Batches, int _Flags, t
 namespace internal {
     template <typename _MatrixType> class MatrixInplaceAssignment;
     template <typename _MatrixType> class SparseMatrixInplaceAssignment;
+    template <typename _MatrixType> class SparseMatrixDirectAccess;
 }
 
 template<typename _Derived> class CwiseOp;

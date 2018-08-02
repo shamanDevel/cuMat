@@ -314,10 +314,12 @@ public:
 		CUMAT_ASSERT_ARGUMENT(sizey > 0);
 		//TODO: Very simplistic first version
 		//Later improve to read the actual pysical thread count per block and pysical block count
+        unsigned int blockSizeX = sizey == 1 ? 256u : 32u; //common case: sizey==0 (no batching)
+        unsigned int blockSizeY = sizey == 1 ? 1u : 32u;
 		KernelLaunchConfig cfg = {
 			dim3(sizex, sizey, 1),
-			dim3(32, 32, 1),
-			dim3(CUMAT_DIV_UP(sizex, 32), CUMAT_DIV_UP(sizey, 32), 1)
+			dim3(blockSizeX, blockSizeY, 1),
+			dim3(CUMAT_DIV_UP(sizex, blockSizeX), CUMAT_DIV_UP(sizey, blockSizeY), 1)
 		};
 		return cfg;
 	}

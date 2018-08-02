@@ -1,0 +1,69 @@
+Required sparse matrix operations for the Elasticity simulation
+
+Always ColumnMajor, CSC:
+ Row (fastest) -> Column -> Batch (slowest)
+ 
+For a 3D-Vector, float4 is used instead of float3 for a better alignment and performance.
+
+GridDiffusion:
+  Displacements: Matrix<float, Dynamic, 1, 3> (each batch is a coordinate)
+  Diffusion Matrix: SparseMatrix<float>
+   Batched CG-Solver for type 'float'
+
+Forward Advection:
+  Matrix<float4, Dynamic, Dynamic, Dynamic> displacements on the whole grid 
+    (Batch is misused as a third dimension)
+  Matrix<float, Dynamic, Dynamic, Dynamic> for the SDFs
+
+Elastic-Matrix assembly and forward solve
+All Sparse Matrices related to the stiffness matrix have the same sparsity pattern,
+ determined by the free vertices and their neighborhood.
+  Force Vector: Matrix<float4, Dynamic, 1, 1> f
+    - f.coeff(i) +=(atomic) float4-value
+  Mass-Matrix: Matrix<float4, Dynamic, 1, 1> Mvec
+  Solution: Matrix<float4, Dynamic, 1, 1> x 
+  Stiffness-Matrix: SparseMatrix<float4x3, 1, CSC> 
+    same type for damping D, Newmark A, B, C.  
+    struct float4x3 {float4 m[3];};
+    - K.coeff(i, j) +=(atomic) float4x3 block
+	- D = alpha * Mvec.asDiagonal() + beta * K
+	  (float4x3 = diagonal(float4) + float4x3, cwise
+	   -> specialization of AsDiagonalOp to convert the float4 into float4x3 over the diagonal)
+	   -> float4x3::operator*(float)
+	- A = alpha * Mvec.asDiagonal() + D + beta*K
+	   (nothing new)
+	- B as above
+	   v = B*x (SparseMatrix-float4x3 - DenseVector-float3/4 mulitplication)
+	   -> custom matrix-vector multiplication (cwise)
+	   -> float4x3::operator*(float4)
+	- C: only needed as 
+	  alpha*Mvec.asDiagonal()*x = alpha*Mvec.cwiseProduct(x)
+	- CG-Solver A*x = b, A of float4x3, x,b of float4
+	  -> requires the matrix-vector muliplication as for B
+	  
+Adjoint Code
+  adjA = -adjU * u^T
+    -> outer product of float4 x float4 -> float4x3,
+	   best implemented as a custom NullaryOp that is evaluated into the SparseMatrix
+	   The pattern of adjA is the same as of A
+  x = sparseM^transposed * b
+    -> I can assume that sparseM is symmetric, no change.
+  adjK += alpha * adjB, nothing new
+  adjMvec += (alpha * adjC).diagonal() = alpha * adjC.diagonal()
+    -> specialization of ExtractDiagonalOp to convert float4x3 to float4
+  adjStiffnessDamping += forwardStorage.K.cwiseProduct(adjD).sum()
+    -> this one is interesting. It requires two parts:
+         - float4x3::operator*(float4x3), cwise	
+		 - float float4x3::sum(), called between cwiseProduct and the Thrust-reduction (sum),
+		   using a custom UnaryOp "blockSum", to sum the 3x3block into a float
+
+That should be it.
+Roadmap:
+1. Test Cwise-Ops on SparseMatrices, test compound-assignment, test linear indexing
+2. asDiagonal(), diagonal() from/to SparseMatrix and DenseVector-float3/4
+3. scalar*SparseMatrix with scalar on the host or device
+4. CG-Solver for a custom Matrix with custom operator*
+   all Vector-Operations on the GPU
+   async copy of the scalar results from the dot product to the CPU (if neccessary)
+5. Dense-Dense -> SparseMatrix outer product
+6. float4x3 class and the template specializations

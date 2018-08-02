@@ -4,7 +4,7 @@
 
 
 template<typename _NullaryFunctor>
-using NullaryOp_t = NullaryOp<_Scalar, _Rows, _Columns, _Batches, _Flags, _NullaryFunctor >;
+using NullaryOp_t = NullaryOp<Scalar, Rows, Columns, Batches, Flags, _NullaryFunctor >;
 
 /**
 * \brief Creates a new matrix with all entries set to a constant value
@@ -14,14 +14,14 @@ using NullaryOp_t = NullaryOp<_Scalar, _Rows, _Columns, _Batches, _Flags, _Nulla
 * \param value the value to fill
 * \return the expression creating that matrix
 */
-static NullaryOp_t<functor::ConstantFunctor<_Scalar> >
-Constant(Index rows, Index cols, Index batches, const _Scalar& value)
+static NullaryOp_t<functor::ConstantFunctor<Scalar> >
+Constant(Index rows, Index cols, Index batches, const Scalar& value)
 {
-    if (_Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(_Rows == rows && "runtime row count does not match compile time row count");
-    if (_Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(_Columns == cols && "runtime row count does not match compile time row count");
-    if (_Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(_Batches == batches && "runtime row count does not match compile time row count");
-    return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-        rows, cols, batches, functor::ConstantFunctor<_Scalar>(value));
+    if (Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(Rows == rows && "runtime row count does not match compile time row count");
+    if (Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(Columns == cols && "runtime row count does not match compile time row count");
+    if (Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(Batches == batches && "runtime row count does not match compile time row count");
+    return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
+        rows, cols, batches, functor::ConstantFunctor<Scalar>(value));
 }
 //Specialization for some often used cases
 
@@ -33,12 +33,14 @@ Constant(Index rows, Index cols, Index batches, const _Scalar& value)
 * \param value the value to fill
 * \return the expression creating that matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic && _Rows == Dynamic && _Columns == Dynamic,
-    NullaryOp_t<functor::ConstantFunctor<_Scalar> > > >
-    static typename T::type Constant(Index rows, Index cols, const _Scalar& value)
+static NullaryOp_t<functor::ConstantFunctor<Scalar> >
+Constant(Index rows, Index cols, const Scalar& value)
 {
-    return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-        rows, cols, _Batches, functor::ConstantFunctor<_Scalar>(value));
+    CUMAT_STATIC_ASSERT(Batches != Dynamic, "Number of batches must be fixed on compile-time");
+    if (Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(Rows == rows && "runtime row count does not match compile time row count");
+    if (Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(Columns == cols && "runtime row count does not match compile time row count");
+    return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
+        rows, cols, Batches, functor::ConstantFunctor<Scalar>(value));
 }
 
 /**
@@ -49,15 +51,16 @@ template<typename T = std::enable_if<_Batches != Dynamic && _Rows == Dynamic && 
 * \param value the value to fill
 * \return the expression creating that matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic
-    && ((_Rows == Dynamic && _Columns != Dynamic) || (_Rows != Dynamic && _Columns == Dynamic)),
-    NullaryOp_t<functor::ConstantFunctor<_Scalar> > > >
-    static typename T::type Constant(Index size, const _Scalar& value)
+static NullaryOp_t<functor::ConstantFunctor<Scalar> >
+Constant(Index size, const Scalar& value)
 {
-    return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-        _Rows == Dynamic ? size : _Rows,
-        _Columns == Dynamic ? size : _Columns,
-        _Batches, functor::ConstantFunctor<_Scalar>(value));
+    CUMAT_STATIC_ASSERT(Batches != Dynamic
+        && ((Rows == Dynamic && Columns != Dynamic) || (Rows != Dynamic && Columns == Dynamic)),
+        "Matrix must have a fixed compile-time batch size and compile-time row or column count (a vector)");
+    return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
+        Rows == Dynamic ? size : Rows,
+        Columns == Dynamic ? size : Columns,
+        Batches, functor::ConstantFunctor<Scalar>(value));
 }
 
 /**
@@ -66,12 +69,13 @@ template<typename T = std::enable_if<_Batches != Dynamic
 * \param value the value to fill
 * \return the expression creating that matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic && _Rows != Dynamic && _Columns != Dynamic,
-    NullaryOp_t<functor::ConstantFunctor<_Scalar> > > >
-    static typename T::type Constant(const _Scalar& value)
+static NullaryOp_t<functor::ConstantFunctor<Scalar> > 
+Constant(const Scalar& value)
 {
-    return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-        _Rows, _Columns, _Batches, functor::ConstantFunctor<_Scalar>(value));
+    CUMAT_STATIC_ASSERT(Batches != Dynamic && Rows != Dynamic && Columns != Dynamic,
+        "All dimensions must be fixed on compile-time for this function to be available");
+    return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
+        Rows, Columns, Batches, functor::ConstantFunctor<Scalar>(value));
 }
 
 
@@ -85,14 +89,14 @@ template<typename T = std::enable_if<_Batches != Dynamic && _Rows != Dynamic && 
 * \param batches the number of batches
 * \return the operation that computes the identity matrix
 */
-static NullaryOp_t<functor::IdentityFunctor<_Scalar> >
+static NullaryOp_t<functor::IdentityFunctor<Scalar> >
 Identity(Index rows, Index cols, Index batches)
 {
-    if (_Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(_Rows == rows && "runtime row count does not match compile time row count");
-    if (_Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(_Columns == cols && "runtime row count does not match compile time row count");
-    if (_Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(_Batches == batches && "runtime row count does not match compile time row count");
-    return NullaryOp_t<functor::IdentityFunctor<_Scalar> >(
-        rows, cols, batches, functor::IdentityFunctor<_Scalar>());
+    if (Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(Rows == rows && "runtime row count does not match compile time row count");
+    if (Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(Columns == cols && "runtime row count does not match compile time row count");
+    if (Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(Batches == batches && "runtime row count does not match compile time row count");
+    return NullaryOp_t<functor::IdentityFunctor<Scalar> >(
+        rows, cols, batches, functor::IdentityFunctor<Scalar>());
 }
 
 /**
@@ -102,12 +106,14 @@ Identity(Index rows, Index cols, Index batches)
 * \param cols the number of columns.
 * \return  the operation that computes the identity matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic && _Rows == Dynamic && _Columns == Dynamic,
-    NullaryOp_t<functor::IdentityFunctor<_Scalar> > > >
-    static typename T::type Identity(Index rows, Index cols)
+static NullaryOp_t<functor::IdentityFunctor<Scalar> >
+Identity(Index rows, Index cols)
 {
-    return NullaryOp_t<functor::IdentityFunctor<_Scalar> >(
-        rows, cols, _Batches, functor::IdentityFunctor<_Scalar>());
+    CUMAT_STATIC_ASSERT(Batches != Dynamic, "Number of batches must be fixed on compile-time");
+    if (Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(Rows == rows && "runtime row count does not match compile time row count");
+    if (Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(Columns == cols && "runtime row count does not match compile time row count");
+    return NullaryOp_t<functor::IdentityFunctor<Scalar> >(
+        rows, cols, Batches, functor::IdentityFunctor<Scalar>());
 }
 /**
 * \brief Creates a square identity matrix.
@@ -115,13 +121,14 @@ template<typename T = std::enable_if<_Batches != Dynamic && _Rows == Dynamic && 
 * \param size the size of the matrix
 * \return the operation that computes the identity matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic
-    && (_Rows == Dynamic && _Columns == Dynamic),
-    NullaryOp_t<functor::IdentityFunctor<_Scalar> > > >
-    static typename T::type Identity(Index size)
+static NullaryOp_t<functor::IdentityFunctor<Scalar> >
+Identity(Index size)
 {
-    return NullaryOp_t<functor::IdentityFunctor<_Scalar> >(
-        size, size, _Batches, functor::IdentityFunctor<_Scalar>());
+    CUMAT_STATIC_ASSERT(Batches != Dynamic
+        && (Rows == Dynamic && Columns == Dynamic),
+        "This function can only be called on dynamic sized matrices with a fixed batch size");
+    return NullaryOp_t<functor::IdentityFunctor<Scalar> >(
+        size, size, Batches, functor::IdentityFunctor<Scalar>());
 }
 /**
 * \brief Creates the identity matrix.
@@ -129,12 +136,13 @@ template<typename T = std::enable_if<_Batches != Dynamic
 * Note that the matrix must not necessarily be square.
 * \return  the operation that computes the identity matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic && _Rows != Dynamic && _Columns != Dynamic,
-    NullaryOp_t<functor::IdentityFunctor<_Scalar> > > >
-static typename T::type Identity()
+static NullaryOp_t<functor::IdentityFunctor<Scalar> >
+Identity()
 {
-    return NullaryOp_t<functor::IdentityFunctor<_Scalar> >(
-        _Rows, _Columns, _Batches, functor::IdentityFunctor<_Scalar>());
+    CUMAT_STATIC_ASSERT(Batches != Dynamic && Rows != Dynamic && Columns != Dynamic,
+        "This function can only be called on matrices with all dimensions fixed on compile-time");
+    return NullaryOp_t<functor::IdentityFunctor<Scalar> >(
+        Rows, Columns, Batches, functor::IdentityFunctor<Scalar>());
 }
 
 
@@ -145,14 +153,14 @@ static typename T::type Identity()
 * \param batches the number of batches
 * \return the expression creating that matrix
 */
-static NullaryOp_t<functor::ConstantFunctor<_Scalar> >
+static NullaryOp_t<functor::ConstantFunctor<Scalar> >
 Zero(Index rows, Index cols, Index batches)
 {
-    if (_Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(_Rows == rows && "runtime row count does not match compile time row count");
-    if (_Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(_Columns == cols && "runtime row count does not match compile time row count");
-    if (_Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(_Batches == batches && "runtime row count does not match compile time row count");
-    return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-        rows, cols, batches, functor::ConstantFunctor<_Scalar>(_Scalar(0)));
+    if (Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(Rows == rows && "runtime row count does not match compile time row count");
+    if (Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(Columns == cols && "runtime row count does not match compile time row count");
+    if (Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(Batches == batches && "runtime row count does not match compile time row count");
+    return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
+        rows, cols, batches, functor::ConstantFunctor<Scalar>(_Scalar(0)));
 }
 //Specialization for some often used cases
 
@@ -163,12 +171,14 @@ Zero(Index rows, Index cols, Index batches)
 * \param cols the number of columns
 * \return the expression creating that matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic && _Rows == Dynamic && _Columns == Dynamic,
-    NullaryOp_t<functor::ConstantFunctor<_Scalar> > > >
-static typename T::type Zero(Index rows, Index cols)
+static NullaryOp_t<functor::ConstantFunctor<Scalar> >
+Zero(Index rows, Index cols)
 {
-    return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-        rows, cols, _Batches, functor::ConstantFunctor<_Scalar>(_Scalar(0)));
+    CUMAT_STATIC_ASSERT(Batches != Dynamic, "Number of batches must be fixed on compile-time");
+    if (Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(Rows == rows && "runtime row count does not match compile time row count");
+    if (Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(Columns == cols && "runtime row count does not match compile time row count");
+    return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
+        rows, cols, _Batches, functor::ConstantFunctor<Scalar>(Scalar(0)));
 }
 
 /**
@@ -178,15 +188,16 @@ static typename T::type Zero(Index rows, Index cols)
 * \param size the size of the matrix along the free dimension
 * \return the expression creating that matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic
-    && ((_Rows == Dynamic && _Columns != Dynamic) || (_Rows != Dynamic && _Columns == Dynamic)),
-    NullaryOp_t<functor::ConstantFunctor<_Scalar> > > >
-static typename T::type Zero(Index size)
+static NullaryOp_t<functor::ConstantFunctor<Scalar> >
+Zero(Index size)
 {
-    return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-        _Rows == Dynamic ? size : _Rows,
-        _Columns == Dynamic ? size : _Columns,
-        _Batches, functor::ConstantFunctor<_Scalar>(_Scalar(0)));
+    CUMAT_STATIC_ASSERT(Batches != Dynamic
+        && ((Rows == Dynamic && Columns != Dynamic) || (Rows != Dynamic && Columns == Dynamic)),
+        "Matrix must have a fixed compile-time batch size and compile-time row or column count (a vector)");
+    return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
+        Rows == Dynamic ? size : Rows,
+        Columns == Dynamic ? size : Columns,
+        Batches, functor::ConstantFunctor<Scalar>(Scalar(0)));
 }
 
 /**
@@ -195,10 +206,11 @@ static typename T::type Zero(Index size)
 * \param value the value to fill
 * \return the expression creating that matrix
 */
-template<typename T = std::enable_if<_Batches != Dynamic && _Rows != Dynamic && _Columns != Dynamic,
-    NullaryOp_t<functor::ConstantFunctor<_Scalar> > > >
-static typename T::type Zero()
+static NullaryOp_t<functor::ConstantFunctor<Scalar> >
+Zero()
 {
-    return NullaryOp_t<functor::ConstantFunctor<_Scalar> >(
-        _Rows, _Columns, _Batches, functor::ConstantFunctor<_Scalar>(_Scalar(0)));
+    CUMAT_STATIC_ASSERT(Batches != Dynamic && Rows != Dynamic && Columns != Dynamic,
+        "All dimensions must be fixed on compile-time for this function to be available");
+    return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
+        Rows, Columns, Batches, functor::ConstantFunctor<Scalar>(Scalar(0)));
 }

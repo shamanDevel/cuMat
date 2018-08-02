@@ -105,7 +105,7 @@
  * \brief Assertions in device code (if supported)
  * \param x the expression that must be true
  */
-#define CUMAT_ASSERT_CUDA(x) //do nothing, not supported
+#define CUMAT_ASSERT_CUDA(x) assert(x) //do nothing, not supported
 
 /**
  * \brief A static assertion

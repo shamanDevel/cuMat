@@ -46,7 +46,7 @@ template<typename _Scalar, int _Batches, int _SparseFlags>
 class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar, _Batches, _SparseFlags> >
 {
     CUMAT_STATIC_ASSERT(_SparseFlags == SparseFlags::CSR || _SparseFlags == SparseFlags::CSC,
-        "SparseFlags must be either CSR or CSC");
+        "SparseFlags must be either CSR or CSC")
 public:
 
     using Type = SparseMatrix<_Scalar, _Batches, _SparseFlags>;
@@ -305,7 +305,6 @@ public:
         }
         return Scalar(0);
     }
-    //TODO: optimized coefficient access with the use of 'linear'
 
     /**
     * \brief Access to the linearized coefficient, write-only.
@@ -346,9 +345,32 @@ public:
         return A_.rawCoeff(index);
     }
 
-    void direct() const
+    /**
+     * \brief Returns a wrapper class for direct coefficient access.
+     * If this wrapper is used, a call to \ref coeff(Index row, Index col, Index batch, Index linear) const
+     * will use the linear index instead of the regular row-column-batch index. This avoids
+     * the search for the matching coefficient in this sparse matrix.
+     * 
+     * The use case is the following optimization:
+     * Assume the sparse matrices A and B have the same sparsity pattern (and same storage order)
+     * and the following operation
+     * \code A = cwiseop(B) \endcode with \c cwiseop() being any chain of compouned-wise operations
+     * (unary, binary) that does not change the access order (no broadcasting, transposition, ...).
+     * Then the order in which the entries in B are accessed are exactly the same as how the elements into A 
+     * are written.
+     * This is a very common case and in that scenario, the search for the current entry in B can be
+     * avoided by using directly the raw index, that is used to write into A, also to read the entry in B.
+     * This optimization has to be manually triggered by the user by calling this method on B:
+     * \code A = cwiseop(B.direct()) \endcode .
+     * 
+     * If the sparsity pattern of this matrix and the target matrix (A above) do no match,
+     * the results of the evaluation are unspecified.
+     * 
+     * \return a wrapper to trigger the direct-read optimization
+     */
+    internal::SparseMatrixDirectAccess<const Type> direct() const
     {
-        throw std::exception("Not supported yet");
+        return internal::SparseMatrixDirectAccess<const Type>(this);
     }
 
     //----------------------------------
@@ -438,6 +460,18 @@ public:
     {
         return internal::MatrixInplaceAssignment<Type>(this);
     }
+
+    // STATIC METHODS AND OTHER HELPERS
+    /**
+    * \brief Sets all entries to zero.
+    * Warning: this operation works in-place and therefore violates the copy-on-write paradigm.
+    */
+    void setZero()
+    {
+        A_.setZero();
+    }
+
+#include "MatrixNullaryOpsPlugin.inl"
 };
 
 /**
@@ -496,7 +530,52 @@ namespace internal
             return *matrix_;
         }
     };
-}
+
+    template<typename _SparseMatrix>
+    struct traits<SparseMatrixDirectAccess<_SparseMatrix> >
+    {
+        using Scalar = typename traits<_SparseMatrix>::Scalar;
+        enum
+        {
+            Flags = ColumnMajor, //always use ColumnMajor when evaluated to dense stuff
+            SparseFlags = traits<_SparseMatrix>::SparseFlags,
+            RowsAtCompileTime = Dynamic,
+            ColsAtCompileTime = Dynamic,
+            BatchesAtCompileTime = traits<_SparseMatrix>::BatchesAtCompileTime,
+            AccessFlags = ReadCwise
+        };
+        typedef CwiseSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
+    };
+
+    template<typename _SparseMatrix>
+    class SparseMatrixDirectAccess : public MatrixBase<SparseMatrixDirectAccess<_SparseMatrix> >
+    {
+    public:
+        using Type = SparseMatrixDirectAccess<_SparseMatrix>;
+        using Base = MatrixBase<Type>;
+        CUMAT_PUBLIC_API
+
+    private:
+        _SparseMatrix matrix_;
+    public:
+        SparseMatrixDirectAccess(const _SparseMatrix* matrix) : matrix_(*matrix) {} //store by value, needed for the host->device transfer
+
+        __host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return matrix_.rows(); }
+        __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return matrix_.cols(); }
+        __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return matrix_.batches(); }
+        /**
+        * \brief Accesses a single entry, used directly the linear index to access the entry.
+        * \param linear the linear index
+        * \return the scalar coefficient at this position
+        * \see SparseMatrix::direct()
+        */
+        __device__ const Scalar& coeff(Index /*row*/, Index /*col*/, Index /*batch*/, Index linear) const
+        {
+            return matrix_.getRawCoeff(linear);
+        }
+    };
+} //end namespace internal
 
 CUMAT_NAMESPACE_END
 
