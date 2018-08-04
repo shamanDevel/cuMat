@@ -415,6 +415,40 @@ public:
     }
 
     /**
+     * \brief Performs a deep clone of the matrix.
+     * Usually, when you assign matrix instances, the underlying data is shared. This method explicitly copies the internal data
+     * of the matrix into a new matrix. The two matrices are then completely independent, i.e. if you perform an 
+     * inplace modification on this or the returned matrix, the changes are not reflected in the other.
+     * 
+     * You can select whether only the data (\code cloneSparsity=false \endcode, the default) is cloned,
+     * or also the sparsity pattern (\code cloneSparsity=true \endcode).
+     *
+     * \param cloneSparsity false -> only the data array is cloned, true -> data array and sparsity pattern is cloned
+     * \return the new matrix with a deep clone of the data
+     */
+    Type deepClone(bool cloneSparsity = false) const
+	{
+        Type mat(*this); //shallow
+        mat.A_ = mat.A_.deepClone();
+        if (cloneSparsity)
+        {
+            mat.IA_ = mat.IA_.deepClone();
+            mat.JA_ = mat.JA_.deepClone();
+        }
+        return mat;
+	}
+
+private:
+    void checkInitialized() const
+    {
+        if (!isInitialized())
+        {
+            throw std::runtime_error("The sparsity pattern of this SparseMatrix has not been initialized, can't assign to this matrix");
+        }
+    }
+public:
+
+    /**
     * \brief Evaluation assignment, new memory is allocated for the result data.
     * Exception: if it can be guarantered, that the memory is used exclusivly (\ref isExclusiveUse() returns true).
     * 
@@ -436,15 +470,66 @@ public:
         {
             throw std::runtime_error("The matrix size of the expression does not match this size, dynamic resizing of a SparseMatrix is not supported");
         }
-        if (!isInitialized())
-        {
-            throw std::runtime_error("The sparsity pattern of this SparseMatrix has not been initialized, can't assign to this matrix");
-        }
+        checkInitialized();
         makeExclusiveUse();
         internal::Assignment<Type, Derived, AssignmentMode::ASSIGN, internal::SparseDstTag, typename internal::traits<Derived>::SrcTag>::assign(*this, expr.derived());
         return *this;
     }
     //No evaluation constructor
+
+    #define CUMAT_COMPOUND_ASSIGNMENT(op, mode)                                                         \
+    /**                                                                                                 \
+    * \brief Compound-assignment with evaluation, modifies this matrix in-place.                        \
+    * Warning: if this matrix shares the data with another matrix, this matrix is modified as well.     \
+    * If you don't intend this, call \ref makeExclusiveUse() first.                                     \
+    *                                                                                                   \
+    * No broadcasting is supported, use the verbose \code mat = mat + expr \endcode instead.            \
+    * Further, not all expressions might support inplace-assignment.                                    \
+    *                                                                                                   \
+    * \tparam Derived the type of the other expression                                                  \
+    * \param expr the other expression                                                                  \
+    * \return                                                                                           \
+    */                                                                                                  \
+    template<typename Derived>                                                                          \
+    CUMAT_STRONG_INLINE Type& op (const MatrixBase<Derived>& expr)                                      \
+    {                                                                                                   \
+        /*expr.template evalTo<Type, AssignmentMode:: mode >(*this);*/                                  \
+        checkInitialized();                                                                             \
+        internal::Assignment<Type, Derived, AssignmentMode:: mode , internal::SparseDstTag, typename internal::traits<Derived>::SrcTag>::assign(*this, expr.derived());   \
+        return *this;                                                                                   \
+    }
+
+    CUMAT_COMPOUND_ASSIGNMENT(operator+=, ADD)
+    CUMAT_COMPOUND_ASSIGNMENT(operator-=, SUB)
+    //CUMAT_COMPOUND_ASSIGNMENT(operator*=, MUL) //multiplication is ambigious: do you want cwise or matrix multiplication?
+    CUMAT_COMPOUND_ASSIGNMENT(operator/=, DIV)
+    CUMAT_COMPOUND_ASSIGNMENT(operator%=, MOD)
+    CUMAT_COMPOUND_ASSIGNMENT(operator&=, AND)
+    CUMAT_COMPOUND_ASSIGNMENT(operator|=, OR)
+
+#undef CUMAT_COMPOUND_ASSIGNMENT
+
+    /**
+     * \brief Explicit overloading of \c operator*= for scalar right hand sides.
+     * This is needed to disambiguate the difference between component-wise operations and matrix operations.
+     * All other compount-assignment operators (+=, -=, /=, ...) act component-wise.
+     * 
+     * The operator *= is special: if call with a scalar argument, it simply scales the argument;
+     * if called with a matrix as argument, it performs an inplace matrix multiplication.
+     * \tparam S the type of the scalar
+     * \param scalar the scalar value
+     * \return *this
+     */
+    template<
+        typename S,
+        typename T = typename std::enable_if<CUMAT_NAMESPACE internal::canBroadcast<Scalar, S>::value, Type>::type >
+    CUMAT_STRONG_INLINE T& operator*= (const S& scalar)
+	{
+        //Type::Constant(rows(), cols(), batches(), scalar).template evalTo<Type, AssignmentMode::MUL>(*this);
+        using Expr = decltype(Type::Constant(rows(), cols(), batches(), scalar));
+        internal::Assignment<Type, Expr, AssignmentMode::MUL, internal::SparseDstTag, typename internal::traits<Expr>::SrcTag>::assign(*this, Type::Constant(rows(), cols(), batches(), scalar));
+        return *this;
+	}
 
     /**
     * \brief Forces inplace assignment.

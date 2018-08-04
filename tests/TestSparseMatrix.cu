@@ -268,3 +268,48 @@ TEST_CASE("Sparse-Cwise", "[Sparse]")
     assertMatrixEquality(expectedDense, tmatrix1);
     assertMatrixEquality(expectedDense, tmatrix2);
 }
+
+TEST_CASE("Compound-SparseMatrix", "[Sparse]")
+{
+    //int data[1][2][3] = { {{1, 2, 0}, {0, 3, 4}} };
+    typedef SparseMatrix<int, 1, SparseFlags::CSR> SMatrix_t;
+    SMatrix_t::SparsityPattern pattern;
+    pattern.rows = 2;
+    pattern.cols = 3;
+    pattern.nnz = 4;
+    pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(4) << 0, 1, 1, 2).finished());
+    pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(3) << 0, 2, 4).finished());
+    REQUIRE_NOTHROW(pattern.assertValid());
+    SMatrix_t mat1(pattern);
+    SMatrix_t mat2(pattern);
+    mat1.getData().slice(0) = VectorXi::fromEigen((Eigen::VectorXi(4) << 1, 2, 3, 4).finished());
+    
+    SECTION("add") {
+        mat2 = mat1.deepClone();
+        mat2 += mat1;
+        int expected1[1][2][3] = { { { 2, 4, 0 },{ 0, 6, 8 } } };
+        assertMatrixEquality(expected1, mat2);
+    }
+
+    SECTION("sub") {
+        mat2 = Matrix<int, 2, 3, 1, ColumnMajor>::Zero();
+        mat2 -= mat1;
+        int expected2[1][2][3] = { { { -1, -2, 0 },{ 0, -3, -4 } } };
+        assertMatrixEquality(expected2, mat2);
+    }
+
+    SECTION("mod") {
+        mat2 = mat1 + 3;
+        mat2 %= mat1;
+        int expected3[1][2][3] = { { { 0, 1, 0 },{ 0, 0, 3 } } };
+        assertMatrixEquality(expected3, mat2);
+    }
+
+    SECTION("mul - scalar")
+    {
+        mat2 = mat1.deepClone();
+        mat2 *= 2;
+        int expected4[1][2][3] = { { { 2, 4, 0 },{ 0, 6, 8 } } };
+        assertMatrixEquality(expected4, mat2);
+    }
+}
