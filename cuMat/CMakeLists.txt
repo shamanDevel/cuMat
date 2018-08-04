@@ -47,6 +47,8 @@ set(CUMAT_HEADERS
   src/SparseMatrix.h
   src/SparseEvaluation.h
   Sparse
+  
+  src/ConjugateGradient.h
   )
 
 add_library(cuMat INTERFACE) # 'moduleA' is an INTERFACE pseudo target
