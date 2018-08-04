@@ -7,6 +7,7 @@
 #include "NumTraits.h"
 
 #include <cmath>
+#include <cub/util_type.cuh>
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -287,10 +288,31 @@ public:
 // diagonal() and asDiagonal()
 
 namespace internal {
+
+    /**
+     * \brief Specialize this struct if you need a special conversion from the vector type to the matrix type.
+     *  This is needed for example if your matrix uses some custom struct as small blocks as elements.
+     * \tparam _VectorType the vector type
+     */
+    template<typename _VectorType>
+    struct AsDiagonalFunctor
+    {
+        /**
+         * \brief The matrix type after converting the vector entry to the matrix entry
+         */
+        using MatrixType = _VectorType;
+
+        static __host__ __device__ CUMAT_STRONG_INLINE MatrixType asDiagonal(const _VectorType& v)
+        {
+            return v; //default implementation
+        }
+    };
+
     template<typename _Child>
     struct traits<AsDiagonalOp<_Child> >
     {
-        using Scalar = typename internal::traits<_Child>::Scalar;
+        using VectorType = typename internal::traits<_Child>::Scalar;
+        using Scalar = typename AsDiagonalFunctor<VectorType>::MatrixType; //typename internal::traits<_Child>::Scalar;
         enum
         {
             Flags = internal::traits<_Child>::Flags,
@@ -316,6 +338,7 @@ public:
     typedef CwiseOp<AsDiagonalOp<_Child> > Base;
     typedef AsDiagonalOp<_Child> Type;
     CUMAT_PUBLIC_API
+    using VectorType = typename internal::traits<Type>::VectorType;
     enum
     {
         Size = internal::traits<Type>::Size,
@@ -342,25 +365,47 @@ public:
 
     __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     {
+        using Functor = typename internal::AsDiagonalFunctor<VectorType>;
         if (row == col)
         {
             if (IsRowVector)
-                return child_.derived().coeff(0, col, batch, -1);
+                return Functor::asDiagonal(child_.derived().coeff(0, col, batch, -1));
             else
-                return child_.derived().coeff(row, 0, batch, -1);
+                return Functor::asDiagonal(child_.derived().coeff(row, 0, batch, -1));
         } else
         {
-            return Scalar(0);
+            return Functor::asDiagonal(VectorType(0));
         }
     }
 };
 
 
 namespace internal {
+
+    /**
+     * \brief Specialize this struct if you need a special conversion from the matrix type to the vector type.
+     *  This is needed for example if your matrix uses some custom struct as small blocks as elements.
+     * \tparam _MatrixType the matrix type
+     */
+    template<typename _MatrixType>
+    struct ExtractDiagonalFunctor
+    {
+        /**
+         * \brief The matrix type after converting the vector entry to the matrix entry
+         */
+        using VectorType = _MatrixType;
+
+        static __host__ __device__ CUMAT_STRONG_INLINE VectorType extractDiagonal(const _MatrixType& v)
+        {
+            return v; //default implementation
+        }
+    };
+
     template<typename _Child>
     struct traits<ExtractDiagonalOp<_Child> >
     {
-        using Scalar = typename internal::traits<_Child>::Scalar;
+        using MatrixType = typename internal::traits<_Child>::Scalar;
+        using Scalar = typename ExtractDiagonalFunctor<MatrixType>::VectorType; //using Scalar = typename internal::traits<_Child>::Scalar;
         enum
         {
             Flags = internal::traits<_Child>::Flags,
@@ -390,7 +435,7 @@ public:
     typedef CwiseOp<ExtractDiagonalOp<_Child> > Base;
     typedef ExtractDiagonalOp<_Child> Type;
     CUMAT_PUBLIC_API
-
+    using MatrixType = typename internal::traits<Type>::MatrixType;
 
 protected:
     typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
@@ -409,7 +454,8 @@ public:
 
     __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     {
-        return child_.derived().coeff(row, row, batch, index);
+        using Functor = internal::ExtractDiagonalFunctor<MatrixType>;
+        return Functor::extractDiagonal(child_.derived().coeff(row, row, batch, index));
     }
 };
 
