@@ -11,8 +11,18 @@
 
 CUMAT_NAMESPACE_BEGIN
 
+namespace internal
+{
+    template<typename _MatrixType>
+    struct traits<CholeskyDecomposition<_MatrixType>>
+    {
+        using Scalar = typename internal::traits<_MatrixType>::Scalar;
+        using MatrixType = _MatrixType;
+    };
+}
+
 template<typename _MatrixType>
-class CholeskyDecomposition : public DecompositionBase<_MatrixType, CholeskyDecomposition<_MatrixType>>
+class CholeskyDecomposition : public DecompositionBase<CholeskyDecomposition<_MatrixType>>
 {
 public:
     using Scalar = typename internal::traits<_MatrixType>::Scalar;
@@ -117,7 +127,7 @@ public:
     }
 
     template<typename _RHS, typename _Target>
-    void _solver_impl(const MatrixBase<_RHS>& rhs, MatrixBase<_Target>& target) const
+    void _solve_impl(const MatrixBase<_RHS>& rhs, MatrixBase<_Target>& target) const
     {
         //for now, enforce column major storage of m
         CUMAT_STATIC_ASSERT(CUMAT_IS_COLUMN_MAJOR(internal::traits<_Target>::Flags),

@@ -24,12 +24,23 @@ namespace
     };
 }
 
+namespace internal
+{
+    template<typename _MatrixType>
+    struct traits<LUDecomposition<_MatrixType>>
+    {
+        using Scalar = typename internal::traits<_MatrixType>::Scalar;
+        using MatrixType = _MatrixType;
+    };
+}
+
 template<typename _MatrixType>
-class LUDecomposition : public DecompositionBase<_MatrixType, LUDecomposition<_MatrixType>>
+class LUDecomposition : public DecompositionBase<LUDecomposition<_MatrixType>>
 {
 public:
-    using Scalar = typename internal::traits<_MatrixType>::Scalar;
     typedef LUDecomposition<_MatrixType> Type;
+    using Scalar = typename internal::traits<Type>::Scalar;
+
     enum
     {
         Flags = internal::traits<_MatrixType>::Flags,
@@ -148,7 +159,7 @@ public:
 
     //Internal solve implementation
     template<typename _RHS, typename _Target>
-    void _solver_impl(const MatrixBase<_RHS>& rhs, MatrixBase<_Target>& target) const
+    void _solve_impl(const MatrixBase<_RHS>& rhs, MatrixBase<_Target>& target) const
     {
         //for now, enforce column major storage of m
         CUMAT_STATIC_ASSERT(CUMAT_IS_COLUMN_MAJOR(internal::traits<_Target>::Flags),

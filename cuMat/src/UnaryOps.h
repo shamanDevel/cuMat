@@ -159,6 +159,7 @@ namespace functor
     };
 
 	DEFINE_GENERAL_FUNCTOR(cwiseInverse, ( CUMAT_NAMESPACE internal::NumTraits<_Scalar>::RealType(1) / x ) );
+    DEFINE_GENERAL_FUNCTOR(cwiseInverseCheck, ( x==_Scalar(0) ? _Scalar(1) : CUMAT_NAMESPACE internal::NumTraits<_Scalar>::RealType(1) / x ) );
     //DEFINE_CFUNCTOR(cwiseInverse, cfloat, (cfloat{ 1,0 } / x));
     //DEFINE_CFUNCTOR(cwiseInverse, cdouble, (cdouble{1,0} / x));
 
@@ -678,6 +679,7 @@ CUMAT_FUNCTION_NAMESPACE_BEGIN
 
 UNARY_OP(abs, cwiseAbs);
 UNARY_OP(inverse, cwiseInverse);
+UNARY_OP(inverseCheck, cwiseInverseCheck);
 UNARY_OP(floor, cwiseFloor);
 UNARY_OP(ceil, cwiseCeil);
 UNARY_OP(round, cwiseRound);

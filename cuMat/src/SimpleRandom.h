@@ -206,7 +206,7 @@ public:
     template<
         typename _Derived,
         typename _Scalar = typename internal::traits<_Derived>::Scalar >
-    void fillUniform(const MatrixBase<_Derived>& m, const _Scalar& min = MinMaxDefaults<_Scalar>::min(), const _Scalar& max = MinMaxDefaults<_Scalar>::max())
+    void fillUniform(MatrixBase<_Derived>& m, const _Scalar& min = MinMaxDefaults<_Scalar>::min(), const _Scalar& max = MinMaxDefaults<_Scalar>::max())
     {
         if (m.size() == 0) return;
         Context& ctx = Context::current();

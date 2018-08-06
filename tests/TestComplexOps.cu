@@ -204,6 +204,9 @@ void testRealImag()
         assertMatrixEquality(expectedReal, real(mat));
         assertMatrixEquality(expectedImag, mat.imag());
         assertMatrixEquality(expectedImag, imag(mat));
+
+        RMatrix matr = mat.real(); 
+        assertMatrixEquality(expectedReal, matr.real()); //real() of a real matrix is a no-op
     }
 
     SECTION("lvalue-direct")

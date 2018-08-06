@@ -1231,6 +1231,7 @@ public:
 
     //TODO: find a better place for the following two methods:
 
+#ifdef CUMAT_PARSED_BY_DOXYGEN
     /**
     * \brief Extracts the real part of the complex matrix.
     * This method is only available for complex matrices.
@@ -1241,6 +1242,31 @@ public:
         CUMAT_STATIC_ASSERT(internal::NumTraits<_Scalar>::IsComplex, "Matrix must be complex");
         return ExtractComplexPartOp<Type, false, true>(*this);
     }
+#else
+    /**
+    * \brief Extracts the real part of the complex matrix.
+    * Specialization for non-complex matrices: no-op.
+    * This is the non-const lvalue version.
+    */
+    template<typename S = typename internal::traits<Type>::Scalar, 
+            typename = typename std::enable_if<!internal::NumTraits<S>::IsComplex>::type>
+    const Type& real()
+    {
+        return *this;
+    }
+    /**
+    * \brief Extracts the real part of the complex matrix.
+    * Specialization for complex matrices, extracts the real part.
+    * This is the non-const lvalue version
+    */
+    template<typename S = typename internal::traits<Type>::Scalar, 
+            typename = typename std::enable_if<internal::NumTraits<S>::IsComplex>::type>
+    ExtractComplexPartOp<Type, false, true> real()
+    {
+        CUMAT_STATIC_ASSERT(internal::NumTraits<_Scalar>::IsComplex, "Matrix must be complex");
+        return ExtractComplexPartOp<Type, false, true>(*this);
+    }
+#endif
     /**
     * \brief Extracts the imaginary part of the complex matrix.
     * This method is only available for complex matrices.

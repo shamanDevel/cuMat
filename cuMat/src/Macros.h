@@ -112,7 +112,7 @@
  * \param exp the compile-time boolean expression that must be true
  * \param msg an error message if exp is false
  */
-#define CUMAT_STATIC_ASSERT(exp, msg) static_assert(exp, msg);
+#define CUMAT_STATIC_ASSERT(exp, msg) static_assert(exp, msg)
 
 #define CUMAT_STRONG_INLINE __inline__
 

@@ -113,6 +113,7 @@ namespace functor
 	template<typename _Scalar> class UnaryMathFunctor_cwiseAbs;
     template<typename _Scalar> class UnaryMathFunctor_cwiseAbs2;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseInverse;
+    template<typename _Scalar> class UnaryMathFunctor_cwiseInverseCheck;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseExp;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseLog;
 	template<typename _Scalar> class UnaryMathFunctor_cwiseLog1p;
@@ -172,7 +173,9 @@ using HostScalar = NullaryOp<_Scalar, 1, 1, 1, 0, functor::ConstantFunctor<_Scal
 
 // DENSE
 
-template<typename _MatrixType, typename _DecompositionImpl> class DecompositionBase;
+template<typename _Solver, typename _RHS> class SolveOp;
+template<typename _SolverImpl> class SolverBase;
+template<typename _DecompositionImpl> class DecompositionBase;
 template<typename _MatrixType> class LUDecomposition;
 template<typename _MatrixType> class CholeskyDecomposition;
 template<typename _Solver, typename _RHS> class SolveOp;
@@ -181,6 +184,11 @@ template<typename _Child> class DeterminantOp;
 // SPARSE
 
 template<typename _Scalar, int _Batches, int _Flags> class SparseMatrix;
+template<typename _Solver, typename _RHS, typename _Guess> class SolveWithGuessOp;
+template<typename _SolverImpl> class IterativeSolverBase;
+template<typename _MatrixType, typename _Preconditioner> class ConjugateGradient;
+template<typename _MatrixType> class DiagonalPreconditioner;
+template<typename _MatrixType> class IdentityPreconditioner;
 
 CUMAT_NAMESPACE_END
 

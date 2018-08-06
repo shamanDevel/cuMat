@@ -6,6 +6,7 @@
 #include "Macros.h"
 #include "ForwardDeclarations.h"
 #include <type_traits>
+#include <limits>
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -21,6 +22,7 @@ namespace internal
             IsCudaNumeric = 0,
             IsComplex = false
         };
+        static constexpr CUMAT_STRONG_INLINE RealType epsilon() {return std::numeric_limits<T>::epsilon();}
 	};
 
     template <>
@@ -33,6 +35,7 @@ namespace internal
             IsCudaNumeric = 1,
             IsComplex = false,
         };
+        static constexpr CUMAT_STRONG_INLINE RealType epsilon() {return std::numeric_limits<float>::epsilon();}
     };
     template <>
     struct NumTraits<double>
@@ -44,6 +47,7 @@ namespace internal
             IsCudaNumeric = 1,
             IsComplex = false,
         };
+        static constexpr CUMAT_STRONG_INLINE RealType epsilon() {return std::numeric_limits<double>::epsilon();}
     };
 
 	template <>
@@ -56,6 +60,7 @@ namespace internal
             IsCudaNumeric = 1,
             IsComplex = true,
         };
+        static constexpr CUMAT_STRONG_INLINE RealType epsilon() {return std::numeric_limits<float>::epsilon();}
 	};
 
 	template <>
@@ -68,6 +73,7 @@ namespace internal
             IsCudaNumeric = 1,
             IsComplex = true,
         };
+        static constexpr CUMAT_STRONG_INLINE RealType epsilon() {return std::numeric_limits<double>::epsilon();}
 	};
 
     template <typename T>

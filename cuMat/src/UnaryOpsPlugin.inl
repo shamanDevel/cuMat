@@ -21,6 +21,11 @@ UNARY_OP_ACCESSOR(cwiseAbs2);
 * \brief computes the component-wise inverse (x -> 1/x)
 */
 UNARY_OP_ACCESSOR(cwiseInverse);
+/**
+* \brief computes the component-wise inverse (x -> 1/x)
+* with the additional check that it returns 1 if x is zero.
+*/
+UNARY_OP_ACCESSOR(cwiseInverseCheck);
 
 /**
 * \brief computes the component-wise exponent (x -> exp(x))
@@ -190,15 +195,44 @@ ExtractDiagonalOp<_Derived> diagonal() const
     return ExtractDiagonalOp<_Derived>(derived());
 }
 
+#ifdef CUMAT_PARSED_BY_DOXYGEN
+
 /**
  * \brief Extracts the real part of the complex matrix.
- * This method is only available for complex matrices.
+ * On real matrices, this is a no-op.
  */
+ExtractComplexPartOp<_Derived, false, false> real() const
+{
+    return ExtractComplexPartOp<_Derived, false, false>(derived());
+}
+
+#else
+
+/**
+ * \brief Extracts the real part of the complex matrix.
+ * Specialization for real matrices: no-op.
+ */
+template<typename S = typename internal::traits<_Derived>::Scalar,
+         typename = typename std::enable_if<!internal::NumTraits<S>::IsComplex>::type>
+_Derived real() const
+{
+    return derived();
+}
+
+/**
+ * \brief Extracts the real part of the complex matrix.
+ * Specialization for complex matrices.
+ */
+template<typename S = typename internal::traits<_Derived>::Scalar,
+         typename = typename std::enable_if<internal::NumTraits<S>::IsComplex>::type>
 ExtractComplexPartOp<_Derived, false, false> real() const
 {
     CUMAT_STATIC_ASSERT(internal::NumTraits<typename internal::traits<_Derived>::Scalar>::IsComplex, "Matrix must be complex");
     return ExtractComplexPartOp<_Derived, false, false>(derived());
 }
+
+#endif
+
 /**
  * \brief Extracts the imaginary part of the complex matrix.
  * This method is only available for complex matrices.

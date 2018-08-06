@@ -37,6 +37,7 @@ set(CUMAT_HEADERS
   Core
   
   src/CusolverApi.h
+  src/SolverBase.h
   src/DecompositionBase.h
   src/LUDecomposition.h
   src/CholeskyDecomposition.h
@@ -48,6 +49,7 @@ set(CUMAT_HEADERS
   src/SparseEvaluation.h
   Sparse
   
+  src/IterativeSolverBase.h
   src/ConjugateGradient.h
   )
 
