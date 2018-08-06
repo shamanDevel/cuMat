@@ -62,7 +62,7 @@ Roadmap:
 1. Test Cwise-Ops on SparseMatrices, test compound-assignment, test linear indexing		DONE
 2. asDiagonal(), diagonal() from/to SparseMatrix and DenseVector-float3/4				partly DONE, added functor struct, specialization part of step 6
 3. scalar*SparseMatrix with scalar on the host or device								aready DONE, just not enabled in operator* for ambiguity, use cwiseProduct.
-4. CG-Solver for a custom Matrix with custom operator*
+4. CG-Solver for a custom Matrix with custom operator*									DONE
    all Vector-Operations on the GPU
    async copy of the scalar results from the dot product to the CPU (if neccessary)
 5. Dense-Dense -> SparseMatrix outer product

@@ -42,6 +42,8 @@ set(CUMAT_TEST_FILES
   TestCompoundAssignment.cu
   TestSparseMatrix.cu
   TestConjugateGradient.cu
+  
+  BenchmarkDenseConjugateGradient.cu
   )
 
 if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
@@ -50,6 +52,7 @@ endif()
 enable_testing()
 
 add_definitions(-DCUMAT_CONTEXT_DEBUG_MEMORY=1 -DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
+#add_definitions(-DCUMAT_EIGEN_SUPPORT=1)
 
 if(CUMAT_SEPARATE_TESTS)
     # a separate project for each test file

@@ -757,7 +757,7 @@ public:
         DevicePointer<_Scalar> ptr = data_.dataPointer();
         data_ = Storage_t(rows(), cols(), batches());
         CUMAT_SAFE_CALL(cudaMemcpyAsync(data(), ptr.pointer(), sizeof(_Scalar)*rows()*cols()*batches(), cudaMemcpyDeviceToDevice, Context::current().stream()));
-        CUMAT_PROFILING_INC(DeviceMemcpy);
+        CUMAT_PROFILING_INC(MemcpyDeviceToDevice);
 
         assert(isExclusiveUse());
     }
@@ -806,6 +806,7 @@ public:
         typedef Matrix<_Scalar, (Rows > 1) ? Dynamic : Rows, (Cols > 1) ? Dynamic : Cols, (Batches > 1) ? Dynamic : Batches, RowMajor> mt;
         mt m(Rows, Cols, Batches);
         m.copyFromHost((const _Scalar*)a);
+        CUMAT_PROFILING_INC(MemcpyHostToDevice);
         return m;
     }
 
@@ -819,6 +820,7 @@ public:
 	void copyFromHost(const _Scalar* data)
 	{
 		CUMAT_SAFE_CALL(cudaMemcpy(data_.data(), data, sizeof(_Scalar)*size(), cudaMemcpyHostToDevice));
+        CUMAT_PROFILING_INC(MemcpyHostToDevice);
 	}
 
 	/**
@@ -833,6 +835,7 @@ public:
 	{
 	    CUMAT_SAFE_CALL(cudaDeviceSynchronize()); //wait until everything is evaluated
 		CUMAT_SAFE_CALL(cudaMemcpy(data, data_.data(), sizeof(_Scalar)*size(), cudaMemcpyDeviceToHost));
+        CUMAT_PROFILING_INC(MemcpyDeviceToHost);
 	}
 
 	// EIGEN INTEROP
@@ -1146,7 +1149,7 @@ private:
         CUMAT_ASSERT(batches() == mat.batches());
         
         CUMAT_SAFE_CALL(cudaMemcpyAsync(mat.data(), data(), sizeof(_Scalar)*rows()*cols()*batches(), cudaMemcpyDeviceToDevice, Context::current().stream()));
-        CUMAT_PROFILING_INC(DeviceMemcpy);
+        CUMAT_PROFILING_INC(MemcpyDeviceToDevice);
     }
     
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>

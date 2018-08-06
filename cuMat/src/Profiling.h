@@ -30,8 +30,10 @@ public:
         HostMemAlloc,
         HostMemFree,
 
-        DeviceMemcpy,
-        HostMemcpy,
+        MemcpyDeviceToDevice,
+        MemcpyHostToHost,
+        MemcpyDeviceToHost,
+        MemcpyHostToDevice,
 
         /**
          * \brief Any evaluation has happend
