@@ -65,6 +65,6 @@ Roadmap:
 4. CG-Solver for a custom Matrix with custom operator*									DONE
    all Vector-Operations on the GPU
    async copy of the scalar results from the dot product to the CPU (if neccessary)
-5. Dense-Dense -> SparseMatrix outer product
-6. SparseMatrix - DenseVector -> DenseVector multiplication with functor
+5. Dense-Dense -> SparseMatrix outer product											DONE
+6. SparseMatrix - DenseVector -> DenseVector multiplication with functor				DONE, TODO: Benchmarking against cuSparse
 7. float4x3 class and the template specializations

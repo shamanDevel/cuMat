@@ -59,6 +59,10 @@ public:
          * \brief Sparse component-wise evaluation
          */
         EvalCwiseSparse,
+        /**
+         * \brief Sparse matrix-matrix multiplication
+         */
+        EvalMatmulSparse,
 
         _NumCounter_
     };

@@ -64,3 +64,37 @@ TEST_CASE("Sparse (cwise) outer product", "[Sparse]")
     SECTION("float") {testSparseOuterProduct<float>();}
     SECTION("double") {testSparseOuterProduct<double>();}
 }
+
+
+TEST_CASE("Sparse Matrix-Vector Product", "[Sparse]")
+{
+    //create sparse matrix
+    //{1, 4, 0, 0, 0},
+    //{0, 2, 3, 0, 0},
+    //{5, 0, 0, 7, 8},
+    //{0, 0, 9, 0, 6}
+    typedef SparseMatrix<float, 1, SparseFlags::CSR> SMatrix_t;
+    SMatrix_t::SparsityPattern pattern;
+    pattern.rows = 4;
+    pattern.cols = 5;
+    pattern.nnz = 9;
+    pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 1, 1, 2, 0, 3, 4, 2, 4).finished());
+    pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(5) << 0, 2, 4, 7, 9).finished());
+    REQUIRE_NOTHROW(pattern.assertValid());
+    SMatrix_t A(pattern);
+    A.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished());
+
+    //create right hand side
+    VectorXf b = VectorXf::fromEigen((Eigen::VectorXf(5) << 2,5,3,-4,1).finished());
+
+    //expected result
+    VectorXf xExpected = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished());
+
+    //matmul
+    Profiling::instance().resetAll();
+    VectorXf xActual =  A * b;
+    REQUIRE(Profiling::instance().get(Profiling::EvalAny) == 1);
+    REQUIRE(Profiling::instance().get(Profiling::EvalMatmulSparse) == 1);
+
+    assertMatrixEqualityRelative(xExpected, xActual);
+}
