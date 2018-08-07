@@ -47,6 +47,7 @@ set(CUMAT_HEADERS
   
   src/SparseMatrix.h
   src/SparseEvaluation.h
+  src/SparseProductEvaluation.h
   Sparse
   
   src/IterativeSolverBase.h

@@ -9,3 +9,4 @@
 // sparse classes
 #include "src/SparseMatrix.h"
 #include "src/SparseEvaluation.h"
+#include "src/SparseProductEvaluation.h"

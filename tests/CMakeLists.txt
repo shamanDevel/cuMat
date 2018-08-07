@@ -42,6 +42,7 @@ set(CUMAT_TEST_FILES
   TestCompoundAssignment.cu
   TestSparseMatrix.cu
   TestConjugateGradient.cu
+  TestSparseMultOp.cu
   
   BenchmarkDenseConjugateGradient.cu
   )

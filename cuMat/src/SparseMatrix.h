@@ -46,7 +46,7 @@ template<typename _Scalar, int _Batches, int _SparseFlags>
 class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar, _Batches, _SparseFlags> >
 {
     CUMAT_STATIC_ASSERT(_SparseFlags == SparseFlags::CSR || _SparseFlags == SparseFlags::CSC,
-        "SparseFlags must be either CSR or CSC")
+        "SparseFlags must be either CSR or CSC");
 public:
 
     using Type = SparseMatrix<_Scalar, _Batches, _SparseFlags>;

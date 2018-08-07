@@ -27,10 +27,43 @@ namespace internal {
         ADJOINT = 0b11
     };
 
+    /**
+     * \brief Functor for multiplying single elements in a cwise matrix multiplication.
+     * This is used for the outer product and sparse matrix multiplication on custom types.
+     * 
+     * The default version is provided for matrices with the same scalar type as left and right argument.
+     * Provide your own specialization for custom types.
+     * 
+     * Implementations of this interface must provide:
+     * - a typedef \c Scalar with the type of the return value
+     * - a function \code static __device__ Scalar mult(const _LeftScalar& left, const _RightScalar& right) \endcode
+     * 
+     * \tparam _LeftScalar the scalar type of the left matrix
+     * \tparam _RightScalar the scalar type of the right matrix
+     * \tparam _OpLeft the left operation
+     * \tparam _OpRight the right opertion
+     * \tparam _OpOutput the output operation
+     */
+    template<typename _LeftScalar, typename _RightScalar, ProductArgOp _OpLeft, ProductArgOp _OpRight, ProductArgOp _OpOutput>
+    struct ProductElementFunctor
+    {
+        CUMAT_STATIC_ASSERT((std::is_same<_LeftScalar, _RightScalar>::value), 
+            "The default version is only available if the left and right scalar match");
+
+        using Scalar = _LeftScalar; //same as _RightScalar
+
+        static CUMAT_STRONG_INLINE __device__ Scalar mult(const _LeftScalar& left, const _RightScalar& right)
+        {
+            return left * right;
+        }
+    };
+
     template<typename _Left, typename _Right, ProductArgOp _OpLeft, ProductArgOp _OpRight, ProductArgOp _OpOutput>
     struct traits<ProductOp<_Left, _Right, _OpLeft, _OpRight, _OpOutput> >
     {
-        using Scalar = typename internal::traits<_Left>::Scalar;
+        using LeftScalar = typename internal::traits<_Left>::Scalar;
+        using RightScalar = typename internal::traits<_Right>::Scalar;
+        using Scalar = typename internal::ProductElementFunctor<LeftScalar, RightScalar, _OpLeft, _OpRight, _OpOutput>::Scalar;
         enum
         {
             TransposedLeft = int(_OpLeft)&int(ProductArgOp::TRANSPOSED) ? true : false,
@@ -48,14 +81,23 @@ namespace internal {
             BatchesRight = internal::traits<_Right>::BatchesAtCompileTime,
 
             RowsNonT = TransposedLeft ? ColumnsLeft : RowsLeft,
+            InnerSizeLeft = TransposedLeft ? RowsLeft : ColumnsLeft,
             ColumnsNonT = TransposedRight ? RowsRight : ColumnsRight,
+            InnerSizeRight = TransposedRight ? ColumnsRight : RowsRight,
+
+            IsOuterProduct = (InnerSizeLeft==1) && (InnerSizeRight==1),
 
             Flags = ColumnMajor, //TODO: pick best flag
             RowsAtCompileTime = TransposedOutput ? ColumnsNonT : RowsNonT,
             ColsAtCompileTime = TransposedOutput ? RowsNonT : ColumnsNonT,
-            BatchesAtCompileTime = BatchesLeft, //TODO: add broadcasting of batches
 
-            AccessFlags = 0 //must be fully evaluated
+            //broadcasting only supported for outer product
+            BroadcastBatchesLeft = (internal::traits<_Left>::BatchesAtCompileTime == 1),
+            BroadcastBatchesRight = (internal::traits<_Right>::BatchesAtCompileTime == 1),
+            BatchesAtCompileTime = (BatchesLeft == Dynamic || BatchesRight == Dynamic) ?
+                Dynamic : (BroadcastBatchesRight ? BatchesLeft : BatchesRight),
+
+            AccessFlags = (IsOuterProduct ? ReadCwise : 0) //must be fully evaluated if not an outer product
         };
         typedef ProductSrcTag SrcTag;
         typedef DeletedDstTag DstTag;
@@ -64,7 +106,13 @@ namespace internal {
 
 /**
  * \brief Operation for matrix-matrix multiplication.
- * It calls cuBLAS internally, therefore, it is only available for floating-point types.
+ * 
+ * - For dense matrix-matrix multiplications, it calls cuBLAS internally, 
+ *   therefore, it is only available for floating-point types.
+ * - For sparse matrix - dense vector multiplications, it either calls cuSparse
+ *   for primitive types or a custom implementation for custom types
+ * - For dense vector - dense vector outer product, the product op implements CwiseRead,
+ *   and can therefore be used in a chain of cwise operations.
  * 
  * TODO: also catch if the child expressions are conjugated/adjoint, not just transposed
  * 
@@ -82,8 +130,6 @@ public:
     using Base = MatrixBase<Type>;
     CUMAT_PUBLIC_API
 
-    using LeftType = typename _Left::Type;
-    using RightType = typename _Right::Type;
     enum
     {
         LeftOp = _OpLeft,
@@ -93,6 +139,9 @@ public:
         TransposedLeft = int(_OpLeft)&int(internal::ProductArgOp::TRANSPOSED) ? true : false,
         TransposedRight = int(_OpRight)&int(internal::ProductArgOp::TRANSPOSED) ? true : false,
         TransposedOutput = int(_OpOutput)&int(internal::ProductArgOp::TRANSPOSED) ? true : false,
+        ConjugateLeft = int(_OpLeft)&int(internal::ProductArgOp::CONJUGATED) ? true : false,
+        ConjugateRight = int(_OpRight)&int(internal::ProductArgOp::CONJUGATED) ? true : false,
+        ConjugateOutput = int(_OpOutput)&int(internal::ProductArgOp::CONJUGATED) ? true : false,
 
         FlagsLeft = internal::traits<_Left>::Flags,
         RowsLeft = internal::traits<_Left>::RowsAtCompileTime,
@@ -106,9 +155,17 @@ public:
 
         RowsNonT = TransposedLeft ? ColumnsLeft : RowsLeft,
         ColumnsNonT = TransposedRight ? RowsRight : ColumnsRight,
+
+        IsOuterProduct = internal::traits<Type>::IsOuterProduct
     };
     using Base::size;
 
+    //if the ProductOp represents an outer product, the left and right arguments
+    //must support ReadCwise, so that coeff() is valid.
+    typedef typename MatrixReadWrapper<_Left, AccessFlags::ReadCwise>::type left_wrapped_t;
+    typedef typename MatrixReadWrapper<_Right, AccessFlags::ReadCwise>::type right_wrapped_t;
+    using LeftType = typename std::conditional<IsOuterProduct, left_wrapped_t, typename _Left::Type>::type;
+    using RightType = typename std::conditional<IsOuterProduct, right_wrapped_t, typename _Right::Type>::type;
 
 private:
     LeftType left_;
@@ -182,6 +239,33 @@ public:
     {
         //transposition just changes the _TransposedOutput-flag
         return transposed_mult_t(left_, right_);
+    }
+
+    //Cwise-evaluation if this product op is an outer product
+    template<typename Dummy = Type, typename = std::enable_if<internal::traits<Dummy>::IsOuterProduct> >
+    CUMAT_STRONG_INLINE __device__ const Scalar& coeff(Index row, Index col, Index batch, Index index) const
+    {
+        //all the following index transformations should be optimized out (compile-time if)
+        Index r = TransposedOutput ? col : row;
+        Index c = TransposedOutput ? row : col;
+        //access left
+        typedef typename internal::traits<Type>::LeftScalar LeftScalar;
+        LeftScalar left = left_.coeff(
+            TransposedLeft ? 0 : r, TransposedLeft ? r : 0, 
+            internal::traits<Type>::BroadcastBatchesLeft ? 0 : batch,
+            -1);
+        left = ConjugateLeft ? internal::NumOps<LeftScalar>::conj(left) : left;
+        //access right
+        typedef typename internal::traits<Type>::RightScalar RightScalar;
+        RightScalar right = right_.coeff(
+            TransposedRight ? c : 0, TransposedRight ? 0 : c, 
+            internal::traits<Type>::BroadcastBatchesRight ? 0 : batch,
+            -1);
+        right = ConjugateRight ? internal::NumOps<RightScalar>::conj(right) : right;
+        //output
+        Scalar output = internal::ProductElementFunctor<LeftScalar, RightScalar, _OpLeft, _OpRight, _OpOutput>::mult(left, right);
+        output = ConjugateOutput ? internal::NumOps<Scalar>::conj(output) : output;
+        return output;
     }
 };
 

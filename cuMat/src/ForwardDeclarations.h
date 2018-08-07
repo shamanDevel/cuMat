@@ -95,7 +95,10 @@ template<typename _Derived, bool _Conjugated> class TransposeOp;
 template<typename _Child, typename _ReductionOp> class ReductionOp_DynamicSwitched;
 template<typename _Child, typename _ReductionOp, int _Axis> class ReductionOp_StaticSwitched;
 
-namespace internal { enum class ProductArgOp; }
+namespace internal { 
+    enum class ProductArgOp; 
+    template<typename _LeftScalar, typename _RightScalar, ProductArgOp _OpLeft, ProductArgOp _OpRight, ProductArgOp _OpOutput> struct ProductElementFunctor;
+}
 template<typename _Left, typename _Right, internal::ProductArgOp _OpLeft, internal::ProductArgOp _OpRight, internal::ProductArgOp _OpOutput> class ProductOp;
 
 template<typename _Child> class AsDiagonalOp;

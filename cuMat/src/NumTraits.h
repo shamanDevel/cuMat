@@ -89,6 +89,22 @@ namespace internal
         (std::is_convertible<T, S>::value && CUMAT_NAMESPACE internal::isPrimitive<T>::value)  \
         || std::is_same<typename std::remove_cv<T>::type, typename std::remove_cv<S>::type>::value
     > {};
+
+    template<typename T>
+    struct NumOps //special functions for numbers
+    {
+        static __host__ __device__ CUMAT_STRONG_INLINE T conj(const T& v) {return v;}
+    };
+    template<>
+    struct NumOps<cfloat>
+    {
+        static __host__ __device__ CUMAT_STRONG_INLINE cfloat conj(const cfloat& v) {return ::thrust::conj(v);}
+    };
+    template<>
+    struct NumOps<cdouble>
+    {
+        static __host__ __device__ CUMAT_STRONG_INLINE cdouble conj(const cdouble& v) {return ::thrust::conj(v);}
+    };
 }
 
 CUMAT_NAMESPACE_END
