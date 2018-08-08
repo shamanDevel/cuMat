@@ -77,7 +77,9 @@ public:
         Index nnz;
         Index rows;
         Index cols;
+		/** \brief Inner indices, size=nnz */
         IndexVector IA;
+		/** \brief Outer indices, size=N+1 */
         IndexVector JA;
 
         /**

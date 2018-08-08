@@ -3,6 +3,10 @@
  * The path to the config file is defined in the macro CONFIG_FILE
  */
 
+#ifdef _MSC_VER
+#include <stdio.h>
+#endif
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -12,30 +16,30 @@
 #include <array>
 #include <fstream>
 
-#include "json_st.h"
-#include "Json.h"
+#include "../json_st.h"
+#include "../Json.h"
 #include "benchmark.h"
 #include <cuMat/src/Macros.h>
 
-//https://stackoverflow.com/a/478960/4053176
+ //https://stackoverflow.com/a/478960/4053176
 std::string exec(const char* cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
+	std::array<char, 128> buffer;
+	std::string result;
 #ifdef _MSC_VER
-    std::shared_ptr<FILE> pipe(_popen(cmd, "r"), _pclose);
+	std::shared_ptr<FILE> pipe(_popen(cmd, "rt"), _pclose);
 #else
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+	std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
 #endif
-    if (!pipe) throw std::runtime_error("popen() failed!");
-    while (!feof(pipe.get())) {
-        if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
-            result += buffer.data();
-    }
-    return result;
+	if (!pipe) throw std::runtime_error("popen() failed!");
+	while (!feof(pipe.get())) {
+		if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+			result += buffer.data();
+	}
+	return result;
 }
-
 int main(int argc, char* argv[])
 {
+	std::string pythonPath = "C:\\Users\\Sebastian\\AppData\\Local\\Programs\\Python\\Python36\\python.exe";
     std::string outputDir = CUMAT_STR(OUTPUT_DIR);
 
     //load json
@@ -79,33 +83,15 @@ int main(int argc, char* argv[])
         Json::Array resultsEigen;
         benchmark_Eigen(parameterNames, params, returnNames, resultsEigen);
 
-        //numpy
-        std::cout << " Run Numpy" << std::endl;
-        std::string numpyFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_numpy.py";
-        std::string launchParams = "python3 " + numpyFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"";
-        std::cout << "  Args: " << launchParams << std::endl;
-        std::string resultsNumpyStr = exec(launchParams.c_str());
-        Json::Array resultsNumpy = Json::ParseString(resultsNumpyStr);
-
-        //tensorflow
-        std::cout << " Run Tensorflow" << std::endl;
-        std::string tfFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_tensorflow.py";
-        launchParams = "python3 " + tfFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"";
-        std::cout << "  Args: " << launchParams << std::endl;
-        std::string resultsTFStr = exec(launchParams.c_str());
-        Json::Array resultsTF = Json::ParseString(resultsTFStr);
-
         //write results
         Json::Object resultAssembled;
         resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
         resultAssembled.Insert(std::make_pair("CuBlas", resultsCuBlas));
         resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
-        resultAssembled.Insert(std::make_pair("Numpy", resultsNumpy));
-        resultAssembled.Insert(std::make_pair("Tensorflow", resultsTF));
         std::ofstream outStream(outputDir + setName + ".json");
         outStream << resultAssembled;
         outStream.close();
-        launchParams = "python3 " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + outputDir + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE));
+        std::string launchParams = pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + outputDir + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE));
         std::cout << launchParams << std::endl;
         system(launchParams.c_str());
     }

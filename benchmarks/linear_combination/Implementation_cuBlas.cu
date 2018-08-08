@@ -1,4 +1,4 @@
-#include "../benchmark.h"
+#include "benchmark.h"
 
 #include <cuMat/Core>
 #include <iostream>
@@ -92,20 +92,31 @@ void benchmark_cuBlas(
             cudaEventCreate(&start);
             cudaEventCreate(&stop);
 
+			CUMAT_SAFE_CALL(cudaMemsetAsync(outputRaw, 0, sizeof(float) * vectorSize));
+
             //Main logic
             cudaDeviceSynchronize();
             cudaEventRecord(start, cuMat::Context::current().stream());
+			//auto start2 = std::chrono::steady_clock::now();
             
             //pure cuBLAS + CUDA:
-            CUMAT_SAFE_CALL(cudaMemsetAsync(outputRaw, 0, sizeof(float) * vectorSize));
-            for (int i=0; i<numCombinations; ++i) {
-                CUBLAS_SAFE_CALL(cublasSaxpy(handle, vectorSize, &factors[i], vectorsRaw[i], 1, outputRaw, 1));
-            }
+			for (int subruns = 0; subruns < 10; ++subruns) {
+				for (int i = 0; i < numCombinations; ++i) {
+					CUBLAS_SAFE_CALL(cublasSaxpy(handle, vectorSize, &factors[i], vectorsRaw[i], 1, outputRaw, 1));
+				}
+			}
 
             cudaEventRecord(stop, cuMat::Context::current().stream());
             cudaEventSynchronize(stop);
             float elapsed;
             cudaEventElapsedTime(&elapsed, start, stop);
+			elapsed /= 10;
+
+			//cudaDeviceSynchronize();
+			//auto finish2 = std::chrono::steady_clock::now();
+			//double elapsed = std::chrono::duration_cast<
+			//	std::chrono::duration<double> >(finish2 - start2).count() * 1000;
+
             totalTime += elapsed;
             cudaEventDestroy(start);
             cudaEventDestroy(stop);

@@ -1,4 +1,4 @@
-#include "../benchmark.h"
+#include "benchmark.h"
 
 #include <Eigen/Core>
 #include <chrono>

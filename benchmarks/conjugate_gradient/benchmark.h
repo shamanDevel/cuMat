@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <string>
-#include "json_st.h"
+#include "../json_st.h"
 
 /**
  * \brief Launches the implementations of cuMat.

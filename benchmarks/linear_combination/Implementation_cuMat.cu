@@ -1,4 +1,4 @@
-#include "../benchmark.h"
+#include "benchmark.h"
 
 #include <cuMat/Core>
 #include <iostream>
@@ -39,6 +39,7 @@ void benchmark_cuMat(
             rand.fillUniform(vectors[i], 0, 1);
             factors[i] = std::rand() / (float)(RAND_MAX);
         }
+		cuMat::VectorXf output(numCombinations);
 
         //Run it multiple times
         for (int run = 0; run < runs; ++run)
@@ -47,28 +48,40 @@ void benchmark_cuMat(
             cudaEventCreate(&start);
             cudaEventCreate(&stop);
 
+			output.setZero();
+
             //Main logic
             cudaDeviceSynchronize();
             cudaEventRecord(start, cuMat::Context::current().stream());
+			//auto start2 = std::chrono::steady_clock::now();
 
-            switch (numCombinations)
-            {
-            case 1: (vectors[0] * factors[0]).eval(); break;
-            case 2: (vectors[0] * factors[0] + vectors[1] * factors[1]).eval(); break;
-            case 3: (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2]).eval(); break;
-            case 4: (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3]).eval(); break;
-            case 5: (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4]).eval(); break;
-            case 6: (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5]).eval(); break;
-            case 7: (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5] + vectors[6] * factors[6]).eval(); break;
-            case 8: (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5] + vectors[6] * factors[6] + vectors[7] * factors[7]).eval(); break;
-            case 9: (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5] + vectors[6] * factors[6] + vectors[7] * factors[7] + vectors[8] * factors[8]).eval(); break;
-            case 10: (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5] + vectors[6] * factors[6] + vectors[7] * factors[7] + vectors[8] * factors[8] + vectors[9] * factors[9]).eval(); break;
-            }
+			for (int subruns = 0; subruns < 10; ++subruns) {
+				switch (numCombinations)
+				{
+				case 1: output.inplace() = (vectors[0] * factors[0]); break;
+				case 2: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1]); break;
+				case 3: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2]); break;
+				case 4: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3]); break;
+				case 5: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4]); break;
+				case 6: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5]); break;
+				case 7: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5] + vectors[6] * factors[6]); break;
+				case 8: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5] + vectors[6] * factors[6] + vectors[7] * factors[7]); break;
+				case 9: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5] + vectors[6] * factors[6] + vectors[7] * factors[7] + vectors[8] * factors[8]); break;
+				case 10: output.inplace() = (vectors[0] * factors[0] + vectors[1] * factors[1] + vectors[2] * factors[2] + vectors[3] * factors[3] + vectors[4] * factors[4] + vectors[5] * factors[5] + vectors[6] * factors[6] + vectors[7] * factors[7] + vectors[8] * factors[8] + vectors[9] * factors[9]); break;
+				}
+			}
 
             cudaEventRecord(stop, cuMat::Context::current().stream());
             cudaEventSynchronize(stop);
-            float elapsed;
-            cudaEventElapsedTime(&elapsed, start, stop);
+			float elapsed;
+			cudaEventElapsedTime(&elapsed, start, stop);
+			elapsed /= 10;
+
+			//cudaDeviceSynchronize();
+			//auto finish2 = std::chrono::steady_clock::now();
+			//double elapsed = std::chrono::duration_cast<
+			//	std::chrono::duration<double> >(finish2 - start2).count() * 1000;
+
             totalTime += elapsed;
             cudaEventDestroy(start);
             cudaEventDestroy(stop);

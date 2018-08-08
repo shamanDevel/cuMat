@@ -1,0 +1,12 @@
+{
+"Title":"2D-Poisson - Conjugate Gradient",
+"Parameters":["Grid-Size"],
+"Returns":["Time"],
+"Sets":{
+    "Conjugate Gradient - 2D-Poisson Matrix":[
+        [10],
+		[100],
+		[1000]
+    ]
+}
+}

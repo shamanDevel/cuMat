@@ -84,13 +84,14 @@
 
 //TODO: move assertions to Errors.h ?
 
+#if !defined(NDEBUG) && !defined(_NDEBUG)
+
 /**
  * \brief Runtime assertion, uses assert()
  * Only use for something that should never happen
  * \param x the expression that must be true
  */
 #define CUMAT_ASSERT(x) assert(x)
-
 
 #define CUMAT_ASSERT_ARGUMENT(x) \
 	if (!(x)) throw std::invalid_argument(__FILE__ ":" CUMAT_STR(__LINE__) ": Invalid argument: " #x);
@@ -106,6 +107,17 @@
  * \param x the expression that must be true
  */
 #define CUMAT_ASSERT_CUDA(x) assert(x) //do nothing, not supported
+
+#else
+
+#define CUMAT_ASSERT(x)
+#define CUMAT_ASSERT_ARGUMENT(x)
+#define CUMAT_ASSERT_BOUNDS(x)
+#define CUMAT_ASSERT_ERROR(x)
+#define CUMAT_ASSERT_DIMENSION(x)
+#define CUMAT_ASSERT_CUDA(x)
+
+#endif
 
 /**
  * \brief A static assertion

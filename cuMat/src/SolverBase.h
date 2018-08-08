@@ -80,7 +80,7 @@ public:
     };
 
 private:
-    const _Solver decomposition_;
+    const _Solver& decomposition_;
     const _RHS rhs_;
 
 public:
