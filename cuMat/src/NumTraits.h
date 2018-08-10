@@ -12,17 +12,42 @@ CUMAT_NAMESPACE_BEGIN
 
 namespace internal 
 {
+	/**
+	 * \brief General implementation of NumTraits
+	 * \tparam T 
+	 */
 	template <typename T>
 	struct NumTraits
 	{
+		/**
+		 * \brief The type itself
+		 */
 		typedef T Type;
+		/**
+		 * \brief For complex types: the corresponding real type; equals to Type for non-complex types
+		 */
 		typedef T RealType;
+		/**
+		 * \brief For compound types (blocked types): the corresponding element type (e.g. cfloat3->cfloat, double4->double);
+		 * equals to Type for non-blocked types
+		 */
+		typedef T ElementalType;
         enum
         {
+	        /**
+             * \brief Equals one if cuBlas supports this type
+             * \see CublasApi
+             */
             IsCudaNumeric = 0,
+	        /**
+             * \brief Equal to true if this type is a complex type, and hence Type!=RealType
+             */
             IsComplex = false
         };
-        static constexpr CUMAT_STRONG_INLINE RealType epsilon() {return std::numeric_limits<T>::epsilon();}
+		/**
+         * \brief The default epsilon for approximate comparisons
+         */
+        static constexpr CUMAT_STRONG_INLINE ElementalType epsilon() {return std::numeric_limits<T>::epsilon();}
 	};
 
     template <>
@@ -30,6 +55,7 @@ namespace internal
     {
         typedef float Type;
         typedef float RealType;
+		typedef float ElementalType;
         enum
         {
             IsCudaNumeric = 1,
@@ -42,6 +68,7 @@ namespace internal
     {
         typedef double Type;
         typedef double RealType;
+		typedef double ElementalType;
         enum
         {
             IsCudaNumeric = 1,
@@ -55,6 +82,7 @@ namespace internal
 	{
 		typedef cfloat Type;
 		typedef float RealType;
+		typedef cfloat ElementalType;
         enum
         {
             IsCudaNumeric = 1,
@@ -68,6 +96,7 @@ namespace internal
 	{
 		typedef cdouble Type;
 		typedef double RealType;
+		typedef cdouble ElementalType;
         enum
         {
             IsCudaNumeric = 1,

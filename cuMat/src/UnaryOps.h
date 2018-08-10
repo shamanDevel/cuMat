@@ -76,7 +76,7 @@ namespace functor
 
 #define DEFINE_GENERAL_FUNCTOR(Name, Fn) \
 	template<typename _Scalar> \
-	class UnaryMathFunctor_ ## Name \
+	struct UnaryMathFunctor_ ## Name \
 	{ \
 	public: \
         typedef _Scalar ReturnType; \
@@ -88,7 +88,7 @@ namespace functor
 
 #define DEFINE_FUNCTOR(Name, Scalar, Fn) \
 	template<> \
-	class UnaryMathFunctor_ ## Name <Scalar> \
+	struct UnaryMathFunctor_ ## Name <Scalar> \
 	{ \
 	public: \
         typedef Scalar ReturnType; \
@@ -114,7 +114,7 @@ namespace functor
 
 	DEFINE_GENERAL_FUNCTOR(cwiseAbs, abs(x));
     template<>
-    class UnaryMathFunctor_cwiseAbs<cfloat>
+    struct UnaryMathFunctor_cwiseAbs<cfloat>
     {
     public:
         typedef float ReturnType;
@@ -124,7 +124,7 @@ namespace functor
         }
     };
     template<>
-    class UnaryMathFunctor_cwiseAbs<cdouble>
+    struct UnaryMathFunctor_cwiseAbs<cdouble>
     {
     public:
         typedef double ReturnType;
@@ -136,7 +136,7 @@ namespace functor
 
     DEFINE_GENERAL_FUNCTOR(cwiseAbs2, x*x);
     template<>
-    class UnaryMathFunctor_cwiseAbs2<cfloat>
+    struct UnaryMathFunctor_cwiseAbs2<cfloat>
     {
     public:
         typedef float ReturnType;
@@ -147,7 +147,7 @@ namespace functor
         }
     };
     template<>
-    class UnaryMathFunctor_cwiseAbs2<cdouble>
+    struct UnaryMathFunctor_cwiseAbs2<cdouble>
     {
     public:
         typedef double ReturnType;

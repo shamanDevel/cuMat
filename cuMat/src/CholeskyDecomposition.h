@@ -109,8 +109,8 @@ public:
         {
             return DeterminantMatrix::Constant(1, 1, batches(), Scalar(1));
         }
-        return pow(decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>(), //multiply diagonal elements
-            2); //the product of the diagonal elements is the squareroot of the determinant
+		return decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>().cwiseAbs(); //multiply diagonal elements
+            //the product of the diagonal elements is the squareroot of the determinant
     }
 
     /**

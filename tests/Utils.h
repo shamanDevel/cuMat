@@ -86,7 +86,7 @@ void assertMatrixEquality(const cuMat::MatrixBase<Left>& l, const cuMat::MatrixB
     REQUIRE(left.rows() == right.rows());
     REQUIRE(left.cols() == right.cols());
     REQUIRE(left.batches() == right.batches());
-    auto equality = (abs(left - right) <= epsilon).eval();
+    auto equality = (cuMat::functions::abs(left - right) <= epsilon).eval();
     INFO("Epsilon: " << epsilon);
     INFO("Equality:\n" << equality);
     REQUIRE(static_cast<bool>(equality.all()));
@@ -103,7 +103,7 @@ void assertMatrixEqualityRelative(const cuMat::MatrixBase<Left>& l, const cuMat:
     REQUIRE(left.rows() == right.rows());
     REQUIRE(left.cols() == right.cols());
     REQUIRE(left.batches() == right.batches());
-    auto equality = (abs(left.cwiseDiv(right) - 1) <= epsilon).eval();
+    auto equality = (cuMat::functions::abs(left.cwiseDiv(right) - 1) <= epsilon).eval();
     INFO("Epsilon: " << epsilon);
     INFO("Equality:\n" << equality);
     REQUIRE(static_cast<bool>(equality.all()));

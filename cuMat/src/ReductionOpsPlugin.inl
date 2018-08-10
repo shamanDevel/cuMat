@@ -183,35 +183,38 @@ ReductionOp_StaticSwitched<ExtractDiagonalOp<_Derived>, functor::Sum<Scalar>, Re
     return diagonal().sum<ReductionAxis::Row | ReductionAxis::Column>();
 }
 
+template<typename _Other>
+using DotReturnType = ReductionOp_StaticSwitched<BinaryOp<_Derived, _Other, functor::BinaryMathFunctor_cwiseDot<Scalar> >, functor::Sum<typename functor::BinaryMathFunctor_cwiseDot<Scalar>::ReturnType>, ReductionAxis::Row | ReductionAxis::Column>;
 /**
  * \brief Computes the dot product between two vectors.
  * This method is only allowed on compile-time vectors of the same orientation (either row- or column vector).
  */
 template<typename _Other>
-ReductionOp_StaticSwitched<BinaryOp<_Derived, _Other, functor::BinaryMathFunctor_cwiseMul<Scalar>, false >, functor::Sum<Scalar>, ReductionAxis::Row | ReductionAxis::Column> dot(const MatrixBase<_Other>& rhs) const
+DotReturnType<_Other> dot(const MatrixBase<_Other>& rhs) const
 {
     CUMAT_STATIC_ASSERT(internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1,
         "This matrix must be a compile-time row or column vector");
     CUMAT_STATIC_ASSERT(internal::traits<_Other>::RowsAtCompileTime == 1 || internal::traits<_Other>::ColsAtCompileTime == 1,
         "The right-hand-side must be a compile-time row or column vector");
-    return ((*this).cwiseMul(rhs)).sum<ReductionAxis::Row | ReductionAxis::Column>();
+    return ((*this).cwiseDot(rhs)).sum<ReductionAxis::Row | ReductionAxis::Column>();
 }
 
+typedef ReductionOp_StaticSwitched<UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseAbs2<Scalar> >, functor::Sum<typename functor::UnaryMathFunctor_cwiseAbs2<Scalar>::ReturnType>, ReductionAxis::Row | ReductionAxis::Column> SquaredNormReturnType;
 /**
  * \brief Computes the squared l2-norm of this matrix if it is a vecotr, or the squared Frobenius norm if it is a matrix.
  * It consists in the the sum of the square of all the matrix entries.
  */
-ReductionOp_StaticSwitched<UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseAbs2<Scalar> >, functor::Sum<Scalar>, ReductionAxis::Row | ReductionAxis::Column> squaredNorm() const
+SquaredNormReturnType squaredNorm() const
 {
     return cwiseAbs2().sum<ReductionAxis::Row | ReductionAxis::Column>();
 }
 
+typedef UnaryOp<ReductionOp_StaticSwitched<UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseAbs2<Scalar> >, functor::Sum<typename functor::UnaryMathFunctor_cwiseAbs2<Scalar>::ReturnType>, ReductionAxis::Row | ReductionAxis::Column>, functor::UnaryMathFunctor_cwiseSqrt<typename functor::UnaryMathFunctor_cwiseAbs2<Scalar>::ReturnType> > NormReturnType;
 /**
  * \brief Computes the l2-norm of this matrix if it is a vecotr, or the Frobenius norm if it is a matrix.
  * It consists in the square root of the sum of the square of all the matrix entries.
  */
-UnaryOp<ReductionOp_StaticSwitched<UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseAbs2<Scalar> >, functor::Sum<Scalar>, ReductionAxis::Row | ReductionAxis::Column>, functor::UnaryMathFunctor_cwiseSqrt<Scalar> >
-norm() const
+NormReturnType norm() const
 {
     return squaredNorm().cwiseSqrt();
 }

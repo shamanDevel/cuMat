@@ -88,7 +88,10 @@ public:
         : decomposition_(decomposition)
         , rhs_(rhs.derived())
     {
-        CUMAT_STATIC_ASSERT((std::is_same<typename _Solver::Scalar, typename internal::traits<_RHS>::Scalar>::value),
+		//This is not true anymore -> blocked types
+        CUMAT_STATIC_ASSERT((std::is_same<
+				typename internal::NumTraits<typename _Solver::Scalar>::ElementalType, 
+				typename internal::NumTraits<typename internal::traits<_RHS>::Scalar>::ElementalType>::value),
             "Datatype of left- and right hand side must match");
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Solver::Batches > 1 && _RHS::Batches > 0, _Solver::Batches == _RHS::Batches),
             "Static count of batches must match"); //note: _Solver::Batches>1 to allow broadcasting

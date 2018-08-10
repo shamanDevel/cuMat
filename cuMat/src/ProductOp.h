@@ -175,7 +175,9 @@ public:
     ProductOp(const MatrixBase<_Left>& left, const MatrixBase<_Right>& right)
         : left_(left.derived()), right_(right.derived())
     {
-        CUMAT_STATIC_ASSERT((std::is_same<typename internal::traits<_Left>::Scalar, typename internal::traits<_Right>::Scalar>::value),
+        CUMAT_STATIC_ASSERT((std::is_same<
+				typename internal::NumTraits<typename internal::traits<_Left>::Scalar>::ElementalType, 
+				typename internal::NumTraits<typename internal::traits<_Right>::Scalar>::ElementalType>::value),
             "No implicit casting is allowed in binary operations.");
 
         if (ColumnsLeft == Dynamic || RowsRight == Dynamic)

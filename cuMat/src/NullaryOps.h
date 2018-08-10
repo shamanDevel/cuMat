@@ -68,7 +68,7 @@ public:
 namespace functor
 {
 	template<typename _Scalar>
-	class ConstantFunctor
+	struct ConstantFunctor
 	{
 	private:
 		const _Scalar value_;
@@ -84,7 +84,7 @@ namespace functor
 	};
 
     template<typename _Scalar>
-    class IdentityFunctor
+    struct IdentityFunctor
     {
     public:
         __device__ CUMAT_STRONG_INLINE _Scalar operator()(Index row, Index col, Index batch) const

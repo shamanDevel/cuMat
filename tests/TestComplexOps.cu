@@ -201,9 +201,9 @@ void testRealImag()
             }
         };
         assertMatrixEquality(expectedReal, mat.real());
-        assertMatrixEquality(expectedReal, real(mat));
+        assertMatrixEquality(expectedReal, cuMat::functions::real(mat));
         assertMatrixEquality(expectedImag, mat.imag());
-        assertMatrixEquality(expectedImag, imag(mat));
+        assertMatrixEquality(expectedImag, cuMat::functions::imag(mat));
 
         RMatrix matr = mat.real(); 
         assertMatrixEquality(expectedReal, matr.real()); //real() of a real matrix is a no-op
@@ -250,9 +250,9 @@ void testRealImag()
         };
         auto matExpr = (mat + 0);
         assertMatrixEquality(expectedReal, matExpr.real());
-        assertMatrixEquality(expectedReal, real(matExpr));
+        assertMatrixEquality(expectedReal, cuMat::functions::real(matExpr));
         assertMatrixEquality(expectedImag, matExpr.imag());
-        assertMatrixEquality(expectedImag, imag(matExpr));
+        assertMatrixEquality(expectedImag, cuMat::functions::imag(matExpr));
     }
 }
 TEST_CASE("real+imag", "[complex]")

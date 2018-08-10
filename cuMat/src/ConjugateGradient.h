@@ -18,7 +18,8 @@ namespace internal
     template<typename _MatrixType, typename _Preconditioner>
     struct traits<ConjugateGradient<_MatrixType, _Preconditioner> >
     {
-        using Scalar = typename internal::traits<_MatrixType>::Scalar;
+        using MScalar = typename internal::traits<_MatrixType>::Scalar;
+		using Scalar = typename internal::NumTraits<MScalar>::ElementalType;
         using MatrixType = _MatrixType;
         using Preconditioner = _Preconditioner;
     };
@@ -38,6 +39,22 @@ namespace internal
  * The preconditioner must support a method \code .solve(r) \endcode that takes a dense column vector as input and
  * returns an expression of a column vector that approximates the solution of A.x=r.
  * Examples are the DiagonalPreconditioner and IdentityPreconditioner.
+ * 
+ * This solver can also be used with blocked types. This means, the scalar type of the matrix is not a single element like float,
+ * but a small block. For example: The matrix has type float3x3 and the right hand side float3 for 3x3 blocks.
+ * The underlying ElementType is float3 in the above example and has to match.
+ * This, however, requires several template specializations and functions:
+ *  - The matrix type needs a (possibly explicit) constructor that takes the ElementType and broadcasts it for all entries.
+ *    (as default value for coeff() if the matrix is a sparse matrix)
+ *  - The vector type needs the basic operator +, -, +=, -=, * (scalar-vector, vector-scalar, cwise vector-vector)
+ *    Alternate to operator* for the vector-vector multiplication, cuMat::functor::BinaryMathFunctor_cwiseMul can be specialized
+ *  - specialize \c cuMat::internal::NumTraits for the matrix and vector type so that ElementType returns the elemental type (float in our example)
+ *  - specialize \c cuMat::internal::ProductElementFunctor for the block matrix-vector product
+ *  - if you use the DiagonalPreconditioner, specialize \c cuMat::internal::ExtractDiagonalFunctor to extract the diagonal block vector from the block matrix
+ *  - if you use the DiagonalPreconditioner, specialize \c cuMat::functor::UnaryMathFunctor_cwiseInverseCheck for the vector type
+ *  - specialize \c cuMat::functor::UnaryMathFunctor_cwiseAbs2 for the vector type to return an ElementType with the local squared norm
+ *  - specialize \c cuMat::functor::BinaryMathFunctor_cwiseMDot for the vector type to compute the local dot-product (returns the ElementType)
+ *  - specialize \c cuMat::functor::CastFunctor to broadcast from the ElementType to the Vector type
  * 
  * \tparam _MatrixType any matrix expression with an operator* that takes a dense column vector as right hand side
  * \tparam _Preconditioner the preconditioner object, default is DiagonalPreconditioner
@@ -94,7 +111,9 @@ public:
     void _solve_impl(const MatrixBase<_RHS>& rhs, MatrixBase<_Target>& target) const
     {
         typedef Matrix<typename _Target::Scalar, Dynamic, 1, 1, _Target::Flags> GuessType;
-        _solve_with_guess_impl(rhs.derived(), target.derived(), GuessType::Zero(target.rows()));
+		GuessType guess(target.rows());
+		guess.setZero();
+        _solve_with_guess_impl(rhs.derived(), target.derived(), guess);
     }
 
     template<typename _RHS, typename _Target, typename _Guess>
@@ -117,7 +136,8 @@ public:
         typedef Matrix<RealScalar, 1, 1, 1, 0> RealScalarDevice;
         using std::sqrt;
         using std::abs;
-        typedef Matrix<Scalar, Dynamic, 1, 1, _Target::Flags> VectorType;
+		typedef typename _Target::Scalar VectorScalarType;
+        typedef Matrix<VectorScalarType, Dynamic, 1, 1, _Target::Flags> VectorType;
         Index n = matrix_.cols();
 
         VectorType residual = rhs - matrix_ * target; //initial residual
@@ -149,8 +169,8 @@ public:
             tmp.inplace() = matrix_ * p; // the bottleneck of the algorithm
 
             auto alpha = absNew.cwiseDiv(p.dot(tmp)); // the amount we travel on dir; expression, cwiseDiv not evaluated (dot is)
-            target += alpha.cwiseMul(p); // update solution
-            residual -= alpha.cwiseMul(tmp); // update residual
+            target += alpha.template cast<VectorScalarType>().cwiseMul(p); // update solution
+            residual -= alpha.template cast<VectorScalarType>().cwiseMul(tmp); // update residual
 
             residualNorm2 = static_cast<RealScalar>(residual.squaredNorm()); //SLOW: device->host memcopy
             //TODO: move the squared norm above "alpha.cwiseMul(tmp)", start the memcopy asynchronously and retrieve the result here
@@ -163,7 +183,7 @@ public:
             absNew = residual.dot(z).real(); // update the absolute value of r
             auto beta = absNew.cwiseDiv(absOld); //expression, not evaluated
             // calculate the Gram-Schmidt value used to create the new search direction
-            p = z + beta.cwiseMul(p); // update search direction
+            p = z + beta.template cast<VectorScalarType>().cwiseMul(p); // update search direction
             i++;
         }
         error_ = sqrt(residualNorm2 / rhsNorm2);
@@ -194,7 +214,7 @@ public:
     {}
 
     template<typename _Rhs>
-    using SolveReturnType = BinaryOp<Vector, _Rhs, functor::BinaryMathFunctor_cwiseMul<Scalar>, false>;
+    using SolveReturnType = BinaryOp<Vector, _Rhs, functor::BinaryMathFunctor_cwiseMul<Scalar>>;
     /**
      * \brief Solves for an approximation of A.x=b
      * \tparam _Rhs the type of right hand side
