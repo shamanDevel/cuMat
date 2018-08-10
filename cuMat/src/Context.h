@@ -12,6 +12,15 @@
 #include "Logging.h"
 #include "Profiling.h"
 
+#ifndef CUMAT_SINGLE_THREAD_CONTEXT
+/**
+ * \brief Specifies whether Context::current() returns 
+ *  - a separate context for each thread (0), the default
+ *  - a global context, shared over all threads (1)
+ */
+#define CUMAT_SINGLE_THREAD_CONTEXT 0
+#endif
+
 #ifndef CUMAT_CONTEXT_DEBUG_MEMORY
 /**
  * \brief Define this constant as 1 to enable a simple mechanism to test for memory leaks
@@ -155,7 +164,13 @@ public:
 	*/
 	static Context& current()
 	{
+#if CUMAT_SINGLE_THREAD_CONTEXT==0
+		//per thread instance
 		static thread_local Context INSTANCE;
+#else
+		//global instance
+		static Context INSTANCE;
+#endif
 		return INSTANCE;
 	}
 
