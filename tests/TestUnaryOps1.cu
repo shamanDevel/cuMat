@@ -6,8 +6,6 @@
 #include "Utils.h"
 #include "TestUnaryOps.cuh"
 
-using namespace cuMat::functions;
-
 template<typename _Scalar, int _Rows, int _Cols, int _Batches, int _Flags>
 void TestNegate(cuMat::Index rows, cuMat::Index cols, cuMat::Index batches)
 {

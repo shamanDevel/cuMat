@@ -6,8 +6,6 @@
 #include "Utils.h"
 #include "TestUnaryOps.cuh"
 
-using namespace cuMat::functions;
-
 UNARY_TEST_CASE_FLOAT(cwiseExp, exp, -10, 10);
 UNARY_TEST_CASE_FLOAT(cwiseLog, log, 0.001, 100);
 UNARY_TEST_CASE_FLOAT(cwiseLog1p, log1p, 0.001, 100);

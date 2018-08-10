@@ -51,7 +51,7 @@
 /**
  * \brief The namespace in which overloaded math functions are defined.
  */
-#define CUMAT_FUNCTION_NAMESPACE ::
+#define CUMAT_FUNCTION_NAMESPACE ::cuMat::functions::
 #endif
 
 #ifdef _MSC_VER
