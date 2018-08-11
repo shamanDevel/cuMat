@@ -941,7 +941,7 @@ public:
 	 * \param other 
 	 */
 	template<int _OtherRows, int _OtherColumns, int _OtherBatches, int _OtherFlags>
-	Matrix(const Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, _OtherFlags>& other)
+	__host__ Matrix(const Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, _OtherFlags>& other)
 		: data_(other.dataPointer(), other.rows(), other.cols(), other.batches()) //shallow copy
 	{
 		CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Rows != Dynamic && _OtherRows != Dynamic, _OtherRows == _Rows), 

@@ -17,14 +17,15 @@ namespace cuda
 	 * \return the value at that adress
 	 */
 	template<typename T>
-	__device__ CUMAT_STRONG_INLINE const T& load(T* ptr)
+	__device__ CUMAT_STRONG_INLINE const T& load(const T* ptr)
 	{
-#if __CUDA_ARCH__ >= 350
-		return __ldg(ptr);
-#else
+//#if __CUDA_ARCH__ >= 350
+//		return __ldg(ptr);
+//#else
 		return *ptr;
-#endif
+//#endif
 	}
+
 }
 
 CUMAT_NAMESPACE_END
