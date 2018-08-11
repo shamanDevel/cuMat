@@ -6,6 +6,8 @@
 #include "Utils.h"
 #include "TestBinaryOps.cuh"
 
+using namespace cuMat::functions;
+
 BINARY_TEST_CASE_ALL(add, X + Y, X + Y, -1000, 1000)
 BINARY_TEST_CASE_ALL(sub, X - Y, X - Y, -1000, 1000)
 //BINARY_TEST_CASE_INT(modulo, X % Y, X % Y, -1000, 1000); //no modulo in Eigen

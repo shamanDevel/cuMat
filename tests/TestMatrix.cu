@@ -262,7 +262,7 @@ __global__ void TestMatrixWriteCoeffKernel(dim3 virtual_size, MatrixType matrix)
 {
 	CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size)
 	{
-		matrix.coeff(i, j, k) = i + j*100 + k * 100*100;
+		matrix.coeff(i, j, k, -1) = i + j*100 + k * 100*100;
 	}
 }
 //Tests if a kernel can write the 3d-indexed coefficients

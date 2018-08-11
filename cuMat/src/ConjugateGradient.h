@@ -42,7 +42,7 @@ namespace internal
  * 
  * This solver can also be used with blocked types. This means, the scalar type of the matrix is not a single element like float,
  * but a small block. For example: The matrix has type float3x3 and the right hand side float3 for 3x3 blocks.
- * The underlying ElementType is float3 in the above example and has to match.
+ * The underlying ElementType is float in the above example and has to match.
  * This, however, requires several template specializations and functions:
  *  - The matrix type needs a (possibly explicit) constructor that takes the ElementType and broadcasts it for all entries.
  *    (as default value for coeff() if the matrix is a sparse matrix)
