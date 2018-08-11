@@ -58,13 +58,15 @@ namespace cub {
 
 
 /// Whether or not the source targeted by the active compiler pass is allowed to  invoke device kernels or methods from the CUDA runtime API.
+//HOTPATCH: With CUDA 9.2, some functions won't compile "error: cannot pass an argument with a user-provided copy-constructor to a device-side kernel launch"
+//  if __device__ is used
 #ifndef CUB_RUNTIME_FUNCTION
-    //#if !defined(__CUDA_ARCH__) || (__CUDA_ARCH__>= 350 && defined(__CUDACC_RDC__))
-    //    #define CUB_RUNTIME_ENABLED
-    //    #define CUB_RUNTIME_FUNCTION __host__ __device__
-    //#else
-        #define CUB_RUNTIME_FUNCTION __host__
-    //#endif
+    #if !defined(__CUDA_ARCH__) || (__CUDA_ARCH__>= 350 && defined(__CUDACC_RDC__))
+        #define CUB_RUNTIME_ENABLED
+        #define CUB_RUNTIME_FUNCTION __host__ /*__device__*/
+    #else
+        #define CUB_RUNTIME_FUNCTION
+    #endif
 #endif
 
 
