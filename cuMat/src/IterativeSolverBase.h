@@ -177,7 +177,7 @@ public:
     };
 
 private:
-    const _Solver decomposition_;
+    const _Solver& decomposition_;
     const _RHS rhs_;
     const _Guess guess_;
 
@@ -187,8 +187,10 @@ public:
         , rhs_(rhs.derived())
         , guess_(guess.derived())
     {
-        CUMAT_STATIC_ASSERT((std::is_same<typename _Solver::Scalar, typename internal::traits<_RHS>::Scalar>::value),
-            "Datatype of left- and right hand side must match");
+		CUMAT_STATIC_ASSERT((std::is_same<
+			typename internal::NumTraits<typename _Solver::Scalar>::ElementalType,
+			typename internal::NumTraits<typename internal::traits<_RHS>::Scalar>::ElementalType>::value),
+			"Datatype of left- and right hand side must match");
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Solver::Batches > 1 && _RHS::Batches > 0, _Solver::Batches == _RHS::Batches),
             "Static count of batches must match"); //note: _Solver::Batches>1 to allow broadcasting
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Solver::Rows > 0 && _Solver::Columns > 0, _Solver::Rows == _RHS::Columns),

@@ -88,7 +88,6 @@ public:
         : decomposition_(decomposition)
         , rhs_(rhs.derived())
     {
-		//This is not true anymore -> blocked types
         CUMAT_STATIC_ASSERT((std::is_same<
 				typename internal::NumTraits<typename _Solver::Scalar>::ElementalType, 
 				typename internal::NumTraits<typename internal::traits<_RHS>::Scalar>::ElementalType>::value),

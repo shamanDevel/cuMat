@@ -375,7 +375,7 @@ public:
                 return Functor::asDiagonal(child_.derived().coeff(row, 0, batch, -1));
         } else
         {
-            return Functor::asDiagonal(VectorType(0));
+            return typename Functor::MatrixType(0);
         }
     }
 };

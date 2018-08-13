@@ -545,7 +545,7 @@ public:
     */
     internal::SparseMatrixInplaceAssignment<Type> inplace()
     {
-        return internal::MatrixInplaceAssignment<Type>(this);
+        return internal::SparseMatrixInplaceAssignment<Type>(this);
     }
 
     // STATIC METHODS AND OTHER HELPERS
