@@ -304,6 +304,7 @@ public:
 	 */
 	KernelLaunchConfig createLaunchConfig1D(unsigned int size, unsigned int maxBlockSize = 1<<15) const
 	{
+		//TODO: use cudaOccupancyMaxPotentialBlockSize
 		CUMAT_ASSERT_ARGUMENT(size > 0);
         unsigned int blockSize = std::min(maxBlockSize, 256u);
 		//TODO: Very simplistic first version
@@ -326,6 +327,7 @@ public:
 	*/
 	KernelLaunchConfig createLaunchConfig2D(unsigned int sizex, unsigned int sizey) const
 	{
+		//TODO: use cudaOccupancyMaxPotentialBlockSize and return a 1D flattened loop
 		CUMAT_ASSERT_ARGUMENT(sizex > 0);
 		CUMAT_ASSERT_ARGUMENT(sizey > 0);
 		//TODO: Very simplistic first version
@@ -351,6 +353,7 @@ public:
 	*/
 	KernelLaunchConfig createLaunchConfig3D(unsigned int sizex, unsigned int sizey, unsigned int sizez) const
 	{
+		//TODO: use cudaOccupancyMaxPotentialBlockSize and return a 1D flattened loop
 		CUMAT_ASSERT_ARGUMENT(sizex > 0);
 		CUMAT_ASSERT_ARGUMENT(sizey > 0);
 		CUMAT_ASSERT_ARGUMENT(sizez > 0);
@@ -358,8 +361,8 @@ public:
 		//Later improve to read the actual pysical thread count per block and pysical block count
 		KernelLaunchConfig cfg = {
 			dim3(sizex, sizey, sizez),
-			dim3(16, 8, 8),
-			dim3(CUMAT_DIV_UP(sizex, 16), CUMAT_DIV_UP(sizey, 8), CUMAT_DIV_UP(sizey, 8))
+			dim3(8, 8, 8),
+			dim3(CUMAT_DIV_UP(sizex, 8), CUMAT_DIV_UP(sizey, 8), CUMAT_DIV_UP(sizey, 8))
 		};
 		return cfg;
 	}
