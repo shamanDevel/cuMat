@@ -209,6 +209,7 @@ private:
     Vector entries_;
 
 public:
+	DiagonalPreconditioner() {}
     DiagonalPreconditioner(const MatrixBase<_MatrixType>& matrix)
         : entries_(matrix.diagonal().cwiseInverseCheck())
     {}
