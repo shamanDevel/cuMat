@@ -268,9 +268,9 @@ public:
         CUMAT_ASSERT(cols() == m.cols());
         CUMAT_ASSERT(batches() == m.batches());
 
-        CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluate reduction expression " << typeid(derived()).name();
-        CUMAT_LOG(CUMAT_LOG_DEBUG) << " rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches()
-            << ", axis=" << ((axis_ & ReductionAxis::Row) ? "R" : "") << ((axis_ & ReductionAxis::Column) ? "C" : "") << ((axis_ & ReductionAxis::Batch) ? "B" : "");
+        CUMAT_LOG_DEBUG("Evaluate reduction expression " << typeid(derived()).name()
+			<< "\n rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches()
+            << ", axis=" << ((axis_ & ReductionAxis::Row) ? "R" : "") << ((axis_ & ReductionAxis::Column) ? "C" : "") << ((axis_ & ReductionAxis::Batch) ? "B" : ""));
 
         //runtime switch to the implementations
         switch (axis_)
@@ -286,7 +286,7 @@ public:
         default: throw std::invalid_argument(__FILE__ ":" CUMAT_STR(__LINE__) 
             ": Invalid argument, axis must be between 0 and 7, but is " + std::to_string(axis_));
         }
-        CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
+        CUMAT_LOG_DEBUG("Evaluation done");
     }
 };
 
@@ -357,13 +357,13 @@ public:
         CUMAT_ASSERT(cols() == m.cols());
         CUMAT_ASSERT(batches() == m.batches());
 
-        CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluate reduction expression " << typeid(derived()).name();
-        CUMAT_LOG(CUMAT_LOG_DEBUG) << " rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches()
-            << ", axis=" << ((_Axis & ReductionAxis::Row) ? "R" : "") << ((_Axis & ReductionAxis::Column) ? "C" : "") << ((_Axis & ReductionAxis::Batch) ? "B" : "");
+        CUMAT_LOG_DEBUG("Evaluate reduction expression " << typeid(derived()).name()
+			<< "\n rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches()
+            << ", axis=" << ((_Axis & ReductionAxis::Row) ? "R" : "") << ((_Axis & ReductionAxis::Column) ? "C" : "") << ((_Axis & ReductionAxis::Batch) ? "B" : ""));
 
         //compile-time switch to the implementations
         internal::ReductionEvaluator<_Child, Derived, _Axis, _ReductionOp, Scalar>::eval(child_, m.derived(), op_, initialValue_);
-        CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
+        CUMAT_LOG_DEBUG("Evaluation done");
     }
 };
 

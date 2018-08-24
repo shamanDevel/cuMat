@@ -210,7 +210,7 @@ namespace internal
             CUMAT_ASSERT_ARGUMENT(mat.cols() == src.cols());
             CUMAT_ASSERT_ARGUMENT(mat.batches() == src.batches());
 
-            CUMAT_LOG(CUMAT_LOG_DEBUG) << "Transpose: Direct transpose using cuBLAS";
+            CUMAT_LOG_DEBUG("Transpose: Direct transpose using cuBLAS");
 
             cublasOperation_t transA = Op::IsConjugated ? CUBLAS_OP_C : CUBLAS_OP_T;
             int m = static_cast<int>(Op::OriginalFlags == ColumnMajor ? mat.rows() : mat.cols());

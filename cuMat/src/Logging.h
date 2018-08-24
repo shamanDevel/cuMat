@@ -5,14 +5,17 @@
 
 /**
  * Defines the logging macros.
- * All logging messages are started with a call to CUMAT_LOG(level)
- * where level can be CUMAT_LOG_DEBUG, CUMAT_LOG_INFO,
- * CUMAT_LOG_WARNING or CUMAT_LOG_SEVERE.
+ * All logging messages are started with a call to
+ * e.g. CUMAT_LOG_INFO(message)
  * 
  * You can define the CUMAT_LOG and the related logging levels
  * to point to your own logging implementation.
  * If you don't overwrite these, a very trivial logger is used
  * that simply prints to std::cout.
+ * 
+ * This is achieved by globally defining CUMAT_LOGGING_PLUGIN
+ * that includes a file that then defines all the logging macros:
+ * CUMAT_LOG_DEBUG, CUMAT_LOG_INFO, CUMAT_LOG_WARNING, CUMAT_LOG_SEVERE
  */
 
 #ifndef CUMAT_LOG
@@ -21,27 +24,12 @@
 #include <iostream>
 #include <string>
 
+#ifdef CUMAT_LOGGING_PLUGIN
+CUMAT_LOGGING_PLUGIN
+#endif
+
 CUMAT_NAMESPACE_BEGIN
 
-/**
-* The logging level for information messages
-*/
-#define CUMAT_LOG_DEBUG "[debug]"
-
-/**
-* The logging level for information messages
-*/
-#define CUMAT_LOG_INFO "[info]"
-
-/**
-* The logging level for information messages
-*/
-#define CUMAT_LOG_WARNING "[warning]"
-
-/**
-* The logging level for information messages
-*/
-#define CUMAT_LOG_SEVERE "[SEVERE]"
 
 class DummyLogger
 {
@@ -51,7 +39,7 @@ private:
 
 public:
 	DummyLogger(const std::string& level)
-		: enabled_(level != CUMAT_LOG_DEBUG) //to disable the many, many logs during kernel evaluations in the test suites
+		: enabled_(level != "[debug]") //to disable the many, many logs during kernel evaluations in the test suites
 	{
 		flags_ = std::cout.flags();
 		if (enabled_) std::cout << level << "  ";
@@ -71,10 +59,31 @@ public:
 	}
 };
 
+#ifndef CUMAT_LOG_DEBUG
 /**
- * Returns the logger for the given level.
+ * Logs the message as a debug message
  */
-#define CUMAT_LOG(level) DummyLogger(level)
+#define CUMAT_LOG_DEBUG(...) DummyLogger("[debug]") << __VA_ARGS__
+#endif
+
+#ifndef CUMAT_LOG_INFO
+ /**
+ * Logs the message as a information message
+ */
+#define CUMAT_LOG_INFO(...) DummyLogger("[info]") << __VA_ARGS__
+#endif
+#ifndef CUMAT_LOG_WARNING
+ /**
+ * Logs the message as a warning message
+ */
+#define CUMAT_LOG_WARNING(...) DummyLogger("[warning]") << __VA_ARGS__
+#endif
+#ifndef CUMAT_LOG_SEVERE
+ /**
+ * Logs the message as a severe error message
+ */
+#define CUMAT_LOG_SEVERE(...) DummyLogger("[SEVERE]") << __VA_ARGS__
+#endif
 
 CUMAT_NAMESPACE_END
 

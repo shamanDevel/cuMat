@@ -51,7 +51,7 @@ namespace internal
             if (CUSOLVER_STATUS_SUCCESS != status) {
                 std::string msg = ErrorHelpers::format("cusolverSafeCall() failed at %s:%i : %s\n",
                     file, line, getErrorName(status));
-                CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				CUMAT_LOG_SEVERE(msg);
                 throw cuda_error(msg);
             }
 #if CUMAT_VERBOSE_ERROR_CHECKING==1
@@ -60,7 +60,7 @@ namespace internal
             if (cudaSuccess != err) {
                 std::string msg = ErrorHelpers::format("cusolverSafeCall() failed at %s:%i : %s\n",
                     file, line, cudaGetErrorString(err));
-                CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				CUMAT_LOG_SEVERE(msg);
                 throw cuda_error(msg);
             }
 #endif

@@ -166,15 +166,15 @@ namespace internal
             CUMAT_ASSERT(src.cols() == dst.cols());
             CUMAT_ASSERT(src.batches() == dst.batches());
 
-            CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluate component wise expression " << typeid(src.derived()).name();
-            CUMAT_LOG(CUMAT_LOG_DEBUG) << " rows=" << src.rows() << ", cols=" << src.cols() << ", batches=" << src.batches();
+            CUMAT_LOG_DEBUG("Evaluate component wise expression " << typeid(src.derived()).name()
+				<< "\n rows=" << src.rows() << ", cols=" << src.cols() << ", batches=" << src.batches());
 
             //here is now the real logic
             Context& ctx = Context::current();
             KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size(), CwiseEvaluationKernel<SrcActual, DstActual, _Mode>);
             CwiseEvaluationKernel<SrcActual, DstActual, _Mode> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> (cfg.virtual_size, src.derived(), dst.derived());
             CUMAT_CHECK_ERROR();
-            CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
+            CUMAT_LOG_DEBUG("Evaluation done");
         }
     };
 }

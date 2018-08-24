@@ -96,8 +96,8 @@ namespace internal
             CUMAT_ASSERT(op.cols() == dst.cols());
             CUMAT_ASSERT(op.batches() == dst.batches());
 
-            CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluate SparseMatrix-DenseVector multiplication " << typeid(op.derived()).name();
-            CUMAT_LOG(CUMAT_LOG_DEBUG) << " matrix rows=" << op.derived().left().rows() << ", cols=" << op.left().cols();
+			CUMAT_LOG_DEBUG("Evaluate SparseMatrix-DenseVector multiplication " << typeid(op.derived()).name()
+				<< " matrix rows=" << op.derived().left().rows() << ", cols=" << op.left().cols());;
 
             //here is now the real logic
             Context& ctx = Context::current();
@@ -106,7 +106,7 @@ namespace internal
                 <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
                 (cfg.virtual_size, op.derived().left().derived(), op.derived().right().derived(), dst.derived());
             CUMAT_CHECK_ERROR();
-            CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
+            CUMAT_LOG_DEBUG("Evaluation done");
         }
     };
 }

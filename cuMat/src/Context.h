@@ -157,8 +157,7 @@ public:
 
 		//TODO: init BLAS context and so on
 
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Context initialized for thread 0x" << std::hex << std::this_thread::get_id()
-		 << ", stream: 0x" << stream_;
+		CUMAT_LOG_DEBUG("Context initialized for thread 0x" << std::hex << std::this_thread::get_id() << ", stream: 0x" << stream_);
 	}
 
 	~Context()
@@ -168,7 +167,7 @@ public:
 			CUMAT_SAFE_CALL(cudaStreamDestroy(stream_));
 			stream_ = nullptr;
 		}
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Context deleted for thread 0x" << std::hex << std::this_thread::get_id();
+		CUMAT_LOG_DEBUG("Context deleted for thread 0x" << std::hex << std::this_thread::get_id());
 #if CUMAT_CONTEXT_DEBUG_MEMORY==1
 		CUMAT_ASSERT(allocationsHost_ == 0 && "some host memory was not released");
 		CUMAT_ASSERT(allocationsDevice_ == 0 && "some device memory was not released");
@@ -338,7 +337,7 @@ public:
 		//Improved version using cudaOccupancyMaxPotentialBlockSize
 		int minGridSize = 0, bestBlockSize = 0;
 		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize;
+		CUMAT_LOG_DEBUG("Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 		KernelLaunchConfig cfg = {
 			dim3(size, 1, 1),
 			dim3(bestBlockSize, 1, 1),
@@ -364,7 +363,7 @@ public:
 		CUMAT_ASSERT_ARGUMENT(sizey > 0);
 		int minGridSize = 0, bestBlockSize = 0;
 		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize;
+		CUMAT_LOG_DEBUG("Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 		KernelLaunchConfig cfg = {
 			dim3(sizex, sizey, 1),
 			dim3(bestBlockSize, 1, 1),
@@ -391,7 +390,7 @@ public:
 		CUMAT_ASSERT_ARGUMENT(sizez > 0);
 		int minGridSize = 0, bestBlockSize = 0;
 		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize;
+		CUMAT_LOG_DEBUG("Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 		KernelLaunchConfig cfg = {
 			dim3(sizex, sizey, sizez),
 			dim3(bestBlockSize, 1, 1),

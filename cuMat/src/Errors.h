@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdarg>
 #include <vector>
+#include <stdio.h>
 
 #include "Macros.h"
 #include "Logging.h"
@@ -95,7 +96,7 @@ namespace internal {
 			if (cudaSuccess != err) {
 				std::string msg = format("cudaSafeCall() failed at %s:%i : %s\n",
 					file, line, cudaGetErrorString(err));
-				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				CUMAT_LOG_SEVERE(msg);
 				throw cuda_error(msg);
 			}
 	#if CUMAT_VERBOSE_ERROR_CHECKING==1
@@ -104,7 +105,7 @@ namespace internal {
 			if (cudaSuccess != err) {
 				std::string msg = format("cudaSafeCall() failed at %s:%i : %s\n",
 					file, line, cudaGetErrorString(err));
-				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				CUMAT_LOG_SEVERE(msg);
 				throw cuda_error(msg);
 			}
 	#endif
@@ -116,7 +117,7 @@ namespace internal {
 			if (cudaSuccess != err) {
 				std::string msg = format("cudaCheckError() failed at %s:%i : %s\n",
 					file, line, cudaGetErrorString(err));
-				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				CUMAT_LOG_SEVERE(msg);
 				throw cuda_error(msg);
 			}
 
@@ -126,7 +127,7 @@ namespace internal {
 			if (cudaSuccess != err) {
 				std::string msg = format("cudaCheckError() failed at %s:%i : %s\n",
 					file, line, cudaGetErrorString(err));
-				CUMAT_LOG(CUMAT_LOG_SEVERE) << msg;
+				CUMAT_LOG_SEVERE(msg);
 				throw cuda_error(msg);
 			}
 #endif
