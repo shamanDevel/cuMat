@@ -92,12 +92,12 @@ namespace
     __global__ void RandomEvaluationKernel(dim3 virtual_size, M matrix, S min, S max, state_t* seeds)
     {
         state_t seed = seeds[threadIdx.x];
-        CUMAT_KERNEL_1D_LOOP(index, virtual_size) {
+        CUMAT_KERNEL_1D_LOOP(index, virtual_size)
             Index i, j, k;
             matrix.index(index, i, j, k);
             //printf("eval at row=%d, col=%d, batch=%d, index=%d\n", (int)i, (int)j, (int)k, (int)matrix.index(i, j, k));
             matrix.setRawCoeff(index, randNext<S>(&seed, min, max));
-        }
+		CUMAT_KERNEL_1D_LOOP_END
         seeds[threadIdx.x] = seed;
     }
 
@@ -209,9 +209,10 @@ public:
     void fillUniform(MatrixBase<_Derived>& m, const _Scalar& min = MinMaxDefaults<_Scalar>::min(), const _Scalar& max = MinMaxDefaults<_Scalar>::max())
     {
         if (m.size() == 0) return;
+		typedef typename _Derived::Type ActualType;
         Context& ctx = Context::current();
-        KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.size(), numStates);
-        RandomEvaluationKernel <<<1, cfg.thread_per_block.x, 0, ctx.stream() >>>(cfg.virtual_size, m.derived(), min, max, state_.pointer());
+        KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.size(), RandomEvaluationKernel<ActualType, _Scalar>);
+        RandomEvaluationKernel<ActualType, _Scalar> <<<1, cfg.thread_per_block.x, 0, ctx.stream() >>>(cfg.virtual_size, m.derived(), min, max, state_.pointer());
         CUMAT_CHECK_ERROR();
     }
 };

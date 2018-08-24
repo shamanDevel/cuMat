@@ -73,7 +73,7 @@ namespace
 		//E.g. by storage order (row major / column major)
 		//Later, this may come in hand if sparse matrices or diagonal matrices are allowed
 		//that only evaluate certain elements.
-		CUMAT_KERNEL_1D_LOOP(index, virtual_size) {
+		CUMAT_KERNEL_1D_LOOP(index, virtual_size)
 			Index i, j, k;
 			matrix.index(index, i, j, k);
 
@@ -85,7 +85,7 @@ namespace
 		    //matrix.setRawCoeff(index, expr.coeff(i, j, k));
 
             //printf("eval at row=%d, col=%d, batch=%d, index=%d -> %f\n", (int)i, (int)j, (int)k, (int)matrix.index(i, j, k), (float)val);
-		}
+		CUMAT_KERNEL_1D_LOOP_END
 	}
 }
 
@@ -171,8 +171,8 @@ namespace internal
 
             //here is now the real logic
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size());
-            CwiseEvaluationKernel<SrcActual, DstActual, _Mode> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, src.derived(), dst.derived());
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size(), CwiseEvaluationKernel<SrcActual, DstActual, _Mode>);
+            CwiseEvaluationKernel<SrcActual, DstActual, _Mode> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> (cfg.virtual_size, src.derived(), dst.derived());
             CUMAT_CHECK_ERROR();
             CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
         }

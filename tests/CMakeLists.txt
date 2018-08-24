@@ -38,7 +38,8 @@ set(CUMAT_TEST_FILES
   TestComplexOps.cu
   TestLUDecomposition.cu
   TestCholeskyDecomposition.cu
-  TestLinAlgOps.cu
+  TestLinAlgOps1.cu
+  TestLinAlgOps2.cu
   TestCompoundAssignment.cu
   TestSparseMatrix.cu
   TestConjugateGradient.cu

@@ -16,7 +16,7 @@ namespace
         const int* IA = matrix.getInnerIndices().data();
         Index batchStride = matrix.nnz();
         //TODO: Profiling, what is the best way to loop over the batches?
-        CUMAT_KERNEL_2D_LOOP(outer, batch, virtual_size) {
+        CUMAT_KERNEL_2D_LOOP(outer, batch, virtual_size)
             int start = JA[outer];
             int end = JA[outer + 1];
             for (int i=start; i<end; ++i)
@@ -28,7 +28,7 @@ namespace
                 auto val = expr.coeff(row, col, batch, idx);
                 internal::CwiseAssignmentHandler<M, decltype(val), Mode>::assign(matrix, val, idx);
             }
-        }
+        CUMAT_KERNEL_2D_LOOP_END
     }
 }
 
@@ -55,7 +55,8 @@ namespace internal {
 
             //here is now the real logic
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig2D(dst.derived().outerSize(), dst.derived().batches());
+            KernelLaunchConfig cfg = ctx.createLaunchConfig2D(dst.derived().outerSize(), dst.derived().batches(), 
+				CwiseSparseEvaluationKernel<SrcActual, DstActual, _Mode, SparseFlags(DstActual::SparseFlags)>);
             CwiseSparseEvaluationKernel<SrcActual, DstActual, _Mode, SparseFlags(DstActual::SparseFlags)> 
                 <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> 
                 (cfg.virtual_size, src.derived(), dst.derived());

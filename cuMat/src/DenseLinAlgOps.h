@@ -238,11 +238,11 @@ namespace
         int TFlags = internal::traits<T>::Flags, int MFlags = internal::traits<M>::Flags>
     __global__ void DeterminantKernel(dim3 virtual_size, const T expr, M matrix)
     {
-        CUMAT_KERNEL_1D_LOOP(index, virtual_size) {
+        CUMAT_KERNEL_1D_LOOP(index, virtual_size)
             DeviceMatrix<Scalar, Dims, TFlags> in = loadMat<Dims, T, Scalar>(expr, index);
             Scalar det = DeterminantFunctor<Scalar, Dims, DeviceMatrix<Scalar, Dims, TFlags> >::run(in);
             matrix.setRawCoeff(index, det);
-        }
+		CUMAT_KERNEL_1D_LOOP_END
     }
 }
 
@@ -329,8 +329,8 @@ namespace internal
 
             //launch kernel
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
-            DeterminantKernel<Child_wrapped, Derived, 1> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches(), DeterminantKernel<Child_wrapped, Derived, 1>);
+            DeterminantKernel<Child_wrapped, Derived, 1> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
             CUMAT_CHECK_ERROR();
         }
 
@@ -343,8 +343,8 @@ namespace internal
 
             //launch kernel
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
-            DeterminantKernel<Child_wrapped, Derived, 2> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches(), DeterminantKernel<Child_wrapped, Derived, 2>);
+            DeterminantKernel<Child_wrapped, Derived, 2> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
             CUMAT_CHECK_ERROR();
         }
 
@@ -357,8 +357,8 @@ namespace internal
 
             //launch kernel
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
-            DeterminantKernel<Child_wrapped, Derived, 3> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches(), DeterminantKernel<Child_wrapped, Derived, 3>);
+            DeterminantKernel<Child_wrapped, Derived, 3> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
             CUMAT_CHECK_ERROR();
         }
 
@@ -375,18 +375,20 @@ namespace internal
                 Child_wrapped inWrapped(op.getMatrix());
                 //short-cuts
                 Context& ctx = Context::current();
-                KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches());
                 if (size == 1)
                 {
-                    DeterminantKernel<Child_wrapped, Derived, 1> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+					KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches(), DeterminantKernel<Child_wrapped, Derived, 1>);
+                    DeterminantKernel<Child_wrapped, Derived, 1> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
                 }
                 else if (size == 2)
                 {
-                    DeterminantKernel<Child_wrapped, Derived, 2> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+					KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches(), DeterminantKernel<Child_wrapped, Derived, 2>);
+                    DeterminantKernel<Child_wrapped, Derived, 2> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
                 }
                 else if (size == 3)
                 {
-                    DeterminantKernel<Child_wrapped, Derived, 3> << <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >(cfg.virtual_size, inWrapped, m);
+					KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.batches(), DeterminantKernel<Child_wrapped, Derived, 3>);
+                    DeterminantKernel<Child_wrapped, Derived, 3> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>(cfg.virtual_size, inWrapped, m);
                 }
             }
             else

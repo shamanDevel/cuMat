@@ -122,30 +122,4 @@ void testlinAlgOps2()
         }
     }
 }
-TEST_CASE("dense lin-alg", "[Dense]")
-{
-    SECTION("1x1")
-    {
-        testlinAlgOps2<1>();
-    }
-    SECTION("2x2")
-    {
-        testlinAlgOps2<2>();
-    }
-    SECTION("3x3")
-    {
-        testlinAlgOps2<3>();
-    }
-    SECTION("4x4")
-    {
-        testlinAlgOps2<4>();
-    }
-    SECTION("5x5")
-    {
-        testlinAlgOps2<5>();
-    }
-    //SECTION("10x10") //This would exceed the per-file object count
-    //{
-    //    testlinAlgOps2<10>();
-    //}
-}
+

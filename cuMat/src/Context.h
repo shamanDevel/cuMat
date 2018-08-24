@@ -6,6 +6,7 @@
 #include <thread>
 #include <mutex>
 #include <algorithm>
+#include <typeinfo>
 
 #include "Macros.h"
 #include "Errors.h"
@@ -86,22 +87,40 @@ struct KernelLaunchConfig
 	dim3 block_count;
 };
 
-#define CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, axis) \
-	for (CUMAT_NAMESPACE Index i = blockIdx.axis * blockDim.axis + threadIdx.axis; \
-		 i < virtual_size.axis; \
-		 i += blockDim.axis * gridDim.axis)
+/**
+ * \brief 1D-loop over the jobs in a kernel.
+ * Has to be closed with CUMAT_KERNEL_1D_LOOP_END
+ */
+#define CUMAT_KERNEL_1D_LOOP(i, virtual_size)								\
+	for (CUMAT_NAMESPACE Index i = blockIdx.x * blockDim.x + threadIdx.x;	\
+		 i < virtual_size.x;												\
+		 i += blockDim.x * gridDim.x) {
+#define CUMAT_KERNEL_1D_LOOP_END }
 
-#define CUMAT_KERNEL_1D_LOOP(i, virtual_size) \
-	CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, x)
+/**
+ * \brief 2D-loop over the jobs in a kernel, coordinate i runs fastest.
+ * Has to be closed with CUMAT_KERNEL_2D_LOOP_END
+ */
+#define CUMAT_KERNEL_2D_LOOP(i, j, virtual_size)							\
+	for (CUMAT_NAMESPACE Index __i = blockIdx.x * blockDim.x + threadIdx.x;	\
+		 __i < virtual_size.x*virtual_size.y;								\
+		 __i += blockDim.x * gridDim.x) {									\
+		 CUMAT_NAMESPACE Index j = __i / virtual_size.x;					\
+		 CUMAT_NAMESPACE Index i = __i - j * virtual_size.x;
+#define CUMAT_KERNEL_2D_LOOP_END }
 
-#define CUMAT_KERNEL_2D_LOOP(i, j, virtual_size) \
-	CUMAT_KERNEL_AXIS_LOOP(j, virtual_size, y) \
-	CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, x)
-
-#define CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size) \
-	CUMAT_KERNEL_AXIS_LOOP(k, virtual_size, z) \
-	CUMAT_KERNEL_AXIS_LOOP(j, virtual_size, y) \
-	CUMAT_KERNEL_AXIS_LOOP(i, virtual_size, x)
+ /**
+ * \brief 3D-loop over the jobs in a kernel, coordinate i runs fastest, followed by j.
+ * Has to be closed with CUMAT_KERNEL_3D_LOOP_END
+ */
+#define CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size) 												\
+	for (CUMAT_NAMESPACE Index __i = blockIdx.x * blockDim.x + threadIdx.x;							\
+		 __i < virtual_size.x*virtual_size.y*virtual_size.z;										\
+		 __i += blockDim.x * gridDim.x) {															\
+		 CUMAT_NAMESPACE Index k = __i / (virtual_size.x*virtual_size.y);							\
+		 CUMAT_NAMESPACE Index j = (__i - (k * virtual_size.x*virtual_size.y)) / virtual_size.x;	\
+		 CUMAT_NAMESPACE Index i = __i - virtual_size.x * (j + virtual_size.y * k);
+#define CUMAT_KERNEL_3D_LOOP_END }
 
 /**
  * \brief Stores the cuda context of the current thread.
@@ -299,22 +318,34 @@ public:
 	 * For details on how to use it, see the documentation of
 	 * KernelLaunchConfig.
 	 * \param size the size of the problem
-	 * \param maxBlockSize the maximal size of the block, must be a power of two
-	 * \return the launch configuration
+	 * \param func the device function
 	 */
-	KernelLaunchConfig createLaunchConfig1D(unsigned int size, unsigned int maxBlockSize = 1<<15) const
+	template<class T>
+	KernelLaunchConfig createLaunchConfig1D(unsigned int size, T func) const
 	{
 		//TODO: use cudaOccupancyMaxPotentialBlockSize
 		CUMAT_ASSERT_ARGUMENT(size > 0);
-        unsigned int blockSize = std::min(maxBlockSize, 256u);
-		//TODO: Very simplistic first version
-		//Later improve to read the actual pysical thread count per block and pysical block count
+#if 0
+		//Very simplistic first version
+		unsigned int blockSize = 256u;
 		KernelLaunchConfig cfg = {
 			dim3(size, 1, 1),
 			dim3(blockSize, 1, 1),
 			dim3(CUMAT_DIV_UP(size, blockSize), 1, 1)
 		};
 		return cfg;
+#else
+		//Improved version using cudaOccupancyMaxPotentialBlockSize
+		int minGridSize = 0, bestBlockSize = 0;
+		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
+		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize;
+		KernelLaunchConfig cfg = {
+			dim3(size, 1, 1),
+			dim3(bestBlockSize, 1, 1),
+			dim3(minGridSize, 1, 1)
+		};
+		return cfg;
+#endif
 	}
 
 	/**
@@ -323,21 +354,21 @@ public:
 	* KernelLaunchConfig.
 	* \param sizex the size of the problem along x
 	* \param sizey the size of the problem along y
+	* \param func the kernel function
 	* \return the launch configuration
 	*/
-	KernelLaunchConfig createLaunchConfig2D(unsigned int sizex, unsigned int sizey) const
+	template<class T>
+	KernelLaunchConfig createLaunchConfig2D(unsigned int sizex, unsigned int sizey, T func) const
 	{
-		//TODO: use cudaOccupancyMaxPotentialBlockSize and return a 1D flattened loop
 		CUMAT_ASSERT_ARGUMENT(sizex > 0);
 		CUMAT_ASSERT_ARGUMENT(sizey > 0);
-		//TODO: Very simplistic first version
-		//Later improve to read the actual pysical thread count per block and pysical block count
-        unsigned int blockSizeX = sizey == 1 ? 256u : 32u; //common case: sizey==0 (no batching)
-        unsigned int blockSizeY = sizey == 1 ? 1u : 32u;
+		int minGridSize = 0, bestBlockSize = 0;
+		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
+		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize;
 		KernelLaunchConfig cfg = {
 			dim3(sizex, sizey, 1),
-			dim3(blockSizeX, blockSizeY, 1),
-			dim3(CUMAT_DIV_UP(sizex, blockSizeX), CUMAT_DIV_UP(sizey, blockSizeY), 1)
+			dim3(bestBlockSize, 1, 1),
+			dim3(minGridSize, 1, 1)
 		};
 		return cfg;
 	}
@@ -349,20 +380,22 @@ public:
 	* \param sizex the size of the problem along x
 	* \param sizey the size of the problem along y
 	* \param sizez the size of the problem along z
+	* \param func the kernel function
 	* \return the launch configuration
 	*/
-	KernelLaunchConfig createLaunchConfig3D(unsigned int sizex, unsigned int sizey, unsigned int sizez) const
+	template<class T>
+	KernelLaunchConfig createLaunchConfig3D(unsigned int sizex, unsigned int sizey, unsigned int sizez, T func) const
 	{
-		//TODO: use cudaOccupancyMaxPotentialBlockSize and return a 1D flattened loop
 		CUMAT_ASSERT_ARGUMENT(sizex > 0);
 		CUMAT_ASSERT_ARGUMENT(sizey > 0);
 		CUMAT_ASSERT_ARGUMENT(sizez > 0);
-		//TODO: Very simplistic first version
-		//Later improve to read the actual pysical thread count per block and pysical block count
+		int minGridSize = 0, bestBlockSize = 0;
+		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
+		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize;
 		KernelLaunchConfig cfg = {
 			dim3(sizex, sizey, sizez),
-			dim3(8, 8, 8),
-			dim3(CUMAT_DIV_UP(sizex, 8), CUMAT_DIV_UP(sizey, 8), CUMAT_DIV_UP(sizey, 8))
+			dim3(bestBlockSize, 1, 1),
+			dim3(minGridSize, 1, 1)
 		};
 		return cfg;
 	}

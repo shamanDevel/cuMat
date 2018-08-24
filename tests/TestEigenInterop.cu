@@ -8,9 +8,8 @@ template<typename MatrixType>
 __global__ void TestEigenWriteCoeffKernel(dim3 virtual_size, MatrixType matrix)
 {
 	CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size)
-	{
 		matrix.coeff(i, j, k, -1) = i + j * 100 + k * 100 * 100;
-	}
+	CUMAT_KERNEL_3D_LOOP_END
 }
 
 template<typename _Matrix>
@@ -19,7 +18,7 @@ void testMatrixToEigen(const _Matrix& m)
 	cuMat::Context& ctx = cuMat::Context::current();
 	int sx = m.rows();
 	int sy = m.cols();
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, 1);
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, 1, TestEigenWriteCoeffKernel<_Matrix>);
 	TestEigenWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
 		(cfg.virtual_size, m);
 	CUMAT_CHECK_ERROR();
@@ -50,10 +49,9 @@ template<typename MatrixType>
 __global__ void TestEigenReadCoeffKernel(dim3 virtual_size, MatrixType matrix, int* failure)
 {
 	CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size)
-	{
 		if (matrix.coeff(i, j, k, -1) != i + j * 100 + k * 100 * 100)
 			failure[0] = 1;
-	}
+	CUMAT_KERNEL_3D_LOOP_END
 }
 template <typename _Matrix>
 void testMatrixFromEigen(const _Matrix& m)
@@ -78,7 +76,7 @@ void testMatrixFromEigen(const _Matrix& m)
 	cuMat::DevicePointer<int> successFlag(1);
 	CUMAT_SAFE_CALL(cudaMemset(successFlag.pointer(), 0, sizeof(int)));
 
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, 1);
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, 1, TestEigenReadCoeffKernel<matrix_t>);
 	TestEigenReadCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
 		(cfg.virtual_size, mat, successFlag.pointer());
 	CUMAT_CHECK_ERROR();

@@ -48,7 +48,7 @@ namespace internal
         const int* JA = matrix.getOuterIndices().data();
         const int* IA = matrix.getInnerIndices().data();
         const LeftScalar* A = matrix.getData().data();
-        CUMAT_KERNEL_1D_LOOP(outer, virtual_size) {
+        CUMAT_KERNEL_1D_LOOP(outer, virtual_size)
             int start = JA[outer];
             int end = JA[outer + 1];
             if (start>=end) continue;
@@ -58,7 +58,7 @@ namespace internal
                 value += Functor::mult(A[i], vector.coeff(IA[i], 0, 0, -1));
             }
             internal::CwiseAssignmentHandler<M, OutputScalar, Mode>::assign(output, value, outer);
-        }
+		CUMAT_KERNEL_1D_LOOP_END
     }
     }
 
@@ -101,7 +101,7 @@ namespace internal
 
             //here is now the real logic
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size());
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size(), CSRMVKernel<SrcLeft, typename _SrcRight::Type, DstActual, _AssignmentMode>);
             CSRMVKernel<SrcLeft, typename _SrcRight::Type, DstActual, _AssignmentMode> 
                 <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
                 (cfg.virtual_size, op.derived().left().derived(), op.derived().right().derived(), dst.derived());

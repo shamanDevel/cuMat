@@ -191,9 +191,8 @@ template<typename MatrixType>
 __global__ void TestMatrixWriteRawKernel(dim3 virtual_size, MatrixType matrix)
 {
 	CUMAT_KERNEL_1D_LOOP(i, virtual_size)
-	{
 		matrix.setRawCoeff(i, i);
-	}
+	CUMAT_KERNEL_1D_LOOP_END
 }
 //Tests if a kernel can write the raw data
 TEST_CASE("write_raw", "[matrix]")
@@ -203,9 +202,10 @@ TEST_CASE("write_raw", "[matrix]")
 	int sx = 4;
 	int sy = 8;
 	int sz = 16;
-	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, 0> m(sx, sy, sz);
+	typedef cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, 0> Mat_t;
+	Mat_t m(sx, sy, sz);
 
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig1D((unsigned int) m.size());
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig1D((unsigned int) m.size(), TestMatrixWriteRawKernel<Mat_t>);
 	TestMatrixWriteRawKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
 		(cfg.virtual_size, m);
 	CUMAT_CHECK_ERROR();
@@ -222,9 +222,8 @@ template<typename MatrixType>
 __global__ void TestMatrixReadRawKernel(dim3 virtual_size, MatrixType matrix, int* failure)
 {
 	CUMAT_KERNEL_1D_LOOP(i, virtual_size)
-	{
 		if (matrix.rawCoeff(i) != i) failure[0] = 1;
-	}
+	CUMAT_KERNEL_1D_LOOP_END
 }
 //Test if the kernel can read the raw data
 TEST_CASE("read_raw", "[matrix]")
@@ -234,7 +233,8 @@ TEST_CASE("read_raw", "[matrix]")
 	int sx = 4;
 	int sy = 8;
 	int sz = 16;
-	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, 0> m(sx, sy, sz);
+	typedef cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, 0> Mat_t;
+	Mat_t m(sx, sy, sz);
 
 	std::vector<int> host1(sx * sy * sz);
 	for (int i = 0; i<sx*sy*sz; ++i)
@@ -246,7 +246,7 @@ TEST_CASE("read_raw", "[matrix]")
 	cuMat::DevicePointer<int> successFlag(1);
 	CUMAT_SAFE_CALL(cudaMemset(successFlag.pointer(), 0, sizeof(int)));
 
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig1D((unsigned int) m.size());
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig1D((unsigned int) m.size(), TestMatrixReadRawKernel<Mat_t>);
 	TestMatrixReadRawKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
 		(cfg.virtual_size, m, successFlag.pointer());
 	CUMAT_CHECK_ERROR();
@@ -261,9 +261,8 @@ template<typename MatrixType>
 __global__ void TestMatrixWriteCoeffKernel(dim3 virtual_size, MatrixType matrix)
 {
 	CUMAT_KERNEL_3D_LOOP(i, j, k, virtual_size)
-	{
 		matrix.coeff(i, j, k, -1) = i + j*100 + k * 100*100;
-	}
+	CUMAT_KERNEL_3D_LOOP_END
 }
 //Tests if a kernel can write the 3d-indexed coefficients
 TEST_CASE("write_coeff_columnMajor", "[matrix]")
@@ -273,9 +272,10 @@ TEST_CASE("write_coeff_columnMajor", "[matrix]")
 	int sx = 4;
 	int sy = 8;
 	int sz = 16;
-	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor> m(sx, sy, sz);
+	typedef cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::ColumnMajor> Mat_t;
+	Mat_t m(sx, sy, sz);
 
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, sz);
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, sz, TestMatrixWriteCoeffKernel<Mat_t>);
 	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
 		(cfg.virtual_size, m);
 	CUMAT_CHECK_ERROR();
@@ -303,9 +303,10 @@ TEST_CASE("write_coeff_rowMajor", "[matrix]")
 	int sx = 4;
 	int sy = 8;
 	int sz = 16;
-	cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor> m(sx, sy, sz);
+	typedef cuMat::Matrix<int, cuMat::Dynamic, cuMat::Dynamic, cuMat::Dynamic, cuMat::RowMajor> Mat_t;
+	Mat_t m(sx, sy, sz);
 
-	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, sz);
+	cuMat::KernelLaunchConfig cfg = ctx.createLaunchConfig3D(sx, sy, sz, TestMatrixWriteCoeffKernel<Mat_t>);
 	TestMatrixWriteCoeffKernel <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
 		(cfg.virtual_size, m);
 	CUMAT_CHECK_ERROR();
