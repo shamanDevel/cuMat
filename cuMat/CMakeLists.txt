@@ -45,13 +45,17 @@ set(CUMAT_HEADERS
   src/DenseLinAlgPlugin.inl
   Dense
   
+  src/SparseMatrixBase.h
   src/SparseMatrix.h
   src/SparseEvaluation.h
   src/SparseProductEvaluation.h
+  src/SparseExpressionOp.h
+  src/SparseExpressionOpPlugin.inl
   Sparse
   
   src/IterativeSolverBase.h
   src/ConjugateGradient.h
+  IterativeLinearSolvers
   )
 
 add_library(cuMat INTERFACE) # 'moduleA' is an INTERFACE pseudo target

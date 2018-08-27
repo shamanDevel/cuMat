@@ -2,7 +2,7 @@
 
 #include <cuMat/Core>
 #include <cuMat/src/SimpleRandom.h>
-#include <cuMat/src/ConjugateGradient.h>
+#include <cuMat/IterativeLinearSolvers>
 
 #include "Utils.h"
 

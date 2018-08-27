@@ -10,13 +10,13 @@ template<typename Scalar>
 void testSparseOuterProduct()
 {
     typedef SparseMatrix<Scalar, 1, SparseFlags::CSR> SMatrix_t;
-    typename SMatrix_t::SparsityPattern pattern;
+    SparsityPattern pattern;
     pattern.rows = 5;
     pattern.cols = 5;
     pattern.nnz = 13;
     pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(13) << 0,1, 0,1,2, 1,2,3, 2,3,4, 3,4).finished());
     pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(6) << 0, 2, 5, 8, 11, 13).finished());
-    REQUIRE_NOTHROW(pattern.assertValid());
+    REQUIRE_NOTHROW(pattern.assertValid<CSR>());
     SMatrix_t smatrix1(pattern);
     SMatrix_t smatrix2(pattern);
     Eigen::Matrix<Scalar, Dynamic, Dynamic> mask(5, 5); 
@@ -74,13 +74,13 @@ TEST_CASE("Sparse Matrix-Vector Product", "[Sparse]")
     //{5, 0, 0, 7, 8},
     //{0, 0, 9, 0, 6}
     typedef SparseMatrix<float, 1, SparseFlags::CSR> SMatrix_t;
-    SMatrix_t::SparsityPattern pattern;
+    SparsityPattern pattern;
     pattern.rows = 4;
     pattern.cols = 5;
     pattern.nnz = 9;
     pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 1, 1, 2, 0, 3, 4, 2, 4).finished());
     pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(5) << 0, 2, 4, 7, 9).finished());
-    REQUIRE_NOTHROW(pattern.assertValid());
+    REQUIRE_NOTHROW(pattern.assertValid<CSR>());
     SMatrix_t A(pattern);
     A.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished());
 

@@ -8,6 +8,7 @@
 #include "DevicePointer.h"
 #include "MatrixBase.h"
 #include "Matrix.h"
+#include "SparseMatrixBase.h"
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -43,14 +44,14 @@ namespace internal
  * \tparam _SparseFlags the storage mode, must be either \c SparseFlags::CSC or \c SparseFlags::CSR
  */
 template<typename _Scalar, int _Batches, int _SparseFlags>
-class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar, _Batches, _SparseFlags> >
+class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Batches, _SparseFlags> >
 {
     CUMAT_STATIC_ASSERT(_SparseFlags == SparseFlags::CSR || _SparseFlags == SparseFlags::CSC,
         "SparseFlags must be either CSR or CSC");
 public:
 
     using Type = SparseMatrix<_Scalar, _Batches, _SparseFlags>;
-    typedef MatrixBase<SparseMatrix<_Scalar, _Batches, _SparseFlags> > Base;
+    typedef SparseMatrixBase<SparseMatrix<_Scalar, _Batches, _SparseFlags> > Base;
     CUMAT_PUBLIC_API_NO_METHODS
     using Base::derived;
     enum
@@ -58,74 +59,18 @@ public:
         SparseFlags = _SparseFlags
     };
 
-    /**
-     * \brief The type of the storage indices.
-     * This is fixed to an integer and not using Index, because this is faster for CUDA.
-     */
-    typedef int StorageIndex;
+    using typename Base::StorageIndex;
+    using typename Base::IndexVector;
+    using typename Base::ConstIndexVector;
 
-    typedef Matrix<StorageIndex, Dynamic, 1, 1, Flags::ColumnMajor> IndexVector;
     typedef Matrix<Scalar, Dynamic, 1, Batches, Flags::ColumnMajor> ScalarVector;
-    typedef const Matrix<StorageIndex, Dynamic, 1, 1, Flags::ColumnMajor> ConstIndexVector;
-    typedef const Matrix<Scalar, Dynamic, 1, Batches, Flags::ColumnMajor> ConstScalarVector;
-
-    /**
-     * \brief The sparsity pattern to initialize a sparse matrix
-     */
-    struct SparsityPattern
-    {
-        Index nnz;
-        Index rows;
-        Index cols;
-		/** \brief Inner indices, size=nnz */
-        IndexVector IA;
-		/** \brief Outer indices, size=N+1 */
-        IndexVector JA;
-
-        /**
-         * \brief Checks with assertions that this SparsityPattern is valid.
-         */
-        void assertValid() const
-        {
-            if (_SparseFlags == SparseFlags::CSC) { CUMAT_ASSERT_DIMENSION(JA.size() == cols+1) }
-            else /*CSR*/ { CUMAT_ASSERT_DIMENSION(JA.size() == rows+1); }
-            CUMAT_ASSERT_DIMENSION(rows > 0);
-            CUMAT_ASSERT_DIMENSION(cols > 0);
-            CUMAT_ASSERT_DIMENSION(cols > 0);
-            CUMAT_ASSERT_DIMENSION(IA.size() == nnz);
-        }
-    };
+    typedef const Matrix<const Scalar, Dynamic, 1, Batches, Flags::ColumnMajor> ConstScalarVector;
 
 private:
-    /**
-     * \brief Number of non-zero elements.
-     */
-    Index nnz_;
-    /**
-     * \brief Number of rows in the matrix.
-     */
-    Index rows_;
-    /**
-     * \brief Number of columns in the matrix.
-     */
-    Index cols_;
-    /**
-     * \brief Number of batches.
-     */
-    Index batches_;
-
     /**
      * \brief The (possibly batched) vector with the coefficients of size nnz_ .
      */
     ScalarVector A_;
-    /**
-    * \brief The inner indices of the coefficients, size nnz_ .
-    */
-    IndexVector IA_;
-    /**
-     * \brief The outer indices, size N+1
-     */
-    IndexVector JA_;
 
 public:
 
@@ -136,9 +81,7 @@ public:
     /**
      * \brief Default constructor, SparseMatrix is empty
      */
-    SparseMatrix()
-        : nnz_(0), rows_(0), cols_(0), batches_(0)
-    {}
+    SparseMatrix() = default;
 
     ~SparseMatrix() = default;
 
@@ -151,47 +94,19 @@ public:
      * \param batches the number of batches
      */
     SparseMatrix(const SparsityPattern& sparsityPattern, Index batches = _Batches)
-        : nnz_(sparsityPattern.nnz)
-        , rows_(sparsityPattern.rows)
-        , cols_(sparsityPattern.cols)
-        , batches_(batches)
+        : Base(sparsityPattern, batches)
         , A_(sparsityPattern.nnz, 1, batches) //This also checks if the number of batches is valid
-        , IA_(sparsityPattern.IA)
-        , JA_(sparsityPattern.JA)
     {
-        sparsityPattern.assertValid();
     }
-
-    /**
-     * \brief Returns the sparsity pattern of this matrix.
-     * This can be used to create another matrix with the same sparsity pattern.
-     * \return The sparsity pattern of this matrix.
-     */
-    SparsityPattern getSparsityPattern() const
-    {
-        return { nnz_, rows_, cols_, IA_, JA_ };
-    }
-
 
     SparseMatrix(const SparseMatrix& other)
-        : nnz_(other.nnz_),
-          rows_(other.rows_),
-          cols_(other.cols_),
-          batches_(other.batches_),
-          A_(other.A_),
-          IA_(other.IA_),
-          JA_(other.JA_)
-    {
-    }
+        : Base(other),
+          A_(other.A_)
+    {}
 
     SparseMatrix(SparseMatrix&& other) noexcept
-        : nnz_(other.nnz_),
-          rows_(other.rows_),
-          cols_(other.cols_),
-          batches_(other.batches_),
-          A_(std::move(other.A_)),
-          IA_(std::move(other.IA_)),
-          JA_(std::move(other.JA_))
+        : Base(other),
+          A_(std::move(other.A_))
     {
     }
 
@@ -199,13 +114,8 @@ public:
     {
         if (this == &other)
             return *this;
-        nnz_ = other.nnz_;
-        rows_ = other.rows_;
-        cols_ = other.cols_;
-        batches_ = other.batches_;
+        Base::operator=(other);
         A_ = other.A_;
-        IA_ = other.IA_;
-        JA_ = other.JA_;
         return *this;
     }
 
@@ -213,66 +123,29 @@ public:
     {
         if (this == &other)
             return *this;
-        nnz_ = other.nnz_;
-        rows_ = other.rows_;
-        cols_ = other.cols_;
-        batches_ = other.batches_;
+        Base::operator=(std::move(other));
         A_ = std::move(other.A_);
-        IA_ = std::move(other.IA_);
-        JA_ = std::move(other.JA_);
         return *this;
     }
 
-    bool isInitialized() const
-    {
-        return rows_ > 0 && cols_ > 0 && batches_ > 0;
-    }
-
     __host__ __device__ CUMAT_STRONG_INLINE ScalarVector getData() { return A_; }
-    __host__ __device__ CUMAT_STRONG_INLINE ConstScalarVector getData() const { return A_; }
-    __host__ __device__ CUMAT_STRONG_INLINE IndexVector getInnerIndices() { return IA_; }
-    __host__ __device__ CUMAT_STRONG_INLINE ConstIndexVector getInnerIndices() const { return IA_; }
-    __host__ __device__ CUMAT_STRONG_INLINE IndexVector getOuterIndices() { return JA_; }
-    __host__ __device__ CUMAT_STRONG_INLINE ConstIndexVector getOuterIndices() const { return JA_; }
+    __host__ __device__ CUMAT_STRONG_INLINE ConstScalarVector getData() const { return ConstScalarVector(A_.dataPointer(), A_.rows(), A_.cols(), A_.batches()); }
+    using Base::getInnerIndices;
+    using Base::getOuterIndices;
+    using Base::isInitialized;
 
     //----------------------------------
     //  COEFFICIENT ACCESS
     //----------------------------------
 
-    /**
-    * \brief Returns the number of rows of this matrix.
-    * \return the number of rows
-    */
-    __host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return rows_; }
-
-    /**
-    * \brief Returns the number of columns of this matrix.
-    * \return the number of columns
-    */
-    __host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return cols_; }
-
-    /**
-    * \brief Returns the number of batches of this matrix.
-    * \return the number of batches
-    */
-    __host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return batches_; }
-
-    /**
-    * \brief Returns the number of non-zero coefficients in this matrix
-    * \return the number of non-zeros
-    */
-    __host__ __device__ CUMAT_STRONG_INLINE Index nnz() const { return nnz_; }
-
-    /**
-    * \brief Returns the number of non-zero coefficients in this matrix.
-    * \return the number of non-zeros
-    */
-    __host__ __device__ CUMAT_STRONG_INLINE Index size() const { return nnz_; }
-
-    __host__ __device__ CUMAT_STRONG_INLINE Index outerSize() const
-    {
-        return (_SparseFlags == SparseFlags::CSC) ? cols() : rows();
-    }
+    using Base::rows;
+    using Base::cols;
+    using Base::batches;
+    using Base::nnz;
+    using Base::size;
+    using Base::outerSize;
+    using Base::IA_;
+    using Base::JA_;
 
     /**
      * \brief Accesses a single entry, performs a search for the specific entry.
@@ -288,8 +161,8 @@ public:
         //TODO: optimize with a binary search and early bound checks
         if (_SparseFlags == SparseFlags::CSC)
         {
-            int start = JA_.getRawCoeff(col);
-            int end = JA_.getRawCoeff(col + 1);
+            const int start = JA_.getRawCoeff(col);
+            const int end = JA_.getRawCoeff(col + 1);
             for (int i=start; i<end; ++i)
             {
                 int r = IA_.getRawCoeff(i);
@@ -297,8 +170,8 @@ public:
             }
         } else //CSR
         {
-            int start = JA_.getRawCoeff(row);
-            int end = JA_.getRawCoeff(row + 1);
+            const int start = JA_.getRawCoeff(row);
+            const int end = JA_.getRawCoeff(row + 1);
             for (int i = start; i<end; ++i)
             {
                 int c = IA_.getRawCoeff(i);

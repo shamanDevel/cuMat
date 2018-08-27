@@ -187,7 +187,12 @@ template<typename _Child> class DeterminantOp;
 
 // SPARSE
 
+struct SparsityPattern;
+template<typename _Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Batches, int _Flags> class SparseMatrix;
+
+// ITERATIVE LINEAR SOLVER
+
 template<typename _Solver, typename _RHS, typename _Guess> class SolveWithGuessOp;
 template<typename _SolverImpl> class IterativeSolverBase;
 template<typename _MatrixType, typename _Preconditioner> class ConjugateGradient;

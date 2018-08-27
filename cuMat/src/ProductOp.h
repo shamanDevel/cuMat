@@ -245,7 +245,7 @@ public:
 
     //Cwise-evaluation if this product op is an outer product
     template<typename Dummy = Type, typename = std::enable_if<internal::traits<Dummy>::IsOuterProduct> >
-    CUMAT_STRONG_INLINE __device__ const Scalar& coeff(Index row, Index col, Index batch, Index index) const
+    CUMAT_STRONG_INLINE __device__ Scalar coeff(Index row, Index col, Index batch, Index index) const
     {
         //all the following index transformations should be optimized out (compile-time if)
         Index r = TransposedOutput ? col : row;

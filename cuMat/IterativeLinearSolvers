@@ -1,0 +1,9 @@
+/*
+ * Specifies iterative linear solver routines.
+ */
+
+// Core is always needed
+#include "Core"
+
+#include "src/IterativeSolverBase.h"
+#include "src/ConjugateGradient.h"

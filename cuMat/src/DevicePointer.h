@@ -15,6 +15,7 @@ private:
 	T* pointer_;
 	size_t* counter_;
 	cuMat::Context* context_;
+    friend class DevicePointer<typename std::remove_const<T>::type>;
 
     __host__ __device__
 	void release()
@@ -41,7 +42,7 @@ public:
 		}
 		catch (...)
 		{
-			context_->freeDevice(pointer_);
+			context_->freeDevice(const_cast<typename std::remove_cv<T>::type*>(pointer_));
 			throw;
 		}
 	}
@@ -77,6 +78,22 @@ public:
 		rhs.counter_ = nullptr;
 		rhs.context_ = nullptr;
 	}
+
+    //Cast to const-version
+    operator DevicePointer<const T>() const
+    {
+        DevicePointer<const T> p;
+        p.pointer_ = pointer_;
+        p.counter_ = counter_;
+        p.context_ = context_;
+#ifndef __CUDA_ARCH__
+        //no increment of the counter in CUDA-code, counter is in host-memory
+        if (counter_) {
+            ++(*counter_);
+        }
+#endif
+        return p;
+    }
 
     __host__ __device__
 	DevicePointer<T>& operator=(const DevicePointer<T>& rhs)

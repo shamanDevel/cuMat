@@ -492,6 +492,9 @@ public:
     };
 	using Base::size;
 
+    typedef Matrix<const _Scalar, _Rows, _Columns, _Batches, _Flags> ConstType;
+    typedef Matrix<typename std::remove_const<_Scalar>::type, _Rows, _Columns, _Batches, _Flags> NonConstType;
+
 	/**
 	 * \brief Default constructor.
 	 * For completely fixed-size matrices, this creates a matrix of that size.
@@ -552,6 +555,14 @@ public:
     Matrix(const DevicePointer<_Scalar>& ptr, Index rows, Index cols, Index batches)
         : data_(ptr, rows, cols, batches)
     {}
+
+    /**
+     * \brief Casting to the const version (const scalar type)
+     */
+    operator ConstType() const
+    {
+        return ConstType(data_.dataPointer(), rows(), cols(), batches());
+    }
 
 	/**
 	 * \brief Returns the number of rows of this matrix.
