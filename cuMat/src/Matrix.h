@@ -556,14 +556,6 @@ public:
         : data_(ptr, rows, cols, batches)
     {}
 
-    /**
-     * \brief Casting to the const version (const scalar type)
-     */
-    operator ConstType() const
-    {
-        return ConstType(data_.dataPointer(), rows(), cols(), batches());
-    }
-
 	/**
 	 * \brief Returns the number of rows of this matrix.
 	 * \return the number of rows

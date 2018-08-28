@@ -64,7 +64,7 @@ public:
     using typename Base::ConstIndexVector;
 
     typedef Matrix<Scalar, Dynamic, 1, Batches, Flags::ColumnMajor> ScalarVector;
-    typedef const Matrix<const Scalar, Dynamic, 1, Batches, Flags::ColumnMajor> ConstScalarVector;
+    typedef const Matrix<Scalar, Dynamic, 1, Batches, Flags::ColumnMajor> ConstScalarVector;
 
 private:
     /**
@@ -128,8 +128,8 @@ public:
         return *this;
     }
 
-    __host__ __device__ CUMAT_STRONG_INLINE ScalarVector getData() { return A_; }
-    __host__ __device__ CUMAT_STRONG_INLINE ConstScalarVector getData() const { return ConstScalarVector(A_.dataPointer(), A_.rows(), A_.cols(), A_.batches()); }
+    __host__ __device__ CUMAT_STRONG_INLINE ScalarVector& getData() { return A_; }
+    __host__ __device__ CUMAT_STRONG_INLINE const ConstScalarVector& getData() const { return A_; }
     using Base::getInnerIndices;
     using Base::getOuterIndices;
     using Base::isInitialized;
@@ -218,6 +218,17 @@ public:
     __device__ CUMAT_STRONG_INLINE _Scalar& rawCoeff(Index index)
     {
         return A_.rawCoeff(index);
+    }
+
+    /**
+     * \brief Implementation of \ref SparseMatrixBase::getSparseCoeff(Index row, Index col, Index batch, Index index) const.
+     * simply passes on the index to getRawCoeff(Index)
+     * \param index 
+     * \return 
+     */
+    __device__ CUMAT_STRONG_INLINE const _Scalar& getSparseCoeff(Index /*row*/, Index /*col*/, Index /*batch*/, Index index) const
+    {
+        return getRawCoeff(index);
     }
 
     /**

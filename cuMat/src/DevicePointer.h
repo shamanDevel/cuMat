@@ -79,22 +79,6 @@ public:
 		rhs.context_ = nullptr;
 	}
 
-    //Cast to const-version
-    operator DevicePointer<const T>() const
-    {
-        DevicePointer<const T> p;
-        p.pointer_ = pointer_;
-        p.counter_ = counter_;
-        p.context_ = context_;
-#ifndef __CUDA_ARCH__
-        //no increment of the counter in CUDA-code, counter is in host-memory
-        if (counter_) {
-            ++(*counter_);
-        }
-#endif
-        return p;
-    }
-
     __host__ __device__
 	DevicePointer<T>& operator=(const DevicePointer<T>& rhs)
 	{

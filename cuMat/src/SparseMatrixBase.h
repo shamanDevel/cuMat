@@ -18,7 +18,7 @@ struct SparsityPattern
     typedef int StorageIndex;
 
     typedef Matrix<StorageIndex, Dynamic, 1, 1, Flags::ColumnMajor> IndexVector;
-    typedef Matrix<const StorageIndex, Dynamic, 1, 1, Flags::ColumnMajor> ConstIndexVector;
+    typedef const Matrix<StorageIndex, Dynamic, 1, 1, Flags::ColumnMajor> ConstIndexVector; //TODO: this is no proper const-correctness
 
     Index nnz;
     Index rows;
@@ -171,10 +171,10 @@ public:
         return rows_ > 0 && cols_ > 0 && batches_ > 0;
     }
 
-    __host__ __device__ CUMAT_STRONG_INLINE const IndexVector& getInnerIndices() { return IA_; }
-    __host__ __device__ CUMAT_STRONG_INLINE ConstIndexVector getInnerIndices() const { return ConstIndexVector(IA_.dataPointer(), IA_.rows(), IA_.cols(), IA_.batches()); }
-    __host__ __device__ CUMAT_STRONG_INLINE const IndexVector& getOuterIndices() { return JA_; }
-    __host__ __device__ CUMAT_STRONG_INLINE ConstIndexVector getOuterIndices() const { return ConstIndexVector(JA_.dataPointer(), JA_.rows(), JA_.cols(), JA_.batches()); }
+    __host__ __device__ CUMAT_STRONG_INLINE IndexVector& getInnerIndices() { return IA_; }
+    __host__ __device__ CUMAT_STRONG_INLINE const ConstIndexVector& getInnerIndices() const { return IA_; }
+    __host__ __device__ CUMAT_STRONG_INLINE IndexVector& getOuterIndices() { return JA_; }
+    __host__ __device__ CUMAT_STRONG_INLINE const ConstIndexVector& getOuterIndices() const { return JA_; }
 
     /**
     * \brief Returns the number of rows of this matrix.
@@ -209,6 +209,36 @@ public:
     __host__ __device__ CUMAT_STRONG_INLINE Index outerSize() const
     {
         return (SparseFlags == SparseFlags::CSC) ? cols() : rows();
+    }
+
+    /**
+     * \brief Sparse coefficient access.
+     * For a sparse evaluation of this matrix (and subclasses), first the inner and outer indices 
+     * (getInnerIndices() and getOuterIndices()) are queried and then looped over the inner indices.
+     * To query the value at a specific sparse index, this method is called.
+     * Row, column and batch are the current position and index is the linear index in the data array
+     * (same index as where the inner index was queried plus the batch offset).
+     * 
+     * For a sparse matrix stored in memory (class SparseMatrix), this method simply
+     * delegates to \code getData().getRawCoeff(index) \endcode, thus directly accessing
+     * the linear data without any overhead.
+     * 
+     * For sparse expressions (class SparseMatrixExpression), the functor is evaluated
+     * at the current position row,col,batch. The linear index is passed on unchanged,
+     * thus allowing subsequent sparse matrix an efficient access with \ref SparseMatrix::linear().
+     * 
+     * Each implementation of SparseMatrixBase must implement this routine.
+     * Currently, the only real usage of this method is the sparse matrix-vector product.
+     * 
+     * \param row 
+     * \param col 
+     * \param batch 
+     * \param index 
+     * \return 
+     */
+    __device__ CUMAT_STRONG_INLINE const Scalar& getSparseCoeff(Index row, Index col, Index batch, Index index) const
+    {
+        return derived().getSparseCoeff(row, col, batch, index);
     }
 };
 

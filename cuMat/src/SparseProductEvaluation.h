@@ -47,15 +47,17 @@ namespace internal
         typedef ProductElementFunctor<LeftScalar, RightScalar, ProductArgOp::NONE, ProductArgOp::NONE, ProductArgOp::NONE> Functor;
         const int* JA = matrix.getOuterIndices().data();
         const int* IA = matrix.getInnerIndices().data();
-        const LeftScalar* A = matrix.getData().data();
+        const int batch = 0; //TODO: implement batching
         CUMAT_KERNEL_1D_LOOP(outer, virtual_size)
             int start = JA[outer];
             int end = JA[outer + 1];
             if (start>=end) continue;
-            OutputScalar value = Functor::mult(A[start], vector.coeff(IA[start], 0, 0, -1));
+            int inner = IA[start];
+            OutputScalar value = Functor::mult(matrix.getSparseCoeff(outer, inner, batch, start), vector.coeff(inner, 0, 0, -1));
             for (int i=start+1; i<end; ++i)
             {
-                value += Functor::mult(A[i], vector.coeff(IA[i], 0, 0, -1));
+                inner = IA[i];
+                value += Functor::mult(matrix.getSparseCoeff(outer, inner, batch, i), vector.coeff(inner, 0, 0, -1));
             }
             internal::CwiseAssignmentHandler<M, OutputScalar, Mode>::assign(output, value, outer);
 		CUMAT_KERNEL_1D_LOOP_END
