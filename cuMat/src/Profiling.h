@@ -139,9 +139,9 @@ public:
     CUMAT_NAMESPACE Profiling::instance().resetAll()
 #else
 //Profiling disabled
-#define CUMAT_PROFILING_INC(counter) CUMAT_NAMESPACE Profiling::Counter:: counter
-#define CUMAT_PROFILING_GET(counter) CUMAT_NAMESPACE Profiling::Counter:: counter
-#define CUMAT_PROFILING_RESET() void
+#define CUMAT_PROFILING_INC(counter) ((void)0)
+#define CUMAT_PROFILING_GET(counter) ((void)0)
+#define CUMAT_PROFILING_RESET() ((void)0)
 #endif
 
 #endif

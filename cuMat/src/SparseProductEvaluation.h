@@ -157,7 +157,7 @@ namespace internal
 
             //here is now the real logic
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size(), CSRMVKernel<SrcLeft, typename _SrcRight::Type, DstActual, _AssignmentMode>);
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(static_cast<unsigned int>(dst.size()), CSRMVKernel<SrcLeft, typename _SrcRight::Type, DstActual, _AssignmentMode>);
             CSRMVKernel<SrcLeft, typename _SrcRight::Type, DstActual, _AssignmentMode> 
                 <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
                 (cfg.virtual_size, op.derived().left().derived(), op.derived().right().derived(), dst.derived());

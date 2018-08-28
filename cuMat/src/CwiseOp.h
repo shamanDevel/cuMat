@@ -171,7 +171,7 @@ namespace internal
 
             //here is now the real logic
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size(), CwiseEvaluationKernel<SrcActual, DstActual, _Mode>);
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(static_cast<unsigned int>(dst.size()), CwiseEvaluationKernel<SrcActual, DstActual, _Mode>);
             CwiseEvaluationKernel<SrcActual, DstActual, _Mode> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> (cfg.virtual_size, src.derived(), dst.derived());
             CUMAT_CHECK_ERROR();
             CUMAT_LOG_DEBUG("Evaluation done");

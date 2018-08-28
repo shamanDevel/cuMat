@@ -99,35 +99,6 @@ public:
     {
     }
 
-    SparseMatrix(const SparseMatrix& other)
-        : Base(other),
-          A_(other.A_)
-    {}
-
-    SparseMatrix(SparseMatrix&& other) noexcept
-        : Base(other),
-          A_(std::move(other.A_))
-    {
-    }
-
-    SparseMatrix& operator=(const SparseMatrix& other)
-    {
-        if (this == &other)
-            return *this;
-        Base::operator=(other);
-        A_ = other.A_;
-        return *this;
-    }
-
-    SparseMatrix& operator=(SparseMatrix&& other) noexcept
-    {
-        if (this == &other)
-            return *this;
-        Base::operator=(std::move(other));
-        A_ = std::move(other.A_);
-        return *this;
-    }
-
     __host__ __device__ CUMAT_STRONG_INLINE ScalarVector& getData() { return A_; }
     __host__ __device__ CUMAT_STRONG_INLINE const ConstScalarVector& getData() const { return A_; }
     using Base::getInnerIndices;

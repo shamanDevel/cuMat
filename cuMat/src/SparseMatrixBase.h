@@ -121,51 +121,6 @@ public:
         return { nnz_, rows_, cols_, IA_, JA_ };
     }
 
-    SparseMatrixBase(const SparseMatrixBase& other)
-        : nnz_(other.nnz_),
-        rows_(other.rows_),
-        cols_(other.cols_),
-        batches_(other.batches_),
-        IA_(other.IA_),
-        JA_(other.JA_)
-    {
-    }
-
-    SparseMatrixBase(SparseMatrixBase&& other) noexcept
-        : nnz_(other.nnz_),
-        rows_(other.rows_),
-        cols_(other.cols_),
-        batches_(other.batches_),
-        IA_(std::move(other.IA_)),
-        JA_(std::move(other.JA_))
-    {}
-
-    SparseMatrixBase& operator=(const SparseMatrixBase& other)
-    {
-        if (this == &other)
-            return *this;
-        nnz_ = other.nnz_;
-        rows_ = other.rows_;
-        cols_ = other.cols_;
-        batches_ = other.batches_;
-        IA_ = other.IA_;
-        JA_ = other.JA_;
-        return *this;
-    }
-
-    SparseMatrixBase& operator=(SparseMatrixBase&& other) noexcept
-    {
-        if (this == &other)
-            return *this;
-        nnz_ = other.nnz_;
-        rows_ = other.rows_;
-        cols_ = other.cols_;
-        batches_ = other.batches_;
-        IA_ = std::move(other.IA_);
-        JA_ = std::move(other.JA_);
-        return *this;
-    }
-
     bool isInitialized() const
     {
         return rows_ > 0 && cols_ > 0 && batches_ > 0;

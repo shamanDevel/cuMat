@@ -152,6 +152,27 @@ UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() co
 }
 
 /**
+ * \brief Custom unary expression.
+ * The unary functor must support look as follow:
+ * \code
+ * struct MyFunctor
+ * {
+ *     typedef OutputType ReturnType;
+ *     __device__ CUMAT_STRONG_INLINE ReturnType operator()(const InputType& v, Index row, Index col, Index batch) const
+ *     {
+ *         return ...
+ *     }
+ * };
+ * \endcode
+ * with \c InputType being the type of this matrix expression and \c OutputType the output type.
+ */
+template<typename Functor>
+UnaryOp<_Derived, Functor> unaryExpr(const Functor& functor = Functor()) const
+{
+    return UnaryOp<_Derived, Functor>(derived(), functor);
+}
+
+/**
  * \brief Transposes this matrix
  */
 TransposeOp<_Derived, false> transpose() const

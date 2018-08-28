@@ -55,7 +55,7 @@ namespace internal {
 
             //here is now the real logic
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig2D(dst.derived().outerSize(), dst.derived().batches(), 
+            KernelLaunchConfig cfg = ctx.createLaunchConfig2D(static_cast<unsigned int>(dst.derived().outerSize()), static_cast<unsigned int>(dst.derived().batches()),
 				CwiseSparseEvaluationKernel<SrcActual, DstActual, _Mode, SparseFlags(DstActual::SparseFlags)>);
             CwiseSparseEvaluationKernel<SrcActual, DstActual, _Mode, SparseFlags(DstActual::SparseFlags)> 
                 <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> 
