@@ -190,6 +190,7 @@ template<typename _Child> class DeterminantOp;
 struct SparsityPattern;
 template<typename _Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Batches, int _Flags> class SparseMatrix;
+template<typename _Child, int _SparseFlags> class SparseExpressionOp;
 
 // ITERATIVE LINEAR SOLVER
 

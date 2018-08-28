@@ -13,13 +13,13 @@ TEST_CASE("Sparse -> Dense", "[Sparse]")
     {
         //create sparse matrix
         typedef SparseMatrix<float, 2, SparseFlags::CSR> SMatrix_t;
-        SMatrix_t::SparsityPattern pattern;
+        SparsityPattern pattern;
         pattern.rows = 4;
         pattern.cols = 5;
         pattern.nnz = 9;
         pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 1, 1, 2, 0, 3, 4, 2, 4).finished());
         pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(5) << 0, 2, 4, 7, 9).finished());
-        REQUIRE_NOTHROW(pattern.assertValid());
+        REQUIRE_NOTHROW(pattern.assertValid<CSR>());
         SMatrix_t smatrix(pattern);
         smatrix.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished());
         smatrix.getData().slice(1) = VectorXf::fromEigen((Eigen::VectorXf(9) << -1, -4, -2, -3, -5, -7, -8, -9, -6).finished());
@@ -52,13 +52,13 @@ TEST_CASE("Sparse -> Dense", "[Sparse]")
     {
         //create sparse matrix
         typedef SparseMatrix<float, 2, SparseFlags::CSC> SMatrix_t;
-        SMatrix_t::SparsityPattern pattern;
+        SparsityPattern pattern;
         pattern.rows = 4;
         pattern.cols = 5;
         pattern.nnz = 9;
         pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 2, 0, 1, 1, 3, 2, 2, 3).finished());
         pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(6) << 0, 2, 4, 6, 7, 9).finished());
-        REQUIRE_NOTHROW(pattern.assertValid());
+        REQUIRE_NOTHROW(pattern.assertValid<CSC>());
         SMatrix_t smatrix(pattern);
         smatrix.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 5, 4, 2, 3, 9, 7, 8, 6).finished());
         smatrix.getData().slice(1) = VectorXf::fromEigen((Eigen::VectorXf(9) << -1, -5, -4, -2, -3, -9, -7, -8, -6).finished());
@@ -100,13 +100,13 @@ TEST_CASE("Dense -> Sparse", "[Sparse]")
     {
         //create sparse matrix
         typedef SparseMatrix<float, 2, SparseFlags::CSR> SMatrix_t;
-        SMatrix_t::SparsityPattern pattern;
+        SparsityPattern pattern;
         pattern.rows = 4;
         pattern.cols = 5;
         pattern.nnz = 9;
         pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 1, 1, 2, 0, 3, 4, 2, 4).finished());
         pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(5) << 0, 2, 4, 7, 9).finished());
-        REQUIRE_NOTHROW(pattern.assertValid());
+        REQUIRE_NOTHROW(pattern.assertValid<CSR>());
         SMatrix_t smatrix1(pattern);
         SMatrix_t smatrix2(pattern);
 
@@ -169,13 +169,13 @@ TEST_CASE("Dense -> Sparse", "[Sparse]")
     {
         //create sparse matrix
         typedef SparseMatrix<float, 2, SparseFlags::CSC> SMatrix_t;
-        SMatrix_t::SparsityPattern pattern;
+        SparsityPattern pattern;
         pattern.rows = 4;
         pattern.cols = 5;
         pattern.nnz = 9;
         pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 2, 0, 1, 1, 3, 2, 2, 3).finished());
         pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(6) << 0, 2, 4, 6, 7, 9).finished());
-        REQUIRE_NOTHROW(pattern.assertValid());
+        REQUIRE_NOTHROW(pattern.assertValid<CSC>());
         SMatrix_t smatrix1(pattern);
         SMatrix_t smatrix2(pattern);
 
@@ -239,13 +239,13 @@ TEST_CASE("Sparse-Cwise", "[Sparse]")
 {
     //create source sparse matrix
     typedef SparseMatrix<float, 1, SparseFlags::CSC> SMatrix_t;
-    SMatrix_t::SparsityPattern pattern;
+    SparsityPattern pattern;
     pattern.rows = 4;
     pattern.cols = 5;
     pattern.nnz = 9;
     pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 2, 0, 1, 1, 3, 2, 2, 3).finished());
     pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(6) << 0, 2, 4, 6, 7, 9).finished());
-    REQUIRE_NOTHROW(pattern.assertValid());
+    REQUIRE_NOTHROW(pattern.assertValid<CSC>());
     SMatrix_t smatrix(pattern);
     smatrix.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 5, -4, 2, -3, 9, 7, -8, 6).finished());
 
@@ -273,13 +273,13 @@ TEST_CASE("Compound-SparseMatrix", "[Sparse]")
 {
     //int data[1][2][3] = { {{1, 2, 0}, {0, 3, 4}} };
     typedef SparseMatrix<int, 1, SparseFlags::CSR> SMatrix_t;
-    SMatrix_t::SparsityPattern pattern;
+    SparsityPattern pattern;
     pattern.rows = 2;
     pattern.cols = 3;
     pattern.nnz = 4;
     pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(4) << 0, 1, 1, 2).finished());
     pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(3) << 0, 2, 4).finished());
-    REQUIRE_NOTHROW(pattern.assertValid());
+    REQUIRE_NOTHROW(pattern.assertValid<CSR>());
     SMatrix_t mat1(pattern);
     SMatrix_t mat2(pattern);
     mat1.getData().slice(0) = VectorXi::fromEigen((Eigen::VectorXi(4) << 1, 2, 3, 4).finished());

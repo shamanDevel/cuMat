@@ -100,6 +100,7 @@ public:
 #include "BinaryOpsPlugin.inl"
 #include "ReductionOpsPlugin.inl"
 #include "DenseLinAlgPlugin.inl"
+#include "SparseExpressionOpPlugin.inl"
 };
 
 

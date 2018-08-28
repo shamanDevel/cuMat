@@ -244,7 +244,7 @@ CUMAT_NAMESPACE_END
 TEST_CASE("Blocked CG", "[CG]")
 {
 	//setup matrix
-	SMatrix3x3::SparsityPattern pattern;
+    cuMat::SparsityPattern pattern;
 	pattern.rows = 3;
 	pattern.cols = 3;
 	pattern.nnz = 7;

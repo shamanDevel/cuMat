@@ -53,11 +53,17 @@ namespace internal
             int end = JA[outer + 1];
             if (start>=end) continue;
             int inner = IA[start];
-            OutputScalar value = Functor::mult(matrix.getSparseCoeff(outer, inner, batch, start), vector.coeff(inner, 0, 0, -1));
+            LeftScalar tmp1 = matrix.getSparseCoeff(outer, inner, batch, start);
+            RightScalar tmp2 = vector.coeff(inner, 0, 0, -1);
+            OutputScalar tmp3 = Functor::mult(tmp1, tmp2);
+            OutputScalar value = tmp3;
             for (int i=start+1; i<end; ++i)
             {
                 inner = IA[i];
-                value += Functor::mult(matrix.getSparseCoeff(outer, inner, batch, i), vector.coeff(inner, 0, 0, -1));
+                tmp1 = matrix.getSparseCoeff(outer, inner, batch, i);
+                tmp2 = vector.coeff(inner, 0, 0, -1);
+                tmp3 = Functor::mult(tmp1, tmp2);
+                value += tmp3;
             }
             internal::CwiseAssignmentHandler<M, OutputScalar, Mode>::assign(output, value, outer);
 		CUMAT_KERNEL_1D_LOOP_END
@@ -80,6 +86,54 @@ namespace internal
         _AssignmentMode>
     {
         using SrcLeft = SparseMatrix<_SrcLeftScalar, 1, SparseFlags::CSR>;
+        using Op = ProductOp<SrcLeft, _SrcRight, ProductArgOp::NONE, ProductArgOp::NONE, ProductArgOp::NONE>;
+        using Scalar = typename Op::Scalar;
+
+        CUMAT_STATIC_ASSERT((Op::ColumnsRight == 1),
+                "SparseMatrix - DenseVector product only supports column vectors as right argument (for now)");
+        CUMAT_STATIC_ASSERT((Op::BatchesRight == 1),
+                "SparseMatrix - DenseVector does not support batches yet");
+
+        static void assign(_Dst& dst, const Op& op) {
+            
+            typedef typename _Dst::Type DstActual;
+            CUMAT_PROFILING_INC(EvalMatmulSparse);
+            CUMAT_PROFILING_INC(EvalAny);
+            if (dst.size() == 0) return;
+            CUMAT_ASSERT(op.rows() == dst.rows());
+            CUMAT_ASSERT(op.cols() == dst.cols());
+            CUMAT_ASSERT(op.batches() == dst.batches());
+
+			CUMAT_LOG_DEBUG("Evaluate SparseMatrix-DenseVector multiplication " << typeid(op.derived()).name()
+				<< " matrix rows=" << op.derived().left().rows() << ", cols=" << op.left().cols());;
+
+            //here is now the real logic
+            Context& ctx = Context::current();
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(dst.size(), CSRMVKernel<SrcLeft, typename _SrcRight::Type, DstActual, _AssignmentMode>);
+            CSRMVKernel<SrcLeft, typename _SrcRight::Type, DstActual, _AssignmentMode> 
+                <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
+                (cfg.virtual_size, op.derived().left().derived(), op.derived().right().derived(), dst.derived());
+            CUMAT_CHECK_ERROR();
+            CUMAT_LOG_DEBUG("Evaluation done");
+        }
+    };
+
+    //CwiseSrcTag (SparseExpressionOp) * CwiseSrcTag (Dense-Vector) -> DenseDstTag (Vector-Vector), sparse matrix-vector product
+    //Currently, only non-batched CSR matrices are supported
+    //TODO: support also CSC, vector on the left, transposed and conjugated versions
+    template<
+        typename _Dst,
+        typename _SrcLeftChild,
+        typename _SrcRight,
+        AssignmentMode _AssignmentMode
+    >
+    struct ProductAssignment<
+        _Dst, DenseDstTag, ProductArgOp::NONE, 
+        SparseExpressionOp<_SrcLeftChild, SparseFlags::CSR>, CwiseSrcTag, ProductArgOp::NONE, 
+        _SrcRight, CwiseSrcTag, ProductArgOp::NONE, 
+        _AssignmentMode>
+    {
+        using SrcLeft = SparseExpressionOp<_SrcLeftChild, SparseFlags::CSR>;
         using Op = ProductOp<SrcLeft, _SrcRight, ProductArgOp::NONE, ProductArgOp::NONE, ProductArgOp::NONE>;
         using Scalar = typename Op::Scalar;
 
