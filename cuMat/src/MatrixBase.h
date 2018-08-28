@@ -80,7 +80,7 @@ public:
      * 
      * \tparam T 
      */
-    explicit operator Scalar ()
+    explicit operator Scalar () const
     {
         CUMAT_STATIC_ASSERT(
             internal::traits<_Derived>::RowsAtCompileTime == 1 &&
