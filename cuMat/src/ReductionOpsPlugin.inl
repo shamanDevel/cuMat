@@ -172,6 +172,47 @@ ReductionOp_DynamicSwitched<_Derived, functor::BitwiseOr<Scalar>> bitwiseOr(int 
     return ReductionOp_DynamicSwitched<_Derived, functor::BitwiseOr<Scalar>>(derived(), axis, functor::BitwiseOr<Scalar>(), Scalar(0));
 }
 
+//custom reduction
+/**
+* \brief Custom reduction operation (static axis).
+* Here you can pass your own reduction operator and initial value.
+*   
+* \param functor the reduction functor
+* \param initialValue the initial value to the reduction 
+* 
+* \tparam _Functor the reduction functor, must suppor the operation
+*   \code __device__ T operator()(const T &a, const T &b) const \endcode
+*   with \c T being the current scalar type
+* \tparam axis the reduction axis, by default, reduction is performed among all axis
+*/
+template<
+    typename _Functor,
+    int axis = ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch>
+ReductionOp_StaticSwitched<_Derived, _Functor, axis> 
+reduction(const _Functor& functor = _Functor(), const Scalar& initialValue = Scalar(0)) const
+{
+    return ReductionOp_StaticSwitched<_Derived, _Functor, axis>(derived(), functor, initialValue);
+}
+
+/**
+* \brief Custom reduction operation (dynamic axis).
+* Here you can pass your own reduction operator and initial value.
+* 
+* \param axis the reduction axis, a combination of the constants in \ref ReductionAxis
+* \param functor the reduction functor
+* \param initialValue the initial value to the reduction 
+* 
+* \tparam _Functor the reduction functor, must suppor the operation
+*   \code __device__ T operator()(const T &a, const T &b) const \endcode
+*   with \c T being the current scalar type
+*/
+template<typename _Functor>
+ReductionOp_DynamicSwitched<_Derived, _Functor> 
+reduction(int axis, const _Functor& functor = _Functor(), const Scalar& initialValue = Scalar(0)) const
+{
+    return ReductionOp_DynamicSwitched<_Derived, _Functor>(derived(), axis, functor, initialValue);
+}
+
 //combined ops
 
 /**
