@@ -54,6 +54,13 @@ public:
 	NullaryOp(Index rows, Index cols, Index batches, const _NullaryFunctor& functor)
 		: rows_(rows), cols_(cols), batches_(batches), functor_(functor)
 	{}
+    explicit NullaryOp(const _NullaryFunctor& functor)
+        : rows_(_Rows), cols_(_Columns), batches_(_Batches), functor_(functor)
+	{
+        CUMAT_STATIC_ASSERT(_Rows > 0, "The one-parameter constructor is only available for fully fixed-size instances");
+        CUMAT_STATIC_ASSERT(_Columns > 0, "The one-parameter constructor is only available for fully fixed-size instances");
+        CUMAT_STATIC_ASSERT(_Batches > 0, "The one-parameter constructor is only available for fully fixed-size instances");
+	}
 
 	__host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return rows_; }
 	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return cols_; }
