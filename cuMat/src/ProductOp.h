@@ -188,10 +188,10 @@ public:
             (TransposedLeft ? RowsLeft : ColumnsLeft) == (TransposedRight ? ColumnsRight : RowsRight)),
             "matrix sizes not compatible");
 
-        if (BatchesLeft == Dynamic || BatchesRight == Dynamic) {
+        if (BatchesLeft == Dynamic && BatchesRight == Dynamic) {
             CUMAT_ASSERT_ARGUMENT(left.batches() == right.batches());
         }
-        CUMAT_STATIC_ASSERT(!(BatchesLeft > 1 && BatchesRight > 1) || (BatchesLeft == BatchesRight), "batch count doesn't match");
+        CUMAT_STATIC_ASSERT(!(BatchesLeft > 1 && BatchesRight > 1) || (BatchesLeft == BatchesRight), "batch sizes don't match");
     }
 
     const LeftType& left() const { return left_; }
@@ -213,7 +213,10 @@ public:
     }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const
     {
-        return left_.batches();
+        if (BatchesLeft == 1) //broadcast left
+            return right_.batches();
+        else //maybe broadcast right
+            return left_.batches();
     }
     __host__ __device__ CUMAT_STRONG_INLINE Index innerSize() const
     {

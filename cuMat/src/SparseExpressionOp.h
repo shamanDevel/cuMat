@@ -73,7 +73,7 @@ public:
 		return child_.derived().coeff(row, col, batch, index), row, col, batch;
 	}
 
-    __device__ CUMAT_STRONG_INLINE const Scalar& getSparseCoeff(Index row, Index col, Index batch, Index index) const
+    __device__ CUMAT_STRONG_INLINE Scalar getSparseCoeff(Index row, Index col, Index batch, Index index) const
     {
         return child_.derived().coeff(row, col, batch, index);
     }

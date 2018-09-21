@@ -148,3 +148,123 @@ TEST_CASE("Sparse MatrixExpression-Vector Product", "[Sparse]")
         assertMatrixEqualityRelative(xExpected, xActual3);
     }
 }
+
+TEST_CASE("CSRMV - Batches Matrix", "[Sparse]")
+{
+    //create sparse matrix
+    //{1, 4, 0, 0, 0},
+    //{0, 2, 3, 0, 0},
+    //{5, 0, 0, 7, 8},
+    //{0, 0, 9, 0, 6}
+    typedef SparseMatrix<float, 3, SparseFlags::CSR> SMatrix_t;
+    SparsityPattern pattern;
+    pattern.rows = 4;
+    pattern.cols = 5;
+    pattern.nnz = 9;
+    pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 1, 1, 2, 0, 3, 4, 2, 4).finished());
+    pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(5) << 0, 2, 4, 7, 9).finished());
+    REQUIRE_NOTHROW(pattern.assertValid<CSR>());
+    SMatrix_t A(pattern);
+    A.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished());
+    A.getData().slice(1) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished()) * 2;
+    A.getData().slice(2) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished()) * 3;
+
+    //create right hand side
+    VectorXf b = VectorXf::fromEigen((Eigen::VectorXf(5) << 2, 5, 3, -4, 1).finished());
+
+    //expected result
+    BVectorXf xExpected(4, 1, 3);
+    xExpected.slice(0) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished());
+    xExpected.slice(1) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished()) * 2;
+    xExpected.slice(2) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished()) * 3;
+
+    //matmul
+    Profiling::instance().resetAll();
+    BVectorXf xActual = A * b;
+    REQUIRE(Profiling::instance().get(Profiling::EvalAny) == 1);
+    REQUIRE(Profiling::instance().get(Profiling::EvalMatmulSparse) == 1);
+
+    assertMatrixEqualityRelative(xExpected, xActual);
+}
+
+TEST_CASE("CSRMV - Batches RHS", "[Sparse]")
+{
+    //create sparse matrix
+    //{1, 4, 0, 0, 0},
+    //{0, 2, 3, 0, 0},
+    //{5, 0, 0, 7, 8},
+    //{0, 0, 9, 0, 6}
+    typedef SparseMatrix<float, 1, SparseFlags::CSR> SMatrix_t;
+    SparsityPattern pattern;
+    pattern.rows = 4;
+    pattern.cols = 5;
+    pattern.nnz = 9;
+    pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 1, 1, 2, 0, 3, 4, 2, 4).finished());
+    pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(5) << 0, 2, 4, 7, 9).finished());
+    REQUIRE_NOTHROW(pattern.assertValid<CSR>());
+    SMatrix_t A(pattern);
+    A.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished());
+
+    //create right hand side
+    typedef Matrix<float, Dynamic, 1, 3, ColumnMajor> VectorXfB3;
+    VectorXfB3 b(5, 1, 3);
+    b.slice(0) = VectorXf::fromEigen((Eigen::VectorXf(5) << 2, 5, 3, -4, 1).finished());
+    b.slice(1) = VectorXf::fromEigen((Eigen::VectorXf(5) << 2, 5, 3, -4, 1).finished()) * 2;
+    b.slice(2) = VectorXf::fromEigen((Eigen::VectorXf(5) << 2, 5, 3, -4, 1).finished()) * 3;
+
+    //expected result
+    BVectorXf xExpected(4, 1, 3);
+    xExpected.slice(0) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished());
+    xExpected.slice(1) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished()) * 2;
+    xExpected.slice(2) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished()) * 3;
+
+    //matmul
+    Profiling::instance().resetAll();
+    BVectorXf xActual = A * b;
+    REQUIRE(Profiling::instance().get(Profiling::EvalAny) == 1);
+    REQUIRE(Profiling::instance().get(Profiling::EvalMatmulSparse) == 1);
+
+    assertMatrixEqualityRelative(xExpected, xActual);
+}
+
+TEST_CASE("CSRMV - Batches Matrix and RHS", "[Sparse]")
+{
+    //create sparse matrix
+    //{1, 4, 0, 0, 0},
+    //{0, 2, 3, 0, 0},
+    //{5, 0, 0, 7, 8},
+    //{0, 0, 9, 0, 6}
+    typedef SparseMatrix<float, 3, SparseFlags::CSR> SMatrix_t;
+    SparsityPattern pattern;
+    pattern.rows = 4;
+    pattern.cols = 5;
+    pattern.nnz = 9;
+    pattern.IA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(9) << 0, 1, 1, 2, 0, 3, 4, 2, 4).finished());
+    pattern.JA = SMatrix_t::IndexVector::fromEigen((Eigen::VectorXi(5) << 0, 2, 4, 7, 9).finished());
+    REQUIRE_NOTHROW(pattern.assertValid<CSR>());
+    SMatrix_t A(pattern);
+    A.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished());
+    A.getData().slice(1) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished()) * 2;
+    A.getData().slice(2) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished()) * -1;
+
+    //create right hand side
+    typedef Matrix<float, Dynamic, 1, 3, ColumnMajor> VectorXfB3;
+    VectorXfB3 b(5, 1, 3);
+    b.slice(0) = VectorXf::fromEigen((Eigen::VectorXf(5) << 2, 5, 3, -4, 1).finished());
+    b.slice(1) = VectorXf::fromEigen((Eigen::VectorXf(5) << 2, 5, 3, -4, 1).finished()) * 2;
+    b.slice(2) = VectorXf::fromEigen((Eigen::VectorXf(5) << 2, 5, 3, -4, 1).finished()) * 3;
+
+    //expected result
+    BVectorXf xExpected(4, 1, 3);
+    xExpected.slice(0) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished());
+    xExpected.slice(1) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished()) * 4;
+    xExpected.slice(2) = VectorXf::fromEigen((Eigen::VectorXf(4) << 22, 19, -10, 33).finished()) * -3;
+
+    //matmul
+    Profiling::instance().resetAll();
+    BVectorXf xActual = A * b;
+    REQUIRE(Profiling::instance().get(Profiling::EvalAny) == 1);
+    REQUIRE(Profiling::instance().get(Profiling::EvalMatmulSparse) == 1);
+
+    assertMatrixEqualityRelative(xExpected, xActual);
+}
