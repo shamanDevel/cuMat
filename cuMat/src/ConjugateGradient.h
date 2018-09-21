@@ -4,6 +4,7 @@
 #include "Macros.h"
 
 #include <cmath>
+#include <valarray>
 
 #include "Matrix.h"
 #include "UnaryOps.h"
@@ -29,7 +30,6 @@ namespace internal
  * \brief Conjugate gradient solver for arbitrary (dense, sparse, matrix-free) matrices.
  * 
  * This class allows to solve for A*x=b linear problems using \code x = ConjugateGradient(A).solve(b) \endcode.
- * Only non-batched matrices and only non-batched, column vectors for the right hand side are supported.
  * 
  * The right hand side b can be any matrix expression that is a column vector.
  * The result type \c x has to be a dense column vector (an instance of the Matrix class).
@@ -39,6 +39,10 @@ namespace internal
  * The preconditioner must support a method \code .solve(r) \endcode that takes a dense column vector as input and
  * returns an expression of a column vector that approximates the solution of A.x=r.
  * Examples are the DiagonalPreconditioner and IdentityPreconditioner.
+ * 
+ * This solver supports batched matrices and right hand sides.
+ * Note that the iterations runs for all batches until all batches have converged. There is no early out 
+ * for some batches.
  * 
  * This solver can also be used with blocked types. This means, the scalar type of the matrix is not a single element like float,
  * but a small block. For example: The matrix has type float3x3 and the right hand side float3 for 3x3 blocks.
@@ -62,7 +66,7 @@ namespace internal
 template<typename _MatrixType, typename _Preconditioner = DiagonalPreconditioner<_MatrixType>>
 class ConjugateGradient : public IterativeSolverBase<ConjugateGradient<_MatrixType, _Preconditioner>>
 {
-    CUMAT_STATIC_ASSERT(_MatrixType::Batches == 1, "Conjugate Gradient can only work on non-batched matrices");
+    CUMAT_STATIC_ASSERT(_MatrixType::Batches != Dynamic, "Conjugate Gradient can only work on matrices with compile-time batch count");
 
 public:
     using Type = ConjugateGradient<_MatrixType, _Preconditioner>;
@@ -110,8 +114,8 @@ public:
     template<typename _RHS, typename _Target>
     void _solve_impl(const MatrixBase<_RHS>& rhs, MatrixBase<_Target>& target) const
     {
-        typedef Matrix<typename _Target::Scalar, Dynamic, 1, 1, _Target::Flags> GuessType;
-		GuessType guess(target.rows());
+        typedef Matrix<typename _Target::Scalar, Dynamic, 1, _Target::Batches, _Target::Flags> GuessType;
+		GuessType guess(target.rows(), 1, target.batches());
 		guess.setZero();
         _solve_with_guess_impl(rhs.derived(), target.derived(), guess);
     }
@@ -119,11 +123,12 @@ public:
     template<typename _RHS, typename _Target, typename _Guess>
     void _solve_with_guess_impl(_RHS& rhs, _Target& target, _Guess& guess) const
     {
-        CUMAT_STATIC_ASSERT(_Target::Batches == 1, "The target matrix must be non-batched");
+        CUMAT_STATIC_ASSERT(_Target::Batches != Dynamic, "The target matrix must have a compile-time batch count");
         CUMAT_STATIC_ASSERT(_Target::Columns == 1, "The target must be a compile-time column vector");
-        CUMAT_STATIC_ASSERT(_Guess::Batches == 1, "The initial guess must be non-batched");
+        CUMAT_STATIC_ASSERT(_Guess::Batches != Dynamic, "The initial guess must have a compile-time batch count");
         CUMAT_STATIC_ASSERT(_Guess::Columns == 1, "The initial guess must be a compile-time column vector");
         CUMAT_ASSERT(matrix_.cols() == rhs.rows());
+        constexpr int Batches = _Target::Batches;
 
         //initialize result and counter
         iterations_ = 0;
@@ -133,34 +138,42 @@ public:
         //----------------
         // CG ALGORITHM, ported from Eigen
         //----------------
-        typedef Matrix<RealScalar, 1, 1, 1, 0> RealScalarDevice;
+        typedef Matrix<RealScalar, 1, 1, Batches, 0> RealScalarDevice;
         using std::sqrt;
         using std::abs;
 		typedef typename _Target::Scalar VectorScalarType;
-        typedef Matrix<VectorScalarType, Dynamic, 1, 1, _Target::Flags> VectorType;
+        typedef Matrix<VectorScalarType, Dynamic, 1, Batches, _Target::Flags> VectorType;
         Index n = matrix_.cols();
 
         VectorType residual = rhs - matrix_ * target; //initial residual
-        RealScalar rhsNorm2 = static_cast<RealScalar>(rhs.squaredNorm()); //SLOW: device->host memcopy (explicit conversion operator)
-        if (rhsNorm2 == 0)
+        std::valarray<RealScalar> rhsNorm2(Batches);
+        rhs.squaredNorm().eval().copyToHost(&rhsNorm2[0]);
+        //RealScalar rhsNorm2 = static_cast<RealScalar>(rhs.squaredNorm()); //SLOW: device->host memcopy (explicit conversion operator)
+        bool all = true;
+        for (int b = 0; b < Batches; ++b) all = all && rhsNorm2[b] == 0;
+        if (all)
         {
             //early out, right-hand side is zero
             target.setZero();
             return;
         }
-        RealScalar threshold = tolerance_ * tolerance_ * rhsNorm2;
-        RealScalar residualNorm2 = static_cast<RealScalar>(residual.squaredNorm()); //SLOW: device->host memcopy
-        if (residualNorm2 < threshold)
+        std::valarray<RealScalar> threshold = tolerance_ * tolerance_ * rhsNorm2;
+        std::valarray<RealScalar> residualNorm2(Batches);
+        residual.squaredNorm().eval().copyToHost(&residualNorm2[0]);
+        //RealScalar residualNorm2 = static_cast<RealScalar>(residual.squaredNorm()); //SLOW: device->host memcopy
+        all = true;
+        for (int b = 0; b < Batches; ++b) all = all && residualNorm2[b] < threshold[b];
+        if (all)
         {
             //early out, already close enough to the solution
-            error_ = sqrt(residualNorm2 / rhsNorm2);
+            error_ = sqrt((residualNorm2 / rhsNorm2).max());
             return;
         }
 
-        VectorType p(n);
+        VectorType p(n, 1, Batches);
         p = preconditioner_.solve(residual); // initial search direction
 
-        VectorType z(n), tmp(n);
+        VectorType z(n, 1, Batches), tmp(n, 1, Batches);
         RealScalarDevice absNew = residual.dot(p).real(); // the square of the absolute value of r scaled by invM
         Index i = 0;
         const Index maxIter = maxIterations();
@@ -172,9 +185,11 @@ public:
             target += alpha.template cast<VectorScalarType>().cwiseMul(p); // update solution
             residual -= alpha.template cast<VectorScalarType>().cwiseMul(tmp); // update residual
 
-            residualNorm2 = static_cast<RealScalar>(residual.squaredNorm()); //SLOW: device->host memcopy
-            //TODO: move the squared norm above "alpha.cwiseMul(tmp)", start the memcopy asynchronously and retrieve the result here
-            if (residualNorm2 < threshold)
+            residual.squaredNorm().eval().copyToHost(&residualNorm2[0]);
+            //RealScalar residualNorm2 = static_cast<RealScalar>(residual.squaredNorm()); //SLOW: device->host memcopy
+            all = true;
+            for (int b = 0; b < Batches; ++b) all = all && residualNorm2[b] < threshold[b];
+            if (all)
                 break;
 
             z = preconditioner_.solve(residual); // approximately solve for "A z = residual"
@@ -186,7 +201,7 @@ public:
             p = z + beta.template cast<VectorScalarType>().cwiseMul(p); // update search direction
             i++;
         }
-        error_ = sqrt(residualNorm2 / rhsNorm2);
+        error_ = sqrt((residualNorm2 / rhsNorm2).max());
         iterations_ = i;
     }
 };

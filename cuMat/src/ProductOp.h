@@ -341,6 +341,7 @@ namespace internal
             //to be filled
             const Scalar *A, *B;
             cublasOperation_t transA, transB;
+            bool broadcastA, broadcastB;
 
             Scalar* C = mat.data(); //This is required by AccessFlags::WriteDirect
             if ((!Op::TransposedOutput && CUMAT_IS_COLUMN_MAJOR(traits<_Dst>::Flags)) 
@@ -351,6 +352,8 @@ namespace internal
                 B = right.data();
                 transA = (Op::TransposedLeft == CUMAT_IS_COLUMN_MAJOR(Op::FlagsLeft)) ? CUBLAS_OP_T : CUBLAS_OP_N;
                 transB = (Op::TransposedRight == CUMAT_IS_COLUMN_MAJOR(Op::FlagsRight)) ? CUBLAS_OP_T : CUBLAS_OP_N;
+                broadcastA = Op::BatchesLeft == 1;
+                broadcastB = Op::BatchesRight == 1;
             }
             else
             {
@@ -359,6 +362,8 @@ namespace internal
                 B = left.data();
                 transA = (Op::TransposedRight == CUMAT_IS_COLUMN_MAJOR(Op::FlagsRight)) ? CUBLAS_OP_N : CUBLAS_OP_T;
                 transB = (Op::TransposedLeft == CUMAT_IS_COLUMN_MAJOR(Op::FlagsLeft)) ? CUBLAS_OP_N : CUBLAS_OP_T;
+                broadcastA = Op::BatchesRight == 1;
+                broadcastB = Op::BatchesLeft == 1;
             }
 
             if (CUMAT_IS_ROW_MAJOR(traits<_Dst>::Flags))
@@ -388,8 +393,8 @@ namespace internal
             if (Op::Batches > 1 || op.batches() > 1)
             {
                 //batched evaluation
-                long long int strideA = m * k;
-                long long int strideB = k * n;
+                long long int strideA = broadcastA ? 0 : m * k;
+                long long int strideB = broadcastB ? 0 : k * n;
                 long long int strideC = m * n;
                 internal::CublasApi::current().cublasGemmBatched(
                     transA, transB, m, n, k,

@@ -322,7 +322,6 @@ public:
 	template<class T>
 	KernelLaunchConfig createLaunchConfig1D(unsigned int size, T func) const
 	{
-		//TODO: use cudaOccupancyMaxPotentialBlockSize
 		CUMAT_ASSERT_ARGUMENT(size > 0);
 #if 0
 		//Very simplistic first version
