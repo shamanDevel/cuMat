@@ -51,12 +51,13 @@ void benchmark_cuMat(
 
 		//Send to cuMat
 		typedef cuMat::SparseMatrix<float, 1, cuMat::CSR> SMatrix;
-		SMatrix::SparsityPattern pattern;
+		cuMat::SparsityPattern pattern;
 		pattern.rows = matrixSize;
 		pattern.cols = matrixSize;
 		pattern.nnz = matrix.nonZeros();
 		pattern.JA = SMatrix::IndexVector(matrixSize + 1); pattern.JA.copyFromHost(matrix.outerIndexPtr());
 		pattern.IA = SMatrix::IndexVector(pattern.nnz); pattern.IA.copyFromHost(matrix.innerIndexPtr());
+        pattern.assertValid<cuMat::CSR>();
 		SMatrix mat(pattern);
 		mat.getData().copyFromHost(matrix.valuePtr());
 
