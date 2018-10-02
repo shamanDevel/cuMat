@@ -56,8 +56,8 @@ namespace internal {
             //here is now the real logic
             Context& ctx = Context::current();
             KernelLaunchConfig cfg = ctx.createLaunchConfig2D(static_cast<unsigned int>(dst.derived().outerSize()), static_cast<unsigned int>(dst.derived().batches()),
-				CwiseSparseEvaluationKernel<SrcActual, DstActual, _Mode, SparseFlags(DstActual::SparseFlags)>);
-            CwiseSparseEvaluationKernel<SrcActual, DstActual, _Mode, SparseFlags(DstActual::SparseFlags)> 
+				CwiseSparseEvaluationKernel<SrcActual, DstActual, _Mode, SparseFlags(DstActual::SFlags)>);
+            CwiseSparseEvaluationKernel<SrcActual, DstActual, _Mode, SparseFlags(DstActual::SFlags)> 
                 <<< cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> 
                 (cfg.virtual_size, src.derived(), dst.derived());
             CUMAT_CHECK_ERROR();

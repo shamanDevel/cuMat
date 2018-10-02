@@ -132,9 +132,9 @@ public:
 
     enum
     {
-        LeftOp = _OpLeft,
-        RightOp = _OpRight,
-        OutputOp = _OpOutput,
+        LeftOp = int(_OpLeft),
+        RightOp = int(_OpRight),
+        OutputOp = int(_OpOutput),
 
         TransposedLeft = int(_OpLeft)&int(internal::ProductArgOp::TRANSPOSED) ? true : false,
         TransposedRight = int(_OpRight)&int(internal::ProductArgOp::TRANSPOSED) ? true : false,
@@ -323,8 +323,7 @@ namespace internal
         typedef typename MatrixReadWrapper<_SrcRight, AccessFlags::ReadDirect>::type right_wrapped_t;
 
         //implementation for direct matrix output
-        template<typename Dst = typename std::enable_if<(int(traits<_Dst>::AccessFlags) & int(AccessFlags::WriteDirect)) != 0, _Dst>::type>
-        static void evalImpl(Dst& mat, float betaIn,
+        static void evalImpl(_Dst& mat, float betaIn,
             const left_wrapped_t& left, const right_wrapped_t& right, const Op& op,
             std::integral_constant<bool, true> /*direct-write*/)
         {
@@ -417,8 +416,7 @@ namespace internal
             CUMAT_PROFILING_INC(EvalMatmul);
         }
 
-        template<typename Dst = typename std::enable_if<(int(traits<_Dst>::AccessFlags) & int(AccessFlags::WriteDirect)) == 0, _Dst>::type>
-        static void evalImpl(Dst& mat, float betaIn,
+        static void evalImpl(_Dst& mat, float betaIn,
             const left_wrapped_t& left, const right_wrapped_t& right, const Op& op,
             std::integral_constant<bool, false> /*non-direct-write*/)
         {
@@ -428,11 +426,11 @@ namespace internal
             typedef Matrix<Scalar, Op::Rows, Op::Columns, Op::Batches, Op::Flags> DstTmp;
             DstTmp tmp(op.rows(), op.cols(), op.batches());
             ProductAssignment<
-                DstTmp, DenseDstTag, _DstOp, 
+                DstTmp, DenseDstTag, _DstOp,
                 _SrcLeft, CwiseSrcTag, _SrcLeftOp,
                 _SrcRight, CwiseSrcTag, _SrcRightOp,
                 AssignmentMode::ASSIGN>
-            ::evalImpl(tmp, betaIn, left, right, op, std::integral_constant<bool, true>());
+                ::evalImpl(tmp, betaIn, left, right, op, std::integral_constant<bool, true>());
             //and now copy tmp to the output dst (cwise)
             Assignment<_Dst, DstTmp, _AssignmentMode, DenseDstTag, CwiseSrcTag>::assign(mat, tmp);
         }

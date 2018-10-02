@@ -71,10 +71,10 @@ class ConjugateGradient : public IterativeSolverBase<ConjugateGradient<_MatrixTy
 public:
     using Type = ConjugateGradient<_MatrixType, _Preconditioner>;
     using Base = IterativeSolverBase<Type>;
-    using Base::MatrixType;
-    using Base::Preconditioner;
-    using Base::Scalar;
-    using Base::RealScalar;
+    using typename Base::MatrixType;
+    using typename Base::Preconditioner;
+    using typename Base::Scalar;
+    using typename Base::RealScalar;
     using Base::maxIterations;
 
 private:
@@ -93,7 +93,7 @@ public:
      * The preconditioner is created with \code Preconditioner(matrix) \endcode.
      * \param matrix the matrix that is used in the CG.
      */
-    ConjugateGradient(const MatrixBase<MatrixType>& matrix)
+    ConjugateGradient(const MatrixBase<_MatrixType>& matrix)
         : Base(matrix)
     {
         CUMAT_ASSERT(matrix.rows() == matrix.cols() && "Matrix must be square");
@@ -105,7 +105,7 @@ public:
      * \param matrix the matrix that is used in the CG.
      * \param preconditioner the preconditioner that is used
      */
-    ConjugateGradient(const MatrixBase<MatrixType>& matrix, const Preconditioner& preconditioner)
+    ConjugateGradient(const MatrixBase<_MatrixType>& matrix, const _Preconditioner& preconditioner)
         : Base(matrix, preconditioner)
     {
         CUMAT_ASSERT(matrix.rows() == matrix.cols() && "Matrix must be square");

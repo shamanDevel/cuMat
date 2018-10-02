@@ -16,7 +16,7 @@ namespace internal
         using Scalar = typename internal::traits<_Child>::Scalar;
         enum
         {
-            SparseFlags = _SparseFlags,
+            SFlags = _SparseFlags,
             Flags = internal::traits<_Child>::Flags,
             RowsAtCompileTime = internal::traits<_Child>::RowsAtCompileTime,
             ColsAtCompileTime = internal::traits<_Child>::ColsAtCompileTime,
@@ -40,7 +40,7 @@ public:
     CUMAT_PUBLIC_API
     enum
     {
-        SparseFlags = _SparseFlags
+        SFlags = _SparseFlags
     };
 
     using typename Base::StorageIndex;

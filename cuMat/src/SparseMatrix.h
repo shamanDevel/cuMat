@@ -22,7 +22,7 @@ namespace internal
         enum
         {
             Flags = ColumnMajor, //always use ColumnMajor when evaluated to dense stuff
-            SparseFlags = _SparseFlags,
+            SFlags = _SparseFlags,
             RowsAtCompileTime = Dynamic,
             ColsAtCompileTime = Dynamic,
             BatchesAtCompileTime = _Batches,
@@ -56,7 +56,7 @@ public:
     using Base::derived;
     enum
     {
-        SparseFlags = _SparseFlags
+        SFlags = _SparseFlags
     };
 
     using typename Base::StorageIndex;
@@ -480,7 +480,7 @@ namespace internal
         enum
         {
             Flags = ColumnMajor, //always use ColumnMajor when evaluated to dense stuff
-            SparseFlags = traits<_SparseMatrix>::SparseFlags,
+            SFlags = traits<_SparseMatrix>::SFlags,
             RowsAtCompileTime = Dynamic,
             ColsAtCompileTime = Dynamic,
             BatchesAtCompileTime = traits<_SparseMatrix>::BatchesAtCompileTime,

@@ -55,7 +55,7 @@ public:
     CUMAT_PUBLIC_API
     enum
     {
-        SparseFlags = internal::traits<_Derived>::SparseFlags
+        SFlags = internal::traits<_Derived>::SFlags
     };
 
     /**
@@ -106,7 +106,7 @@ public:
         , IA_(sparsityPattern.IA)
         , JA_(sparsityPattern.JA)
     {
-        sparsityPattern.assertValid<SparseFlags>();
+        sparsityPattern.assertValid<SFlags>();
         CUMAT_ASSERT(CUMAT_IMPLIES(Batches == Dynamic, Batches == batches) &&
             "compile-time batch count specified, but does not match runtime batch count");
     }
@@ -163,7 +163,7 @@ public:
 
     __host__ __device__ CUMAT_STRONG_INLINE Index outerSize() const
     {
-        return (SparseFlags == SparseFlags::CSC) ? cols() : rows();
+        return (SFlags == SparseFlags::CSC) ? cols() : rows();
     }
 
     /**

@@ -28,7 +28,7 @@ public:
             "Static count of rows and columns must be equal (square matrix)");
         CUMAT_ASSERT(impl().rows() == impl().cols());
 
-        return solve(NullaryOp<Scalar, Rows, Columns, Batches, ColumnMajor, functor::IdentityFunctor<Scalar> >(
+        return impl().solve(NullaryOp<Scalar, Rows, Columns, Batches, ColumnMajor, functor::IdentityFunctor<Scalar> >(
             impl().rows(), impl().cols(), impl().batches(), functor::IdentityFunctor<Scalar>()));
     }
 

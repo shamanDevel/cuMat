@@ -1,4 +1,4 @@
-image: nvidia/cuda:9.0-devel
+image: nvidia/cuda:9.2-devel
 
 before_script:
   - apt-get update && apt-get install -y --no-install-recommends cmake doxygen
