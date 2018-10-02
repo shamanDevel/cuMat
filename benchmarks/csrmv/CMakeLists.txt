@@ -17,6 +17,8 @@ if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
 list(APPEND CUDA_NVCC_FLAGS --cl-version=2017)
 endif()
 
+add_definitions(-DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
+
 cuda_add_executable(
 	csrmv 
 	${CUMAT_BENCHMARK_CSRMV})
