@@ -40,6 +40,7 @@ class LUDecomposition : public DecompositionBase<LUDecomposition<_MatrixType>>
 public:
     typedef LUDecomposition<_MatrixType> Type;
     using Scalar = typename internal::traits<Type>::Scalar;
+    using Base = DecompositionBase<LUDecomposition<_MatrixType>>;
 
     enum
     {
@@ -52,7 +53,7 @@ public:
     };
     typedef Matrix<Scalar, Dynamic, Dynamic, Batches, Flags> EvaluatedMatrix;
     typedef Matrix<int, Dynamic, 1, Batches, Flags> PivotArray;
-    typedef Matrix<Scalar, 1, 1, Batches, ColumnMajor> DeterminantMatrix;
+    using Base::DeterminantMatrix;
 private:
     EvaluatedMatrix decompositedMatrix_;
     PivotArray pivots_;

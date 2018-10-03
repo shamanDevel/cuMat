@@ -2,6 +2,7 @@ namespace cuMat {
 
 /** \page TutorialMatrixClass The Matrix Class
 
+<tt>#include <cuMat/Core></tt>
 
 In cuMat, the underlying workhorse for storing matrices and vectors is the Matrix class. Vectors are threaten only as matrices with one dimension set to one.
 
@@ -119,10 +120,19 @@ The matrix class supports the following five constructors:
   Note: The user is responsible to ensure that the specified memory has at least enough space to store all matrix elements.
   Otherwise, operations on that matrix lead to undefined behavior due to access violations
 
-\section TutorialMatrixClass_Assignment Assignment
+\section TutorialMatrixClass_Assignment Assignment and Call-by-Value
 
 Matrix objects are very slim on the host side. They only store the dimension of the matrix and a reference-counted pointer to the underlying device memory.
 The copy and move constructors don't copy the underlying data, they only use the same data and increase the reference counter by one.
+
+<b>The matrix class stores a pointer to the CUDA-memory and should be treated like a pointer!</b>
+This fact combined with reference counting means, that the cuMat Matrix is nothing more than a shared_ptr with some (many) additional methods.
+This has several implications:
+
+- Pass-by-value is totally fine, no expensive memory copies are performed.
+  This also means that it is safe to use the Matrix in STL-containers.
+  
+- Copy-Constructor /-Assignment and the like do *not* copy the data, the data is shared!
 
 Example:
 \code{.cpp}
@@ -144,11 +154,20 @@ m1 = m1 * 2; //multiply every entry with 2
 //Now, m1 will contain 84.0 as values.
 //m2 will still contain the old value of 42.0
 \endcode
-This is due to the paradigm "Copy-On-Write" that is applied in all operations: Whenever data is changed, a new memory buffer is allocated and the results written into it.
+This is due to the paradigm "Copy-On-Write" that is applied in all operations of the form `matrix = expression`:
+Whenever data is changed, a new memory buffer is allocated and the results written into it.
 The old values are still preserved in other matrix instances that shared the data.
-This is based on the reference-counted device memory and therefore only works when the matrices are stored by value in other places.
+If the reference counter is one, i.e. the matrix data is used exlusivly, the data is reused if the dimensions match.
 
-Further, it is also possible to "downcast" from constant size matrices to dynamic size matrices:
+There is one big exception to the "Copy-On-Write" paradigm: inplace operations.
+Compound-Assignments (`matrix += expression`, ...) and explicit inplace assignment (`matrix.inplace() =  expression`)
+always reuse the memory. Therefore, if the data is shared with other matrices due to copy construtors/assignments, these matrices are changed as well.
+The helper method \ref Matrix::makeExclusiveUse() can be used to ensure that only this Matrix owns the data. 
+If the data is shared with another matrix (reference counter greater one), the data is cloned into a newly allocated memory.
+
+\section TutorialMatrixClass_Downcast Conversion between different matrix types
+
+Furthermore, it is also possible to "downcast" from constant size matrices to dynamic size matrices:
 \code{.cpp}
 VectorXi v1(5);
 MatrixXi m1 = v1; //ok, downcast, _Columns==1 converted to _Columns==Dynamic
@@ -166,7 +185,13 @@ This decision was done to prevent hidden transpose operations that are very cost
 MatrixXfR m1(3, 3); //row-major
 MatrixXfC m2 = m1; //error at compile-time, attempt to assign a matrix of different storage order
 \endcode
-TODO: how to convert that explicitly?
+In the rare case that you really want to change the storage order, and not just transposing the matrix (see \ref TutorialTransposing),
+the storage order can be changed explicitly by cloning the matrix:
+\code{.cpp}
+MatrixXfC m2 = m1.deepClone<ColumnMajor>();
+\endcode
+
+Fur type casts, see \ref TutorialCWise_Casting.
 
 \section TutorialMatrixClass_Printing Printing
 
@@ -179,7 +204,10 @@ This will print something like this:
 
 \include QuickStart_example.out
 
-Note that this requires a memory copy from the device to the host and is therefore slow.
+Note that it relies on Eigen to print the individual batches. Therefore, this operator is only available if Eigen-interop is enabled.
+See \ref TutorialEigenInterop for further details.
+
+Furtehr note that this requires a memory copy from the device to the host and is therefore slow.
 It should only be used on small matrices as a debugging and testing tool.
 
 */

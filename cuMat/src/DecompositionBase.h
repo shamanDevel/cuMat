@@ -32,6 +32,24 @@ public:
             impl().rows(), impl().cols(), impl().batches(), functor::IdentityFunctor<Scalar>()));
     }
 
+    typedef Matrix<Scalar, 1, 1, Batches, ColumnMajor> DeterminantMatrix;
+
+    /**
+     * \brief Computes the determinant of this matrix
+     * \return The determinant
+     */
+    DeterminantMatrix determinant() const
+    {
+        return impl().determinant();
+    }
+    /**
+    * \brief Computes the log-determinant of this matrix.
+    * \return The log-determinant
+    */
+    DeterminantMatrix logDeterminant() const
+    {
+        return impl().logDeterminant();
+    }
 };
 
 CUMAT_NAMESPACE_END

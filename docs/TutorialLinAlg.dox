@@ -31,20 +31,21 @@ Example:
 
 \subsection TutorialLinAlg_Basic_Inverse Inverse matrix
 
-TODO
-
-\subsection TutorialLinAlg_Basic_Solving Solving linear systems
-
-TODO
+\note No direct access implemented yet, use the decompositions below instead
 
 \section TutorialLinAlg_Decompositions Decompositions
 
-If you want more control over the algorithm or solve multiple equation systems, it is preferred to directly call the decompositions.
+If you want to solve linear systems or want more control over the algorithm it is preferred to directly call the decompositions.
 They provide further additional checks like tests if a matrix is invertible.
+
+All decompositions inherit from \ref DecompositionBase and provide the following interface:
+
+ - Computing the inverse matrix with \ref DecompositionBase::inverse()
+
 For details, see the documentation of the decompositions:
 
  - \ref LUDecomposition
-
+ - \ref CholeskyDecomposition
 */
 
 }

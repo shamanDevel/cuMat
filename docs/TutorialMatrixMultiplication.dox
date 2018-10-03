@@ -27,9 +27,24 @@ All these multiplication, including transposing the matrices, are realized with 
 
 \section TutorialMatrixMultiplication_Vectors Matrix-Vector multiplication
 
-Since vectors are only special shaped matrices, matrix-vector, vector-matrix, vector inner- and outer products are also directly with the general matrix-matrix multiplication.
+Since vectors are only special shaped matrices, matrix-vector, vector-matrix and the vector inner product are also directly with handled the general matrix-matrix multiplication.
 
 Keep in mind that the inner product between two vectors might be faster with \c .dot() because this is a cwise-expression and cwise input matrices don't need to be evaluated into temporary matrices before the multiplication.
+
+\section TutorialMatrixMultiplication_OuterProduct Vector-Vector outer product
+The vector-vector outer product is a special case: It is implemented as a component-wise expression, hence it can be chained with following operations without intermediate costs.
+For example:
+\code{.cpp}
+VectorXf a, b = ...;
+auto expr = a * b.transpose(); //outer product expression, no evaluation
+VectorXf row = expr.row(5); //just evaluate the 5th row
+MatrixXf corner = expr.block<2,2,1>(0,0,0); //just evaluate the top left corner
+\endcode
+The other entries in the outer product are not evaluated.
+
+Note that the input vectors are accessed multiple times (precisely, if the vectors are of size N, each of the N entries is accessed N times).
+Therefore, if the vectors are the result of complicated computations, it might be more efficient to evaluate them beforehand.
+Either by storing them into temporar <tt>VectorXf</tt> instances or by calling <tt>.eval()</tt>.
 
 \section TutorialMatrixMultiplication_supportedTypes Supported types
 
