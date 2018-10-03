@@ -312,6 +312,28 @@ public:
 	int getAliveDevicePointers() const { return allocationsDevice_; }
 #endif
 
+    /**
+     * \brief Returns the free memory on the device in bytes.
+     * \return the free memory in bytes
+     */
+    static size_t getFreeDeviceMemory()
+	{
+        size_t free, total;
+        CUMAT_SAFE_CALL(cudaMemGetInfo(&free, &total));
+        return free;
+	}
+
+    /**
+    * \brief Returns the total available memory on the device in bytes.
+    * \return the total available memory in bytes
+    */
+    static size_t getTotalDeviceMemory()
+    {
+        size_t free, total;
+        CUMAT_SAFE_CALL(cudaMemGetInfo(&free, &total));
+        return total;
+    }
+
 	/**
 	 * \brief Returns the kernel launch configurations for a 1D launch.
 	 * For details on how to use it, see the documentation of
