@@ -36,7 +36,7 @@ public:
         InputIsMatrix = std::is_same< _MatrixType, Matrix<Scalar, Rows, Columns, Batches, Flags> >::value
     };
     typedef Matrix<Scalar, Dynamic, Dynamic, Batches, Flags> EvaluatedMatrix;
-    typedef Matrix<Scalar, 1, 1, Batches, ColumnMajor> DeterminantMatrix;
+    using typename Base::DeterminantMatrix;
 private:
     EvaluatedMatrix decompositedMatrix_;
     std::vector<int> singular_;

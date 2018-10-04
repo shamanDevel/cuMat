@@ -2,8 +2,50 @@ namespace cuMat {
 
 /** \page TutorialEigenInterop Eigen Interop
 
+cuMat supports data exchange directly with Eigen. This, however, has to be manually enabled by setting the preprocessor macro
+\code
+CUMAT_EIGEN_SUPPORT=1
+\endcode
+Further, Eigen has to be available in the include path, i.e. \code #include <Eigen/Core> \endcode should be valid.
 
+Important: All operations involving Eigen require a (synchronous) memcopy from host to device and are therefore quite slow.
+Don't use them in performance critical code.
 
+With Eigen-Support enabled, the following three operations are available:
+
+\section TutorialEigenInterop_Print Printing the matrix contents
+An overload of operator<< is available that prints the dimensions, storage order and content of the matrix:
+
+\include QuickStart_example.cu
+
+This will print something like this:
+
+\include QuickStart_example.out
+
+\section TutorialEigenInterop_ToEigen cuMat to Eigen
+
+Non-batched cuMat matrices can be converted to Eigen matrices (of the same storage order and type) with \ref Matrix::toEigen().
+Note that this is only available for the Matrix, not for matrix expressions. Therefore, operations have to be evaluated first with \ref MatrixBase::eval() before converting them to Eigen.
+
+For batched matrices, the following idiom can be used:
+\code{.cpp}
+cuMat::BMatrixXf src;
+std::vector<Eigen::MatrixXf> dst(src.batches());
+for (cuMat::Index i=0; i<src.batches(); ++i)
+    dst[i] = src.slice(i).eval().toEigen();
+\endcode
+
+\section TutorialEigenInterop_FromEigen Eigen to cuMat
+
+The other direction is also available, the convertion from Eigen matrices to non-batched cuMat matrices of the same storage order and type with \ref Matrix::fromEigen().
+
+For batched matrices, the following idiom can be used:
+\code{.cpp}
+std::vector<Eigen::MatrixXf> src;
+cuMat::BMatrixXf dst(src[0].rows(), src[0].cols(), src.size());
+for (size_t i=0; i<src.size(); ++i)
+    dst.slice(i) = cuMat::MatrixXf::fromEigen(src[i]);
+\endcode
 
 */
 

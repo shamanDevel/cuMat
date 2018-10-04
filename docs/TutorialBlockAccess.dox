@@ -4,7 +4,7 @@ namespace cuMat {
 
 This tutorial explains how to use block operations. A block is a rectangular part (3D: rows, columsn, batches) of a matrix. Block expressions can be used both as rvalues and lvalues.
 
-\section Blocks General block operations
+\section TutorialBlockAccess_Blocks General block operations
 
 The most general block operation in cuMat is called \link MatrixBase::block() .block() \endlink.
 There are two versions, whose syntax is as follows:
@@ -34,7 +34,7 @@ Further, block expressions can be used as lvalues as well. This, however, is onl
 \verbinclude TutorialBlocks_lvalue.out
 </td></tr></table>
 
-\section Convenience methods: Matrix
+\section TutorialBlockAccess_SpecMatrix Specializations: Matrix
 
 For matrices, the following convenience methods are also defined:
 <table>
@@ -44,7 +44,7 @@ For matrices, the following convenience methods are also defined:
 <tr><td>\c slice(index)</td><td>\code block<Rows,Columns,1>(0, 0, index)\endcode</td></tr>
 </table>
 
-\section Vectors Specializations: vectors
+\section TutorialBlockAccess_SpecVector Specializations: Vector
 
 For vectors (row or column vector), the following convenience methods are defined:
 The returned type is again a row or column vector expression

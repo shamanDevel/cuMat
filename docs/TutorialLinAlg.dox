@@ -40,7 +40,9 @@ They provide further additional checks like tests if a matrix is invertible.
 
 All decompositions inherit from \ref DecompositionBase and provide the following interface:
 
- - Computing the inverse matrix with \ref DecompositionBase::inverse()
+ - Compute the inverse matrix with \ref DecompositionBase::inverse()
+ - Compute the deterimant with \ref DecompositionBase::determinant() and the log-determinant with \ref DecompositionBase::logDeterminant()
+ - Solve linear systems with (possibly batched) matrix-valued right-hand sides \ref SolverBase::solve()
 
 For details, see the documentation of the decompositions:
 

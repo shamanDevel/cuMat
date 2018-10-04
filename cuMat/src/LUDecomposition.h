@@ -53,7 +53,7 @@ public:
     };
     typedef Matrix<Scalar, Dynamic, Dynamic, Batches, Flags> EvaluatedMatrix;
     typedef Matrix<int, Dynamic, 1, Batches, Flags> PivotArray;
-    using Base::DeterminantMatrix;
+    using typename Base::DeterminantMatrix;
 private:
     EvaluatedMatrix decompositedMatrix_;
     PivotArray pivots_;
