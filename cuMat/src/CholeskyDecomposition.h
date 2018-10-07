@@ -108,7 +108,7 @@ public:
     {
         if (rows()==0)
         {
-            return DeterminantMatrix::Constant(1, 1, batches(), Scalar(1));
+            return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(1));
         }
 		return decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>().cwiseAbs2(); //multiply diagonal elements
             //the product of the diagonal elements is the squareroot of the determinant
@@ -122,7 +122,7 @@ public:
     {
         if (rows() == 0 || cols() != rows())
         {
-            return DeterminantMatrix::Constant(1, 1, batches(), Scalar(0));
+            return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(0));
         }
         return (decompositedMatrix_.diagonal().cwiseLog().template sum<ReductionAxis::Row | ReductionAxis::Column>()) * 2; //multiply diagonal elements;
     }
