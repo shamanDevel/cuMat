@@ -2,9 +2,9 @@ namespace cuMat {
 
 /** \page TutorialLinAlg Linear Algebra and Decompositions
 
-This page explains how to use cuMat to solve linear systems, compute the determinant and inverse of a matrix, and use various decompositions like LU, QR and SVD.
-
 <tt>#include <cuMat/Dense></tt>
+
+This page explains how to use cuMat to solve linear systems, compute the determinant and inverse of a matrix, and use various decompositions like LU, QR and SVD.
 
 \section TutorialLinAlg_Basic Basic Linear Algebra
 This section explains the basic linear algebra routines that are directly available as methods of \ref MatrixBase. 

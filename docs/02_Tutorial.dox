@@ -21,6 +21,10 @@ namespace cuMat {
 
 \subpage TutorialEigenInterop
 
+\subpage TutorialSparse
+
+\subpage TutorialIterativeSolver
+
 */
 
 }

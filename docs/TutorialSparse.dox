@@ -1,0 +1,148 @@
+namespace cuMat {
+
+/** \page TutorialSparse Sparse Module
+
+<tt>#include <cuMat/Sparse></tt>
+
+This page how to use the sparse module: the sparse matrix class and sparse expressions.
+
+\section TutorialSparse_SparsityPattern Sparsity Pattern: CSR / CSC
+THe sparse module supports only one sparsity pattern type, the compressed sparse row / column format.
+
+In the Compressed Sparse Row (CSR) format, a matrix \f$ A\in\mathbb{R}^{m \times n} \f$ is stored using three tables <i>val</i>, the non-zero entries of \f$ A \f$ in row-major format, <i>colInd</i>, the column indices of the non-zero entries, <i>rowPtr</i> an array of size \f$m+1\f$ where rowPtr[i] points to the first entry in row i.
+As an example, the matrix
+\f{equation*}{
+A:=
+\begin{pmatrix}
+	1 & 4 & 0 & 0 & 0 \\
+	0 & 2 & 3 & 0 & 0 \\
+	5 & 0 & 0 & 7 & 8 \\
+	0 & 0 & 9 & 0 & 6
+\end{pmatrix}
+\f}
+is stored in the CSR format with zero-based indexing as
+\f{align*}{
+	\text{val} &= [1, 4, 2, 3, 5, 7, 8, 9, 6] \\
+	\text{colInd} &= [0, 1, 1, 2, 0, 3, 5, 2, 4] \\
+	\text{rowPtr} &= [0, 2, 4, 7, 9] .
+\f}
+
+The Compressed Sparse Column (CSC) format is a transposed format of the CSR format.
+In the CSC format, a matrix \f$ A\in\mathbb{R}^{m \times n} \f$ is stored using three tables <i>val</i>, the non-zero entries of \f$ A \f$ in column-major format, <i>rowInd</i>, the row indices of the non-zero entries, <i>colPtr</i> an array of size \f$n+1\f$ where colPtr[i] points to the first entry in column i.
+As an example, the matrix \f$ A \f$ from before
+is stored in the CSC format with zero-based indexing as
+\f{align*}{
+	\text{val} &= [1, 5, 4, 2, 3, 9, 7, 8, 6] \\
+	\text{rowInd} &= [0, 2, 0, 1, 1, 3, 2, 2, 3] \\
+	\text{colPtr} &= [0, 2, 4, 6, 7, 9] .
+\f}
+
+This sparsity pattern is stored in the struct \ref SparsityPattern.
+It stores the number of non-zeros (\ref SparsityPattern::nnz), number of rows (\ref SparsityPattern::rows), number of columns (\ref SparsityPattern::cols),
+the outer indices (rowPtr in CSR, colPtr in CSC, \ref SparsityPattern::JA) and the inner indices (colInd in CSR, rowInd in CSC, \ref SparsityPattern::IA).
+
+The reason why the sparsity pattern is separate from the sparse matrix class (see below) is that often, the same sparsity pattern is used in multiple matrices.
+Hence, the sparsity pattern is set up once and then can be used multiple times to initialize the sparse matrix.
+
+\section TutorialSparse_SparseMatrix The Sparse Matrix Class
+
+The core of sparse operations is the \ref SparseMatrix class.
+It always has a dynamic number of rows and columns, plus a compile-size fixed or dynamic number of batches.
+
+The only way to construct a SparseMatrix is to pass the sparsity pattern to the constructor.
+The data array "val" is newly allocated, but the sparsity pattern (inner and outer indices) is shared.
+\code{.cpp}
+cuMat::SparsityPattern pattern = ...; //initialization
+cuMat::SparseMatrix<float, 1, cuMat::CSR> smat(pattern); //data allocation
+\endcode
+
+The three template parameters of the SparseMatrix are:
+
+ - The scalar type of the matrix
+ - the number of batches on compile time or Dynamic for a dynamic number of batches
+ - The storage order, currently only CSR or CSC.
+ 
+Several typedefs for all common types of sparse matrices are predefined in \ref sparsematrixtypedefs.
+ 
+\section TutorialSparse_SparseEvaluation Evaluations including Sparse Matrices
+
+The sparse matrix can be used as source and target in any evaluation, just like regular dense Matrices.
+This also includes mixing sparse matrices and dense matrices.
+As an example we convert between sparse matrices and dense matrices by simply assigning them to each other:
+\code{.cpp}
+//dense -> sparse
+cuMat::MatrixXf denseSrc = ...;
+cuMat::SMatrixXf sparseDst(sparsityPattern);
+sparseDst = denseScr;
+//sparse -> dense
+cuMat::SMatrixXf sparseSrc = ...;
+cuMat::MatrixXf denseDst = sparseSrc;
+\endcode
+
+<b>Important:</b><br>
+Unlike Eigen, cuMat does not support the dynamic creation of the sparsity pattern. If you assign expressions to a sparse matrix, this sparse matrix must already be initialized with a sparsity pattern.
+
+The sparse matrix exposes the following methods to access the underlying data:
+
+ - \ref SparseMatrix::getData() returns the (possibly batched) data vector, called <i>val</i> above
+ - \ref SparseMatrixBase::getOuterIndices() returns the outer indices of the sparsity pattern
+ - \ref SparseMatrixBase::getInnerIndices() returns the inner indices of the sparsity pattern
+ - \ref SparseMatrixBase::getSparsityPattern() returns the full SparsityPattern to initialize other matrices with the same sparsity pattern
+
+\subsection TutorialSparse_SparseEvaluation_Direct Optimized direct sparse access
+
+If you use sparse matrices in component-wise expressions directly, the performance might not be optimmal.
+This is because cuMat can't automatically infer if you access the entries in the same pattern as in the target matrix.
+By default, a linear search is used to find the requested entry in the matrix. This enables the sparse matrix to be used in general evaluations involving also dense matrices.
+
+If the target matrix and the source matrices in the evaluation graph have the same sparsity pattern, then the following optization can be employed:
+\code
+cuMat::SMatrixXf dst, src = ...;
+//slow version, search for the requested entry
+dst = 5 * src;
+//optimized version, tell cuMat that the access pattern of the source and destination is the same
+dst = 5 * src.direct();
+//here, the optimization can't be used because the access pattern is changed
+dst = 5 * src.transpose(); //.direct() not allowed
+\endcode
+It is the user's responsibility to ensure that the access pattern of the source and destination matrix are exactly the same.
+If operations that change the access pattern (e.g. broadcasting, transposition, block access) are used, <tt>.direct()</tt> must not be used.
+
+\subsection TutorialSparse_SparseEvaluation_SparseView Sparse view of a dense expression
+
+Let's look at the following example (taken from an actual working code):
+\code
+cuMat::VectorXf massVector, rhs = ...;
+cuMat::SMatrixXf stiffnessMatrix = ...;
+float alpha, beta = ...;
+cuMat::VectorXf result = (alpha * massVector.asDiagonal() + beta * stiffnessMatrix) * rhs;
+\endcode
+Here, a vector is first converted to a diagonal matrix and then added to a sparse matrix. The resulting matrix is then multiplied with a vector resulting in a vector.
+Up to now, the involved matrix-vector product is a dense product, the sparse matrix is fully evaluated into a dense matrix!
+This is because cuMat can't infer automatically which sparsity pattern the resulting matrix will have and therefore fallsback to a dense evaluation.
+
+For exactly this case, we can use the following optimization with the help of \ref MatrixBase::sparseView(...).
+Assume that the sparsity pattern of <tt>stiffnessMatrix</tt> contain the diagonal entries (so that the diagonal matrix is fully included), we can write the above code as:
+\code
+//Initialization as above
+cuMat::VectorXf result = (alpha * massVector.asDiagonal() + beta * stiffnessMatrix.direct()).sparseView(stiffnessMatrix.getSparsityPattern()) * rhs;
+\endcode
+The crucial part is \ref MatrixBase::sparseView(...). It tells cuMat that the current expression should be evaluated as a sparse expression with the given sparsity pattern. Therefore, the sparse matrix - vector product is triggered instead of a dense matrix - vector product.
+Further, since the sparsity pattern is enforced in this way, we can also use <tt>stiffnessMatrix.direct()</tt> to optimize the component-wise evaluation of the matrix.
+Because the sparse matrix - vector product is implemented component-wise, all expressions in the above code are component-wise. Therefore, no temporary memory is needed at all.
+
+\subsection TutorialSparse_SparseEvaluation_Supported Supported and unsupported operations
+
+Supported operations:
+
+ - All component-wise operations (unary, binary)
+ - Matrix-vector product for non-transposed CSR matrices (see \ref Benchmark_CSRMV for a benchmark of our custom product implementation)
+ 
+Unsupported operations:
+
+ - Reductions
+ - Transposing (optimizied, component-wise still possible)
+ - General Matrix-Matrix products
+
+*/
+}

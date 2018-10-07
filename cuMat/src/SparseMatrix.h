@@ -99,7 +99,15 @@ public:
     {
     }
 
+    /**
+    * \brief Direct access to the underlying data.
+    * \return the data vector of the non-zero entries
+    */
     __host__ __device__ CUMAT_STRONG_INLINE ScalarVector& getData() { return A_; }
+    /**
+    * \brief Direct access to the underlying data.
+    * \return the data vector of the non-zero entries
+    */
     __host__ __device__ CUMAT_STRONG_INLINE const ConstScalarVector& getData() const { return A_; }
     using Base::getInnerIndices;
     using Base::getOuterIndices;
@@ -518,6 +526,45 @@ namespace internal
         }
     };
 } //end namespace internal
+
+//Common typedefs
+
+/** \defgroup sparsematrixtypedefs Global sparse matrix typedefs
+*
+* cuMat defines several typedef shortcuts for most common sparse matrix types.
+*
+* The general patterns are the following:
+* \code [B]SMatrixX&lt;T&gt;[_CSR|_CSC] \endcode
+*
+* The type of the matrix is encoded in <tt>&lt;T&gt;</tt> and can be \c b for boolean, \c i for integer, \c f for float, \c d for double, \c cf for complex float, \c cd
+* for complex double.
+* The prefix <tt>[B]</tt> indicates batched sparse matrices of dynamic batch size. If absent, the matrix will a compile-time batch size of 1.
+* The suffices <tt>_CSR</tt> or <tt>_CSC</tt> specify if the matrix is in Compressed Sparse Row (CSR) or Compressed Sparse Column (CSC) format.
+* The default (if the suffix is absent) is CSR.
+*
+* For example, \c BSMatrixXf is a batched sparse matrix of floats in CSR format.
+*
+* \sa class SparseMatrix
+*/
+
+#define CUMAT_DEF_MATRIX1(scalar1, scalar2) \
+    /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, Dynamic, CSR> BSMatrixX ## scalar2; \
+    /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, Dynamic, CSR> BSMatrixX ## scalar2 ## _CSR; \
+    /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, Dynamic, CSC> BSMatrixX ## scalar2 ## _CSC; \
+    /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, 1, CSR> SMatrixX ## scalar2; \
+    /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, 1, CSR> SMatrixX ## scalar2 ## _CSR; \
+    /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, 1, CSC> SMatrixX ## scalar2 ## _CSC; \
+
+CUMAT_DEF_MATRIX1(bool, b)
+CUMAT_DEF_MATRIX1(int, i)
+CUMAT_DEF_MATRIX1(long, l)
+CUMAT_DEF_MATRIX1(long long, ll)
+CUMAT_DEF_MATRIX1(float, f)
+CUMAT_DEF_MATRIX1(double, d)
+CUMAT_DEF_MATRIX1(cfloat, cf)
+CUMAT_DEF_MATRIX1(cdouble, cd)
+
+#undef CUMAT_DEF_MATRIX1
 
 CUMAT_NAMESPACE_END
 

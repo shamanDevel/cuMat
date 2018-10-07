@@ -46,6 +46,10 @@ Second test case: constant size of the vectors (\f$n=1000000\f$), varying number
 This test case shows the power of the kernel merging performed by cuMat. The linear combination is evaluated in a single kernel in cuMat (without storing the intermediate results in memory), while cuBLAS needs one call to AXPY per factor (and writes the intermediate results into memory every time).
 Between 4 and 5 linear combinations, cuMat becomes faster than the highly optimized cuBLAS. 
 
+\section Benchmark_CSRMV Benchmark 2: Sparse Matrix - Vector multiplication
+
+\section Benchmark_CG Benchmark 3: Conjugate Gradient Solver
+
 */
 
 }

@@ -1,0 +1,8 @@
+namespace cuMat {
+
+/** \page TutorialIterativeSolver Iterative Solver
+
+<tt>#include <cuMat/IterativeLinearSolvers></tt>		
+
+*/
+}

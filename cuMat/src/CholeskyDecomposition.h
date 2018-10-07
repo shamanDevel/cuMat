@@ -26,6 +26,7 @@ class CholeskyDecomposition : public DecompositionBase<CholeskyDecomposition<_Ma
 {
 public:
     using Scalar = typename internal::traits<_MatrixType>::Scalar;
+    using Base = DecompositionBase<CholeskyDecomposition<_MatrixType>>;
     typedef CholeskyDecomposition<_MatrixType> Type;
     enum
     {

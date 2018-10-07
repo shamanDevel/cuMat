@@ -46,6 +46,12 @@ struct SparsityPattern
     }
 };
 
+/**
+ * \brief Base class of all sparse matrices.
+ *  It stores the sparsity pattern.
+ * \tparam _Derived the type of the derived class
+ * \sa SparseMatrix
+ */
 template<typename _Derived>
 class SparseMatrixBase : public MatrixBase<_Derived>
 {
@@ -121,14 +127,29 @@ public:
         return { nnz_, rows_, cols_, IA_, JA_ };
     }
 
+    /**
+    * \brief Checks if this matrix is initialized with a sparsity pattern and can therefore be used in expressions.
+    */
     bool isInitialized() const
     {
         return rows_ > 0 && cols_ > 0 && batches_ > 0;
     }
 
+    /**
+    * \brief Returns the inner indices of the sparsity pattern
+    */
     __host__ __device__ CUMAT_STRONG_INLINE IndexVector& getInnerIndices() { return IA_; }
+    /**
+    * \brief Returns the inner indices of the sparsity pattern
+    */
     __host__ __device__ CUMAT_STRONG_INLINE const ConstIndexVector& getInnerIndices() const { return IA_; }
+    /**
+    * \brief Returns the outer indices of the sparsity pattern
+    */
     __host__ __device__ CUMAT_STRONG_INLINE IndexVector& getOuterIndices() { return JA_; }
+    /**
+    * \brief Returns the outer indices of the sparsity pattern
+    */
     __host__ __device__ CUMAT_STRONG_INLINE const ConstIndexVector& getOuterIndices() const { return JA_; }
 
     /**
@@ -161,6 +182,10 @@ public:
     */
     __host__ __device__ CUMAT_STRONG_INLINE Index size() const { return nnz_; }
 
+    /**
+    * \brief Returns the outer size of the matrix.
+    * This is the number of rows for CSR, or the number of columns for CSC.
+    */
     __host__ __device__ CUMAT_STRONG_INLINE Index outerSize() const
     {
         return (SFlags == SparseFlags::CSC) ? cols() : rows();
@@ -175,7 +200,7 @@ public:
      * (same index as where the inner index was queried plus the batch offset).
      * 
      * For a sparse matrix stored in memory (class SparseMatrix), this method simply
-     * delegates to \code getData().getRawCoeff(index) \endcode, thus directly accessing
+     * delegates to <tt>getData().getRawCoeff(index)</tt>, thus directly accessing
      * the linear data without any overhead.
      * 
      * For sparse expressions (class SparseMatrixExpression), the functor is evaluated
