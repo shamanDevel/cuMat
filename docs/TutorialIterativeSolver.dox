@@ -4,5 +4,35 @@ namespace cuMat {
 
 <tt>#include <cuMat/IterativeLinearSolvers></tt>		
 
+This module provides iterative methods to solve linear systems of the form \f$ Ax=b \f$, where A is a square matrix and b a dense vector.
+The right hand side b can be batched.
+
+Currently, the following methods are available:
+
+ - ConjugateGradient for selfadjoint (hermitian) matrices.
+ 
+These iterative solvers are associated with some preconditioners:
+
+ - IdentityPreconditioner - not really useful
+ - DiagonalPreconditioner - also called Jacobi preconditioner, work very well on diagonal dominant matrices, the default.
+ 
+All iterative solver provide the following interface:
+
+ - A constructor taking the matrix A and optionally an instantiation of the preconditioner
+ - setter for the tolerance as a termination criterium \ref IterativeSolverBase::setTolerance()
+ - setter for the maximal number of iterations \ref IterativeSolverBase::setMaxIterations()
+ - solve for a given right hand side with \ref SolverBase::solve()
+ - solve with an initial guess for the solution with \ref IterativeSolverBase::solveWithGuess()
+ - getter for the number of iterations needed to converge \ref IterativeSolverBase::iterations()
+ - getter for the final error (the norm of the residual) \ref IterativeSolverBase::error()
+ 
+The Conjugate Gradient method works with any matrix type, including dense and sparse matrices, but also works in a matrix-free fashion.
+It only has to provide a matrix-vector product and you have to specify the preconditioner yourself.
+
+Furthermore, the Conjugate Gradient also works with custom scalar types. This can be used to implement a blocked CSR matrix where every entry in the matrix is e.g. a 3x3 dense matrix block.
+This is done by using not float as the scalar type, but using a custom float3x3 type for the matrix and float3 for the vector, in addition to several operator overloads.
+The details can be found in the test case <tt>tests/TestBlockedConjugateGradient.cu</tt>
+ 
+ 
 */
 }
