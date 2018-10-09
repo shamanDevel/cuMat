@@ -1,0 +1,15 @@
+namespace cuMat {
+
+/** \page AdvancedTopics Advanced Topics
+
+These pages document the internal design decisions of cuMat and how to extend it.
+
+\subpage Advanced_Concepts
+
+\subpage Advanced_Extending
+
+\subpage Advanced_CustomScalarTypes
+
+*/
+
+}

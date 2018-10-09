@@ -1,0 +1,23 @@
+namespace cuMat {
+
+/** \page Advanced_Extending Extending cuMat
+
+This page describes ways on how to extend cuMat.
+
+\section Advanced_Extending_CustomFunctors Custom functors for nullary, unary and binary operators
+
+The simplest way to implement new functions is with the help of custom functors.
+
+
+\section Advanced_Extending_NewOperations New expression templates
+
+First, before adding new expression template classes for custom operators, make shure that your case can't be handled with simple functors as described above in \ref Advanced_Extending_CustomFunctors.
+Adding new expression templates dives deep into the internals of cuMat and requires some boilerplate code.
+Also make shure to read the page about the internal designs and concepts (\ref Advanced_Concepts) first.
+
+Still here? Ok, let's get started:
+
+
+*/
+
+}

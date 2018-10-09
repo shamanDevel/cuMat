@@ -1,0 +1,9 @@
+namespace cuMat {
+
+/** \page Advanced_CustomScalarTypes Custom scalar types
+
+This page describes how to add support for custom scalar types.
+
+*/
+
+}

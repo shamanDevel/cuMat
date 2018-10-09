@@ -1,0 +1,184 @@
+namespace cuMat {
+
+/** \page Advanced_Concepts Internal Design
+
+This page covers all the technical details how cuMat is structured.
+In covers the class hierarchy, the template concepts and how expressions are evaluated.
+
+\section Advanced_Concepts_ClassHierarchy The class hierarchy
+The class hierarchy of cuMat is very shallow. Every expression template, the Matrix and the SparseMatrix class inherit from MatrixBase.
+
+We use the curiously recurrent template pattern (CRTP) to implement static polymorphism.
+Assume that we want to write a function that takes any matrix expression as input, we write:
+\code
+template <typename Derived>
+void foo(const MatrixBase<Derived>& expr) {
+	const Derived& actualExpr = expr.derived();
+	...
+}
+\endcode
+The argument is passed as a reference to MatrixBase. Since every cuMat class inherits from MatrixBase, every expression can be passed to the function.
+The actual type of the expression is specified in the template parameter. MatrixBase then provides the method \ref MatrixBase::derived() that casts
+the expression to the actual type.
+
+\section Advanced_Concepts_Traits The traits class
+This is probably the most important design part. Because only such a shallow class hierarchy as described above is used, every property of an expression is encoded in the traits class.
+
+As an example, we look at the UnaryOp expression template.
+UnaryOp has the following signature:
+\code
+template <typename _Child, typename _UnaryFunctor>
+class UnaryOp : public MatrixBase<UnaryOp<_Child, _UnaryFunctor>>;
+\endcode
+Then the traits class defines compile-time properties of this expression. This has to be done in a separate class, because this information is needed before the class is fully defined. The MatrixBase depends on them.
+The traits class for the UnaryOp is defined as:
+\code
+namespace internal {
+	template<typename _Child, typename _UnaryFunctor>
+	struct traits<UnaryOp<_Child, _UnaryFunctor> >
+	{
+        using Scalar = typename _UnaryFunctor::ReturnType;
+		enum
+		{
+			Flags = internal::traits<_Child>::Flags,
+			RowsAtCompileTime = internal::traits<_Child>::RowsAtCompileTime,
+			ColsAtCompileTime = internal::traits<_Child>::ColsAtCompileTime,
+			BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime,
+            AccessFlags = ReadCwise
+		};
+        typedef CwiseSrcTag SrcTag;
+        typedef DeletedDstTag DstTag;
+	};
+}
+\endcode
+Let's look at it part by part:
+
+ - This struct is a partial specialization of the general <tt>template<typename T> struct traits;</tt>.
+ - <tt>using Scalar = </tt> defines the scalar type of this expression. By reading it from the functor, we allow casting operations.
+   For non-casting expressions, e.g. TransposeOp, this reads <tt>using Scalar = typename traits<_Child>::Scalar;</tt>
+ - Next, a couple of compile time flags are specified:
+   - <tt>Flags</tt> The dense access flags, either \ref Flags::RowMajor or \ref Flags::ColumnMajor.
+     If \ref MatrixBase::eval() is used for evaluation (see \ref Advanced_Concepts_Evaluation), this flag specifies the storage order of the evaluated dense matrix
+   - <tt>RowsAtCompileTime</tt> the number of rows at compile time or \ref Dynamic
+   - <tt>ColsAtCompileTime</tt> the number of cols at compile time or \ref Dynamic
+   - <tt>BatchesAtCompileTime</tt> the number of batches at compile time or \ref Dynamic
+   - <tt>AccessFlags</tt> specifies how the entries of the matrix can be accessed. The possible values are:
+     - \ref AccessFlags::ReadCwise : The single entries of the matrix can be access individually, the class must define a method 
+	   \code
+       __device__ const Scalar& coeff(Index row, Index col, Index batch, Index index) const;
+       \endcode
+	   This flag allows multiple component-wise expressions to be chained together.
+	 - \ref AccessFlags::ReadDirect : The underlying data can be accessed directly. This is the case for the Matrix class, but not for matrix expressions.
+	   The class must define the two methods
+	   \code
+       __host__ __device__ const _Scalar* data() const;
+       __host__ bool isExclusiveUse() const;
+       \endcode
+	   <tt>isExclusiveUse()</tt> returns true if the memory reference counter is one. If this is the case after the instance was copied into an expressions,
+	   we know that this type was created as a temporar r-value. This allows certain operations like decompositions to destroy the contents, thus work in-place.
+	   This flag implies <tt>ReadCwise</tt>.
+	 - \ref AccessFlags::WriteCwise : This expression can be used as the destination of the component-wise expressions.
+	   The class must define these three methods:
+	   \code
+       __host__ Index size() const;
+       __host__ __device__ void index(Index index, Index& row, Index& col, Index& batch) const;
+        __device__ void setRawCoeff(Index index, const Scalar& newValue);
+       \endcode
+	   First, <tt>size()</tt> specifies the number of entries that have to be evaluated. This is called on the host to define the CUDA grid size.<br>
+	   Next, <tt>index(index, &row, &col, &batch)</tt> converts the linear index to the row, column and batch index. This allows this class to specify the access pattern on it's own.<br>
+	   Last, <tt>setRawCoeff(index, value)</tt> is used to set the new value at the given entry.<br>
+	   This procedure allows the evaluation into dense, as well as sparse matrices. For dense matrices, <tt>size()</tt> simply returns <tt>rows()*cols()*batches()</tt>.
+	   For sparse matrices, <tt>size()</tt> returns the number of non-zero entries, and then the index computations allow the evaluation of the expression only at those non-zeros.
+	 - \ref AccessFlags::WriteDirect : direct memory access is available for writing. The method
+	   \code __host__ __device__ _Scalar* data() \endcode
+	   accesses the raw data for writing. This e.g. allows the evaluation of matrix-matrix multiplication by cuBLAS directly in the target matrix.
+	 - \ref AccessFlags::RWCwise : This flag extends <tt>WriteCwise</tt> and enables compound assignment operations by providing a method
+	   \code __device__ const Scalar& getRawCoeff(Index index) const; \endcode
+	   For example, the assignment inside the kernel of the expression <tt>dst += expr</tt> is then implemented as:
+	   \code dst.setRawCoeff(index, dst.getRawCoeff(index) + expr.coeff(row, col, batch, index)) \endcode
+	   where <tt>dst</tt> has the access flag <tt>RWCwise</tt> and <tt>expr</tt> has the access flag <tt>ReadCwise</tt>.
+	 - \ref AccessFlags::RWCwiseRef : An alternative way to evaluate compound assignments. Here, the class provides the method
+	   \code __device__ Scalar& rawCoeff(Index index); \endcode
+	   In this case, the above example is implemented as
+	   \code dst.rawCoeff(index) += expr.coeff(row, col, batch, index) \endcode Only one memory transfer is needed.
+   - <tt>SFlags</tt> Sparse expressions define this additional enum constant with the sparse format (\ref SparseFlags::CSR or \ref SparseFlags::CSC)
+ - <tt>SrcTag</tt> and <tt>DstTag</tt>: These tags are used to select the evaluator based on tag-dispatching. See \ref Advanced_Concepts_Evaluation.
+
+\section Advanced_Concepts_Class Class Design
+
+Now that we have defined the traits class and declared the expression class (see UnaryOp above),
+this section describes how the body of the class has to be filled:
+
+To continue the example of the UnaryOp, the mandatory part looks as following:
+\code
+template<typename _Child, typename _UnaryFunctor>
+class UnaryOp : public MatrixBase<UnaryOp<_Child, _UnaryFunctor> >
+{
+public:
+    typedef UnaryOp<_Child, _UnaryFunctor> Type;
+	typedef MatrixBase<Type> Base;
+    CUMAT_PUBLIC_API
+	
+	...
+}
+\endcode
+First, the actual type <tt>Type</tt> is defined, followed by the base class.
+These two typedefs are then used in the macro <tt>CUMAT_PUBLIC_API</tt> to pull down member functions from MatrixBase into this class. This includes <tt>eval()</tt>, <tt>derived()</tt> and a local copy of the flags, and the scalar type from the traits class.
+
+Then, the expression class must specify the size of the matrix it represents:
+\code
+__host__ __device__ CUMAT_STRONG_INLINE Index rows() const;
+__host__ __device__ CUMAT_STRONG_INLINE Index cols() const;
+__host__ __device__ CUMAT_STRONG_INLINE Index batches() const;
+\endcode
+
+Last, user methods and the access methods related to the AccessFlags are implemented.
+In the case of the UnaryOp, only a constructor taking the child expression and the functor, as well as an implementation of <tt>coeff(...)</tt> is missing.
+ 
+\section Advanced_Concepts_Evaluation Evaluation
+	 
+The evaluation logic is not implemented directly in the expression template classes, but in seperate evaluation functors.
+
+The type of the evaluation functor is:
+\code
+template<typename _Dst, typename _Src, AssignmentMode _AssignmentMode, typename _DstTag, typename _SrcTag>
+struct Assignment {
+	static void assign(_Dst& dst, const _Src& src);
+}
+\endcode
+
+Evaluation is triggered at the following places:
+
+ - Call <tt>.eval()</tt> on an expression template (<tt>expr.eval()</tt>).
+   In this case, _AssignmentMode is \ref AssignmentMode::ASSIGN, <tt>_Dst</tt> is the dense matrix as specified in \ref MatrixBase::eval_t (derived from the sizes and flags in the traits class).
+ - Assignment to another matrix or matrix expression (<tt>matrix = expr</tt>).
+   In this case, _AssignmentMode is \ref AssignmentMode::ASSIGN, <tt>_Dst</tt> is the type of <tt>matrix</tt>
+ - Compound assignment (<tt>matrix += expr</tt>).
+   Same as above, but _AssignmentMode specifies the assignment. See the enum values in \ref AssignmentMode for all possible modes (+=, -=, *=, ...)
+   
+The <tt>_DstTag</tt> is taken from the traits of the destination type (<tt>traits<_Dst>::DstTag</tt>), the <tt>_SrcTag</tt> is taken from the traits of the source type (<tt>traits<_Src>::SrcTag</tt>).
+Now every evalator is a partial specialization based on different source and destination tags (tag dispatching).
+
+For example, the ProductOp defines the source tag <tt>ProductSrcTag</tt>, the dense Matrix has the destination tag <tt>DenseDstTag</tt>, a SparseMatrix the destination tag <tt>SparseDstTag</tt>.
+Hence, we can define different evaluators based on the where the operation is evaluated to:
+\code
+template<typename _Dst, typename _Src, AssignmentMode _AssignmentMode> struct Assignment<_Dst, _Src, _AssignmentMode, ProductSrcTag, DenseDstTag> {...};
+template<typename _Dst, typename _Src, AssignmentMode _AssignmentMode> struct Assignment<_Dst, _Src, _AssignmentMode, ProductSrcTag, SparseDstTag> {...};
+\endcode
+
+\note The ProductOp is a bit special because the general product evalation directly delegates the task to a special product evaluator with tag dispatching based on the left, right and target argument. Hence we can have partial specializations for all eight possibilities [Dense,Sparse]*[Dense,Sparse]->[Dense,Sparse].
+
+Inside the <tt>assign</tt> function of the Assignment, the actual CUDA kernel calls are then performed.
+
+Most of the special operations define their own tags, but there are a couple of general tags that can be used at many places:
+ - \ref CwiseSrcTag : this expression is a compound-wise expression (has the Access Flag <tt>ReadCwise</tt>). This is the src tag for most nullary, unary and binary compounend-wise operations.
+   The reason why there still exist the ReadCwise-flag is the following. The transposition operator allows component-wise evaluation (simply switches row+column) and thus declares ReadCwise.
+   But for a dense matrix as source type, much more efficient algorithms are available to transpose the matrix than a simple compound-wise evaluation. 
+   Therefore, TransposeOp defines its own src tag and own evaluator that either calls these optimized routines or falls back to the evaluator of CwiseSrcTag.
+ - \ref DenseDstTag : \ref SparseDstTag allow dense or sparse write access, combined with the Write-AccessFlags. This is the case for Matrix, SparseMatrix, but also MatrixBlock and TransposeOp (as l-value).
+ - \ref DeletedSrcTag : this expression can't be used as a source. This is used for the expression templates returned e.g. by \ref Matrix::inplace()
+ - \ref DeletedDstTag : this expression can't be used as a destination. This is used for all expressions that compute something, i.e. that are not DenseDstTag or SparseDstTag
+	 
+*/
+
+}
