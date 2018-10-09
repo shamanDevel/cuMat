@@ -32,6 +32,20 @@ namespace internal {
         typedef DeletedDstTag DstTag;
 	};
 
+    /**
+     * \brief Functor that transposes a single entry.
+     * Specialize for custom scalar types
+     */
+    template<typename _Scalar> 
+    struct TransposeFunctor
+    {
+        /**
+         * \Brief Transposes the scalar type.
+         * The default implementation does nothing.
+         */
+        __device__ _Scalar operator()(const _Scalar& val) const { return val; }
+    };
+
 } //end namespace internal
 
 //helper functions to conjugate the argument if supported
@@ -130,6 +144,7 @@ public:
     __device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
     { //read acces (cwise)
         Scalar val = matrix_.coeff(col, row, batch, -1);
+        val = internal::TransposeFunctor<Scalar>()(val);
         val = conjugateCoeff<Scalar, IsConjugated>(val);
         return val;
     }
