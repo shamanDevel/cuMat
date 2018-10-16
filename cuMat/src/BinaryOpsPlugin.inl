@@ -59,3 +59,30 @@ BINARY_OP_ACCESSOR_INV(cwisePow)
 
 #undef BINARY_OP_ACCESSOR
 #undef BINARY_OP_ACCESSOR_INV
+
+/**
+ * \brief Custom binary expression.
+ * The binary functor must support look as follow:
+ * \code
+ * struct MyFunctor
+ * {
+ *     typedef OutputType ReturnType;
+ *     __device__ CUMAT_STRONG_INLINE ReturnType operator()(const LeftType& x, const RightType& y, Index row, Index col, Index batch) const
+ *     {
+ *         return ...
+ *     }
+ * };
+ * \endcode
+ * where \c LeftType is the type of this matrix expression,
+ * \c RightType is the type of the rhs matrix,
+ * and \c OutputType is the output type.
+ *
+ * \param rhs the matrix expression on the right hand side
+ * \param functor the functor to apply component-wise
+ * \return an expression of a component-wise binary expression with a custom functor applied per component.
+ */
+template<typename Right, typename Functor>
+UnaryOp<_Derived, Functor> binaryExpr(const Right& rhs, const Functor& functor = Functor()) const
+{
+    return BinaryOp<_Derived, Right, Functor>(derived(), rhs.derived(), functor);
+}

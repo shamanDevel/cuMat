@@ -4,6 +4,76 @@ namespace cuMat {
 
 This page describes how to add support for custom scalar types.
 
+For the sake of this tutorial, we'll add support for <tt>float4</tt>, a built-in vector datatype of four floats in CUDA. This allows us to
+realize a "blocked" vector type.
+For a more complete example, see <tt>tests/TestBlockedConjugateGradient.cu</tt> where this method is used to implement a blocked conjugate gradient solver.
+
+The following steps have to be taken to add support for <tt>float4</tt>:
+
+1. Specialize \ref internal::NumTraits:
+\code
+namespace cuMat { namespace internal {
+	template <>
+	struct NumTraits<float4>
+	{
+		typedef float4 Type; //The type itself
+		typedef float4 RealType; //The result type of <tt>.real()</tt> or <tt>.imag()</tt>, for complex types
+		typedef float ElementalType; //The result type of <tt>.cwiseAbs2()</tt> or <tt>.dot()</tt> that always has to return a scalar type
+		enum
+		{
+			IsCudaNumeric = false, //Is it a numeric type supported by cuBLAS? (Only float, double, cfloat, cdouble)
+			IsComplex = false, //Is it a complex type?
+		};
+		static constexpr CUMAT_STRONG_INLINE ElementalType epsilon() { return std::numeric_limits<float>::epsilon(); }
+	};
+}} //end namespaces
+\endcode
+
+2. Add support to common (component-wise) operations:
+All operations on scalar types are called through functors. One can specialize these functors, but for basic operations, it is simpler to simply define them for the custom scalar type.
+Due to ADL, cuMat will find those:
+\code
+inline __device__ float4 operator+(float4 a, float4 b)
+{
+	return make_float4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+}
+inline __device__ float4 sin(float4 a))
+{
+	return make_float4(::sin(a.x), ::sin(a.y), ::sin(a.z), ::sin(a.w))
+}
+//...
+\endcode
+If you use component-wise operations that are not yet supported by your custom scalar type, the error message will typically show you which operation is missing and which functor uses it.
+
+3. Specialize functors for special operations.
+Special operations, e.g. transpose, diagonal extraction, norm computation, dot product, casting, and so on, use special functors to encapsulate the operation on the scalar type.
+For example to add support for the dot-product:
+\code
+namespace cuMat { namespace functor {
+	template<>
+	struct BinaryMathFunctor_cwiseDot<float4>
+	{
+	public:
+		typedef float ReturnType; //the return type
+		__device__ CUMAT_STRONG_INLINE float operator()(const float4& a, const float4& b, Index row, Index col, Index batch) const
+		{
+			return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
+		}
+	};
+}}
+\endcode
+Note that specializing the functors allows us to change the return type of the operation. This is e.g. used for casting operations.
+
+With the above operations, we can now already write
+\code
+typedef Matrix<float4, Dynamic, 1, 1, RowMamor> Vec4; //vector of float4
+Vec4 a, b = ...;
+Vec4 c = a + b + make_float4(1, 2, 3, 4); //test for operator+, supports also broadcasting
+Vec4 d = c.cwiseSin(); //test for the component wise sinus
+float dotp = a.dot(b); //Blocked dot product, result is a single float as specified in ReturnType of the functor
+\endcode
+Of course, for a practical application, more specializations are typecially needed.
+
 */
 
 }

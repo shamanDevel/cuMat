@@ -4,10 +4,95 @@ namespace cuMat {
 
 This page describes ways on how to extend cuMat.
 
-\section Advanced_Extending_CustomFunctors Custom functors for nullary, unary and binary operators
+\section Advanced_Extending_CustomFunctors Custom functors for nullary, unary and binary operations
 
 The simplest way to implement new functions is with the help of custom functors.
 
+\subsection Advanced_Extending_CustomNullary Custom nullary operations
+
+Custom nullary operations allow for a very elegant way to implement any kind of operation.
+In this tutorial, we use the example from Eigen used to demonstrate NullaryOps:
+
+A circulant matrix is a matrix in which each column is a copy of the previous column shifted by one entry:
+\f{equation*}{
+A:=
+\begin{pmatrix}
+	1 & 8 & 4 & 2 \\
+	2 & 1 & 8 & 4 \\
+	4 & 2 & 1 & 8 \\
+	8 & 4 & 2 & 1
+\end{pmatrix}
+\f}
+A circulant matrix is uniquely defined by the first column \f$ [1, 2, 4, 8] \f$. 
+
+We now write a functor that converts a vector into a circulant matrix:
+\code
+namespace cuMat { namespace functor {
+	template<typename _Scalar>
+	struct CirculantMatrixFunctor
+	{
+		typedef Matrix<_Scalar, Dynamic, 1, 1, RowMajor> Vec;
+	private:
+		const Vec vector_; // the column that defines the matrix
+	public:
+		CirculantMatrixFunctor(const Vec& vector)
+			: vector_(vector)
+		{}
+		__device__ CUMAT_STRONG_INLINE _Scalar operator()(Index row, Index col, Index batch) const
+		{
+			Index idx = (row - col + vector_.rows()) % vector_.rows(); //index-math
+			return vector_.coeff(indx, 0, 0, -1);
+		}
+	};
+}}
+\endcode
+Next, we write a access function that calls this functor:
+\code
+template<_Scalar> //so that it works for any scalar types
+makeCircular(const Matrix<_Scalar, Dynamic, 1, 1, RowMajor>& vector) -> //the function name and argument
+Matrix<_Scalar, Dynamic, Dynamic, 1, RowMajor>::NullaryOp_t<CirculantMatrixFunctor<_Scalar>> //the return type
+{
+	return {vector.rows(), vector.cols(), 1, CirculantMatrixFunctor<_Scalar>(vector)}; //constructor of \ref NullaryOp
+}
+\endcode
+
+The power of this method is that the nullary functor can use any kind of data as it's source, may it be an analytic expression or taken from any number of other matrices.
+One does not have to dive too deep into the internals of cuMat.
+As a disadvantage, it can be come tricky to chain multiple operations together and support broadcasting. For an alternative method, see \ref Advanced_Extending_NewOperations.
+
+\subsection Advanced_Extending_Custom_Binary Custom unary and binary operations
+
+Unary and binary functors are often simpler used for simpler component-wise expressions, like castings and simpler math functions.
+
+The interface for custom unary functors is:
+\code
+struct MyUnaryFunctor
+{
+public:
+	typedef MyReturnType ReturnType;
+	__device__ CUMAT_STRONG_INLINE ReturnType operator()(const MySourceType& x, Index row, Index col, Index batch) const
+	{
+		return ...;
+	}
+};
+\endcode
+It is called with \ref MatrixBase::unaryExpr() on a matrix of type "SourceType". It yields a matrix expression of type "ReturnType" with the same dimensions.
+
+The interface for custom binary functors is:
+\code
+struct MyBinaryFunctor
+{
+public:
+	typedef MyReturnType ReturnType;
+	__device__ CUMAT_STRONG_INLINE MyReturnType operator()(const SourceTypeLeft& x, const SourceTypeRight& y, Index row, Index col, Index batch) const
+	{
+		return ...;
+	}
+}
+\endcode
+Is is called with \ref MatrixBase::binaryExpr(), where \c rhs is the matrix on the right hand side and \c functor is the custom functor.
+
+Note that all these functors allow different scalar types for the inputs and output. The typedef "ReturnType" in the functors is used to deduce the scalar type of the output matrix expression.
 
 \section Advanced_Extending_NewOperations New expression templates
 
@@ -16,8 +101,158 @@ Adding new expression templates dives deep into the internals of cuMat and requi
 Also make shure to read the page about the internal designs and concepts (\ref Advanced_Concepts) first.
 
 Still here? Ok, let's get started:
+We now implement the circulant matrix from above using a new expression template.
 
+\subsection Advanced_Extending_NewOperations_Traits The Traits class
+
+As a first step, we need to define the traits class and with it specify the compile-time properties of the expression.
+
+\code
+class CirculantMatrixOp; //forward declaration
+struct CirculantMatrixSrcTag {}; //source tag declaration
+namespace cuMat{ namespace internal{
+	template<typename _Child > // _Child: the type of the vector defining the first column
+	struct traits<CirculantMatrixOp<_Child> > //partial specialization of traits
+	{
+		using Scalar = typename internal::traits<_Child>::Scalar; // return type is the same as the child expression
+		enum
+		{
+			Flags = internal::traits<_Child>::Flags, //keep storage order of the child
+			RowsAtCompileTime = internal::traits<_Child>::RowsAtCompileTime, //compile-time rows as the child
+			ColsAtCompileTime = internal::traits<_Child>::RowsAtCompileTime, //#cols of the circulant matrix = #rows of the first column
+			BatchesAtCompileTime = internal::traits<_Child>::BatchesAtCompileTime, //keep batch count
+			AccessFlags = ReadCwise, //component-wise read access (for chaining)
+		};
+		//typedef CwiseSrcTag SrcTag; //we could use the predefined CwiseSrcTag with the default component-wise evaluator, but we demonstrate a custom evaluator here
+		typedef CirculantMatrixSrcTag SrcTag; //tag that triggers our custom evaluator
+		typedef DeletedDstTag DstTag; //Op can't be used as the destination
+	};
+}} //end namespaces
+\endcode
+
+We could have used \c CwiseSrcTag as the \c SrcTag, i.e. the default component-wise evaluator, here. 
+Instead, we demonstrate how to implement a custom evaluator. Therefore, we define our own \c SrcTag called \c CirculantMatrixSrcTag.
+
+We still have to specify the \c ReadCwise access flag, otherwise, we wouldn't be able to use this operation in expression chaining.
+
+\subsection Advanced_Extending_NewOperations_Op The expression template class
+
+Next we implement the expression template class \c CirculantMatrixOp.
+
+\code
+template<typename _Child>
+class CirculantMatrixOp : public MatrixBase<CirculantMatrixOp<_Child> >
+{
+public: //the public api, imports types and functions from MatrixBase
+	typedef CirculantMatrixOp<_Child> Type;
+	typedef MatrixBase<Type> Base;
+	CUMAT_PUBLIC_API
+
+private:
+	//we need Cwise-Read access in the child, so fetch a type of that has this flag.
+	//Either _Child directly if it has that flag, or the evaluated type
+	typedef typename MatrixReadWrapper<typename _Child::Type, AccessFlags::ReadCwise>::type child_wrapped_t;
+	child_wrapped_t child_;
+	
+public:
+	//constructor and error checking
+	CirculantMatrixOp(const MatrixBase<_Child>& child)
+	 : child_(child.derived())
+	{
+		CUMAT_STATIC_ASSERT(_Child::Columns==1,
+			"The child expression must be a compile-time column vector");
+	}
+	//matrix dimensions
+	__host__ __device__ CUMAT_STRONG_INLINE Index rows() const { return child_.rows(); }
+	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const { return child_.rows(); }
+	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const { return child_.batches(); }
+	//coefficient access, required by AccessFlag::ReadCwise
+	__device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index /*index*/) const
+	{
+		Index idx = (row - col + rows()) % rows();
+		return child_.coeff(idx, 0, batch, -1);
+	}
+};
+\endcode
+
+The implementation of the operation itself is pretty self-explaning.
+One bit of implementation detail stil lacks explanations: the parameter \c index in the method \coeff().
+This is the linear index that is used to write into the target matrix. It is used to optimize the access for sparse matrix operations.
+If the operation does not change the access order, this index should be passed through. If the access order is changed, as it is the case here, the index should be set to \c -1 when calling the child expressions.
+This will trigger an assertion in debug mode if \ref SparseMatrix::direct() is used on that child expression.
+
+\subsection Advanced_Extending_NewOperations_Evaluation Evaluation: custom evaluator
+
+The last piece is the specialize the evaluator \c Assignment.
+We'll specialize the evaluator for the source tag \c CirculantMatrixSrcTag that we defined bevore and for the destination tag \c DenseDstTag (Matrix and MatrixBlock).
+We allow any assignment mode (=, +=, -=, ...)
+
+\code
+namespace cuMat { namespace internal {
+	template<typename _Dst, typename _Src, AssignmentMode _Mode>
+	struct Assignment<_Dst, _Src, _Mode, DenseDstTag, CirculantMatrixSrcTag>
+	{
+		static void assign(_Dst& dst, const _Src& src)
+		{
+			typedef typename _Dst::Type DstActual; //the actual types of the arguments (not wrapped in MatrixBase)
+			typedef typename _Src::Type SrcActual;
+			//TODO: launch a kernel to do the actual work
+		}
+	};
+}} //end namespaces
+\endcode
+
+In the line marked with the TODO, the custom kernel is launched.
+This is highly depending on the operation. For example, the matrix product would call cuBLAS here, dense decompositions cuSOLVER, reductions delegate to Thrust and CUB, the iterative conjugate gradient launches to full iterative procedure.
+
+For demonstration purpuses, we show how a simple kernel might look like for the evaluation of the circulant matrix.
+Note that this more or less a copy of the component-wise evaluation triggered by \c CwiseSrcTag, since our expression is a simple component-wise operation.
+
+\subsection Advanced_Extending_NewOperations_Kernel Evaluation: Implementing the kernel
+
+The kernel might look as following:
+\code
+template <typename Src, typename Dst, AssignmentMode Mode>
+__global__ void CirculantMatrixEvaluationKernel(dim3 virtual_size, const Src expr, Dst matrix)
+{
+	//By using a 1D-loop over the linear index,
+	//the target matrix can determine the order of rows, columns and batches.
+	//E.g. by storage order (row major / column major)
+	CUMAT_KERNEL_1D_LOOP(index, virtual_size)
+		Index i, j, k;
+		matrix.index(index, i, j, k); //convert from linear index to row, column, batch
+
+		//evaluate the expression
+		auto val = expr.coeff(i, j, k, index);
+		//call the assignment helper, it deals with the different compound-assignments and compound-write modes.
+		internal::CwiseAssignmentHandler<M, decltype(val), Mode>::assign(matrix, val, index);
+		//if we would only write the result (AssignmentMode::ASSIGN), no compound-assignment, the above line simplifies to
+		//matrix.setRawCoeff(index, val);
+
+	CUMAT_KERNEL_1D_LOOP_END
+}
+\endcode
+
+Here, we used several helper functions:
+ - \ref CUMAT_KERNEL_1D_LOOP, \ref CUMAT_KERNEL_2D_LOOP, \ref CUMAT_KERNEL_3D_LOOP are macros defined in \c Context.h that iterate over the rows, columns and batches of the matrix and hides how those are distributed on the CUDA threads and blocks.
+ - \ref internal::CwiseAssignmentHandler this helper functor deals with the different options for \ref AssignmentMode and different access modes \ref AccessFlag::RWCwise or \ref AccessFlag::RWCwiseRef.
+
+Lastly, the kernel is launched in the following way.
+This is plugged into \c Assignment::assign in the line marked with "TODO" above.
+
+\code
+//fetch the current context
+Context& ctx = Context::current();
+//query the optimal configuration (block+grid size) for maximal occupacy. We use a 1D loop over the linear index of the target matrix
+KernelLaunchConfig cfg = ctx.createLaunchConfig1D(static_cast<unsigned int>(dst.size()), CwiseEvaluationKernel<SrcActual, DstActual, _Mode>);
+//launch the kernel
+CirculantMatrixEvaluationKernel<SrcActual, DstActual, _Mode>       //we have to use the actual types because we must pass by value to kernels
+    <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>  //the configuration of the execution grid
+    (cfg.virtual_size, src.derived(), dst.derived());              //the parameters to the kernel call (by value!)
+CUMAT_CHECK_ERROR(); //very important: always check for launch errors
+\endcode
+
+Congratulations! You now know how to write a new expression template and evaluators and can start implement your fancy new operations.
 
 */
-
 }
