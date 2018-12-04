@@ -33,13 +33,13 @@ target_compile_definitions(conjugate_gradient PRIVATE
 )
 
 # OpenMP
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(conjugate_gradient OpenMP::OpenMP_CXX)
 endif()
 
 # MKL
-find_package(MKL REQUIRED)
+find_package(MKL)
 if(MKL_FOUND)
 	target_include_directories(conjugate_gradient PRIVATE ${MKL_INCLUDE_DIRS})
 	target_link_libraries(conjugate_gradient ${MKL_LIBRARIES})
