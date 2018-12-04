@@ -40,7 +40,7 @@ std::string exec(const char* cmd) {
 
 int main(int argc, char* argv[])
 {
-	std::string pythonPath = "C:\\Users\\Sebastian\\AppData\\Local\\Programs\\Python\\Python36\\python.exe";
+	std::string pythonPath = "python.exe";
 
 
     std::string outputDir = CUMAT_STR(OUTPUT_DIR);

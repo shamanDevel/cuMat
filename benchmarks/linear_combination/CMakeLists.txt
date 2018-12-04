@@ -34,3 +34,17 @@ target_compile_definitions(linear_combination PRIVATE
 	PYTHON_FILES=${CMAKE_CURRENT_SOURCE_DIR}/
 	OUTPUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/../
 )
+
+# OpenMP
+find_package(OpenMP REQUIRED)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(linear_combination OpenMP::OpenMP_CXX)
+endif()
+
+# MKL
+find_package(MKL REQUIRED)
+if(MKL_FOUND)
+	target_include_directories(linear_combination PRIVATE ${MKL_INCLUDE_DIRS})
+	target_link_libraries(linear_combination ${MKL_LIBRARIES})
+	target_compile_definitions(linear_combination PRIVATE EIGEN_USE_MKL_ALL)
+endif()
