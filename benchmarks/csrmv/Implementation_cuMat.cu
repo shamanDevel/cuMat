@@ -82,7 +82,6 @@ void benchmark_cuMat(
 			auto finish2 = std::chrono::steady_clock::now();
 			double elapsed = std::chrono::duration_cast<
 				std::chrono::duration<double> >(finish2 - start2).count() * 1000;
-			elapsed /= 10;
 
             totalTime += elapsed;
             cudaEventDestroy(start);

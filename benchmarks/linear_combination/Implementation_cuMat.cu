@@ -75,7 +75,6 @@ void benchmark_cuMat(
             cudaEventSynchronize(stop);
 			float elapsed;
 			cudaEventElapsedTime(&elapsed, start, stop);
-			elapsed /= 10;
 
 			//cudaDeviceSynchronize();
 			//auto finish2 = std::chrono::steady_clock::now();
