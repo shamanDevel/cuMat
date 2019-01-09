@@ -67,11 +67,16 @@ int main(int argc, char* argv[])
         std::string setName = it->first;
         const Json::Array& params = it->second.AsArray();
         std::cout << std::endl << "Test Set '" << setName << "'" << std::endl;
+		Json::Object resultAssembled;
 
         //cuMat
         std::cout << " Run CuMat" << std::endl;
-        Json::Array resultsCuMat;
-        benchmark_cuMat(parameterNames, params, returnNames, resultsCuMat);
+		for (int runAhead : { 0, 1, 5, 20 }) {
+			Json::Array resultsCuMat;
+			benchmark_cuMat(parameterNames, params, returnNames, resultsCuMat, runAhead);
+			std::string name = std::string("CuMat_") + std::to_string(runAhead);
+			resultAssembled.Insert(std::make_pair(name.c_str(), resultsCuMat));
+		}
 
         //Eigen
         std::cout << " Run Eigen" << std::endl;
@@ -79,8 +84,6 @@ int main(int argc, char* argv[])
         benchmark_Eigen(parameterNames, params, returnNames, resultsEigen);
 
         //write results
-        Json::Object resultAssembled;
-        resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
         resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
         std::ofstream outStream(outputDir + setName + ".json");
         outStream << resultAssembled;

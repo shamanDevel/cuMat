@@ -841,6 +841,23 @@ public:
         CUMAT_PROFILING_INC(MemcpyDeviceToHost);
 	}
 
+	/**
+	* \brief Performs a asychronous copy from the
+	* device memory of this matrix into the
+	* specified host memory
+	* This copy is synchronized on the default stream,
+	 * hence synchronous to every computation but slow.
+	* \param data the data in which the matrix is stored
+	* \param stream the CUDA stream in which the memcpy is performed
+	* \param event optional event that is notified on completion
+	*/
+	void copyToHostAsync(_Scalar* data, cudaStream_t stream, cudaEvent_t* event = nullptr) const
+	{
+		CUMAT_SAFE_CALL(cudaMemcpyAsync(data, data_.data(), sizeof(_Scalar)*size(), cudaMemcpyDeviceToHost, stream));
+		if (event) CUMAT_SAFE_CALL(cudaEventRecord(*event, stream));
+		CUMAT_PROFILING_INC(MemcpyDeviceToHost);
+	}
+
 	// EIGEN INTEROP
 #if CUMAT_EIGEN_SUPPORT==1
 

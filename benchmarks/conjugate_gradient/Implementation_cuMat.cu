@@ -11,7 +11,8 @@ void benchmark_cuMat(
 	const std::vector<std::string>& parameterNames,
 	const Json::Array& parameters,
 	const std::vector<std::string>& returnNames,
-	Json::Array& returnValues)
+	Json::Array& returnValues,
+	int runAhead)
 {
 	//number of runs for time measures
 	const int runs = 10;
@@ -22,7 +23,7 @@ void benchmark_cuMat(
 		//Input
 		int gridSize = parameters[config][0].AsInt32();
 		double totalTime = 0;
-		std::cout << "  Grid Size: " << gridSize << std::flush;
+		std::cout << "  Grid Size: " << gridSize << ", Run-Ahead: " << runAhead << std::flush;
 		int matrixSize = gridSize * gridSize;
 
 		//Create matrix
@@ -79,6 +80,7 @@ void benchmark_cuMat(
 
 			cuMat::ConjugateGradient<SMatrix> cg(mat);
 			cg.setTolerance(1e-4);
+			cg.setAsyncMemcpyDistance(runAhead);
 			r.inplace() = cg.solve(rhs);
 
 			//cudaEventRecord(stop, cuMat::Context::current().stream());

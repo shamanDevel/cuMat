@@ -83,6 +83,7 @@ private:
     using Base::tolerance_;
     using Base::iterations_;
     using Base::error_;
+	int asyncDistance_ = 0;
 
 public:
 
@@ -110,6 +111,22 @@ public:
     {
         CUMAT_ASSERT(matrix.rows() == matrix.cols() && "Matrix must be square");
     }
+
+	/**
+	 * \brief Sets the distance of how many iterations the CG can run ahead until the convergence is checked.
+	 *  This is used to prevent stalls of the GPU when the CPU waits for the residual norm to be copied back from GPU to CPU.
+	 * \param distance the number of iterations the algorithm can run ahead. Set to zero to enforce synchronous communication (default)
+	 */
+	void setAsyncMemcpyDistance(int distance)
+	{
+		CUMAT_ASSERT_ARGUMENT(distance >= 0);
+		asyncDistance_ = distance;
+	}
+
+	/**
+	 * \return the number of iterations the algorithm can run ahead
+	 */
+	int getAsyncMemcpyDistance() const { return asyncDistance_; }
 
     template<typename _RHS, typename _Target>
     void _solve_impl(const MatrixBase<_RHS>& rhs, MatrixBase<_Target>& target) const
@@ -158,7 +175,8 @@ public:
             return;
         }
         std::valarray<RealScalar> threshold = tolerance_ * tolerance_ * rhsNorm2;
-        std::valarray<RealScalar> residualNorm2(Batches);
+
+		std::valarray<RealScalar> residualNorm2(Batches);
         residual.squaredNorm().eval().copyToHost(&residualNorm2[0]);
         //RealScalar residualNorm2 = static_cast<RealScalar>(residual.squaredNorm()); //SLOW: device->host memcopy
         all = true;
@@ -169,6 +187,11 @@ public:
             error_ = sqrt((residualNorm2 / rhsNorm2).max());
             return;
         }
+
+		const int runAhead = asyncDistance_ + 1;
+		RealScalar* residualNormArray = reinterpret_cast<RealScalar*>(Context::current().mallocHost(Batches * runAhead * sizeof(RealScalar)));
+		std::vector<cudaEvent_t> residualNormEvents(runAhead);
+		for (int i = 0; i < runAhead; ++i) CUMAT_SAFE_CALL(cudaEventCreate(&residualNormEvents[i]));
 
         VectorType p(n, 1, Batches);
         p = preconditioner_.solve(residual); // initial search direction
@@ -185,12 +208,18 @@ public:
             target += alpha.template cast<VectorScalarType>().cwiseMul(p); // update solution
             residual -= alpha.template cast<VectorScalarType>().cwiseMul(tmp); // update residual
 
-            residual.squaredNorm().eval().copyToHost(&residualNorm2[0]);
-            //RealScalar residualNorm2 = static_cast<RealScalar>(residual.squaredNorm()); //SLOW: device->host memcopy
-            all = true;
-            for (int b = 0; b < Batches; ++b) all = all && residualNorm2[b] < threshold[b];
-            if (all)
-                break;
+            //asynchronous memcopy
+			residual.squaredNorm().eval().copyToHostAsync(residualNormArray + Batches*(i%runAhead), Context::current().stream(), &residualNormEvents[i%runAhead]);
+			i++;
+			//wait for the event that is last in line
+			if (i >= runAhead) {
+				CUMAT_SAFE_CALL(cudaEventSynchronize(residualNormEvents[i % runAhead]));
+				all = true;
+				for (int b = 0; b < Batches; ++b) all = all && residualNormArray[(i % runAhead) * Batches + b] < threshold[b];
+				if (all)
+					break;
+			}
+			//else: not enough iterations yet to read the data
 
             z = preconditioner_.solve(residual); // approximately solve for "A z = residual"
 
@@ -199,10 +228,15 @@ public:
             auto beta = absNew.cwiseDiv(absOld); //expression, not evaluated
             // calculate the Gram-Schmidt value used to create the new search direction
             p = z + beta.template cast<VectorScalarType>().cwiseMul(p); // update search direction
-            i++;
         }
+		//wait for the event that is last in line
+		int lastEvent = (i - 1 + runAhead) % runAhead;
+		CUMAT_SAFE_CALL(cudaEventSynchronize(residualNormEvents[lastEvent]));
+		memcpy(&residualNorm2[0], residualNormArray + lastEvent * Batches, Batches * sizeof(RealScalar));
         error_ = sqrt((residualNorm2 / rhsNorm2).max());
         iterations_ = i;
+		Context::current().freeHost(residualNormArray);
+		for (int i = 0; i < runAhead; ++i) CUMAT_SAFE_CALL(cudaEventDestroy(residualNormEvents[i]));
     }
 };
 
