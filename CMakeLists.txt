@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.0.0)
 project(cuMat)
 # Main CMakeLists of cuMat
 
 # Cuda is always required
 find_package(CUDA REQUIRED)
-CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Auto)
-LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
+if(COMMAND CUDA_SELECT_NVCC_ARCH_FLAGS)
+	CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Auto)
+	LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
+endif()
 
 # Add OpenMP if available. This is needed by cuSolver for optimal performance
 find_package(OpenMP)
