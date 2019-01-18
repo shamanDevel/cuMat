@@ -48,14 +48,14 @@ namespace internal
         typedef typename R::Scalar RightScalar;
         typedef typename M::Scalar OutputScalar;
         typedef ProductElementFunctor<LeftScalar, RightScalar, ProductArgOp::NONE, ProductArgOp::NONE, ProductArgOp::NONE> Functor;
-        const int* JA = matrix.getSparsityPattern().JA.data();
-        const int* IA = matrix.getSparsityPattern().IA.data();
+		SparsityPattern<CSR>::IndexVector JA = matrix.getSparsityPattern().JA;
+		SparsityPattern<CSR>::IndexVector IA = matrix.getSparsityPattern().IA;
 		const int nnz = matrix.getSparsityPattern().nnz;
         CUMAT_KERNEL_1D_LOOP(outer, virtual_size)
-            int start = JA[outer];
-            int end = JA[outer + 1];
+            int start = JA.getRawCoeff(outer);
+            int end = JA.getRawCoeff(outer + 1);
             if (start>=end) continue;
-            int inner = IA[start];
+            int inner = IA.getRawCoeff(start);
             OutputScalar value[Batches];
 #pragma unroll
             for (int b = 0; b < Batches; ++b) {
@@ -68,7 +68,7 @@ namespace internal
             }
             for (int i=start+1; i<end; ++i)
             {
-                inner = IA[i];
+                inner = IA.getRawCoeff(i);
 #pragma unroll
                 for (int b = 0; b < Batches; ++b) {
                     LeftScalar tmp1 = BroadcastMatrix

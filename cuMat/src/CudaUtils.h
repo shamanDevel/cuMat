@@ -17,7 +17,7 @@ namespace cuda
 	 * \return the value at that adress
 	 */
 	template<typename T>
-	__device__ CUMAT_STRONG_INLINE const T& load(const T* ptr)
+	__device__ CUMAT_STRONG_INLINE T load(const T* ptr)
 	{
 		//#if __CUDA_ARCH__ >= 350
 		//		return __ldg(ptr);
@@ -28,7 +28,7 @@ namespace cuda
 #if __CUDA_ARCH__ >= 350
 #define LOAD(T)			\
 	template<>			\
-	__device__ CUMAT_STRONG_INLINE const T& load<T>(const T* ptr)	\
+	__device__ CUMAT_STRONG_INLINE T load<T>(const T* ptr)	\
 	{																\
 		return __ldg(ptr);											\
 	}

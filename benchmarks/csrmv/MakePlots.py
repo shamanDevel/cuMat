@@ -28,12 +28,12 @@ plt.plot(xdata, [d[0] for d in results["CuMat_CSR"]], '-o', label='cuMat - CSR')
 plt.plot(xdata, [d[0] for d in results["CuMat_ELLPACK"]], '-o', label='cuMat - ELLPACK')
 plt.plot(xdata, [d[0] for d in results["CuBlas"]], '-o', label='cuSPARSE')
 plt.plot(xdata, [d[0] for d in results["Eigen"]], '-o', label='Eigen')
-for i,j in zip([xdata[0], xdata[-1]],[results["CuMat_ELLPACK"][0][0], results["CuMat_ELLPACK"][-1][0]]):
-    plt.annotate(str(j),xy=(i,j), xytext=(-10,-10), textcoords='offset points')
 for i,j in zip([xdata[0], xdata[-1]],[results["CuMat_CSR"][0][0], results["CuMat_CSR"][-1][0]]):
     plt.annotate(str(j),xy=(i,j), xytext=(-10,-10), textcoords='offset points')
 for i,j in zip([xdata[0], xdata[-1]],[results["CuBlas"][0][0], results["CuBlas"][-1][0]]):
     plt.annotate(str(j),xy=(i,j), xytext=(-10,5), textcoords='offset points')
+for i,j in zip([xdata[0], xdata[-1]],[results["Eigen"][0][0], results["Eigen"][-1][0]]):
+    plt.annotate(str(j),xy=(i,j), xytext=(-10,-10), textcoords='offset points')
 plt.xscale(xscale)
 plt.yscale(yscale)
 plt.xlabel(xlabel)

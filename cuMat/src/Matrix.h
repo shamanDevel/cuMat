@@ -654,7 +654,9 @@ public:
 	*/
 	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch, Index /*index*/) const
 	{
-		return cuda::load(data_.data() + index(row, col, batch));
+		Index idx = index(row, col, batch);
+		//printf("[Thread %06d] memread %p at %i\n", int(blockIdx.x * blockDim.x + threadIdx.x), data_.data(), int(idx));
+		return cuda::load(data_.data() + idx);
 	}
 
 	/**
@@ -684,6 +686,7 @@ public:
 	{
 		CUMAT_ASSERT_CUDA(index >= 0);
 		CUMAT_ASSERT_CUDA(index < size());
+		//printf("[Thread %06d] memread %p at %i\n", int(blockIdx.x * blockDim.x + threadIdx.x), data_.data(), int(index));
 		return cuda::load(data_.data() + index);
 	}
 
