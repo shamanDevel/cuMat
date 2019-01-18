@@ -31,6 +31,7 @@ namespace internal
         typedef CwiseSrcTag SrcTag;
         typedef SparseDstTag DstTag;
     };
+
 }
 
 /**
@@ -46,8 +47,8 @@ namespace internal
 template<typename _Scalar, int _Batches, int _SparseFlags>
 class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Batches, _SparseFlags> >
 {
-    CUMAT_STATIC_ASSERT(_SparseFlags == SparseFlags::CSR || _SparseFlags == SparseFlags::CSC,
-        "SparseFlags must be either CSR or CSC");
+    CUMAT_STATIC_ASSERT(_SparseFlags == SparseFlags::CSR || _SparseFlags == SparseFlags::CSC || _SparseFlags == SparseFlags::ELLPACK,
+        "_SparseFlags must be a member of cuMat::SparseFlags");
 public:
 
     using Type = SparseMatrix<_Scalar, _Batches, _SparseFlags>;
@@ -60,17 +61,14 @@ public:
     };
 
     using typename Base::StorageIndex;
-    using typename Base::IndexVector;
-    using typename Base::ConstIndexVector;
-
-    typedef Matrix<Scalar, Dynamic, 1, Batches, Flags::ColumnMajor> ScalarVector;
-    typedef const Matrix<Scalar, Dynamic, 1, Batches, Flags::ColumnMajor> ConstScalarVector;
+	typedef typename SparsityPattern<_SparseFlags>::template DataMatrix<_Scalar, _Batches> DataMatrix;
 
 private:
     /**
      * \brief The (possibly batched) vector with the coefficients of size nnz_ .
      */
-    ScalarVector A_;
+	DataMatrix A_;
+	using Base::sparsity_;
 
 public:
 
@@ -93,9 +91,9 @@ public:
      * \param sparsityPattern the sparsity pattern
      * \param batches the number of batches
      */
-    SparseMatrix(const SparsityPattern& sparsityPattern, Index batches = _Batches)
+    SparseMatrix(const SparsityPattern<_SparseFlags>& sparsityPattern, Index batches = _Batches)
         : Base(sparsityPattern, batches)
-        , A_(sparsityPattern.nnz, 1, batches) //This also checks if the number of batches is valid
+        , A_(sparsityPattern.template allocateDataMatrix<_Scalar, _Batches>(batches))
     {
     }
 
@@ -103,14 +101,13 @@ public:
     * \brief Direct access to the underlying data.
     * \return the data vector of the non-zero entries
     */
-    __host__ __device__ CUMAT_STRONG_INLINE ScalarVector& getData() { return A_; }
+    __host__ __device__ CUMAT_STRONG_INLINE DataMatrix& getData() { return A_; }
     /**
     * \brief Direct access to the underlying data.
     * \return the data vector of the non-zero entries
     */
-    __host__ __device__ CUMAT_STRONG_INLINE const ConstScalarVector& getData() const { return A_; }
-    using Base::getInnerIndices;
-    using Base::getOuterIndices;
+    __host__ __device__ CUMAT_STRONG_INLINE const DataMatrix& getData() const { return A_; }
+
     using Base::isInitialized;
 
     //----------------------------------
@@ -123,8 +120,7 @@ public:
     using Base::nnz;
     using Base::size;
     using Base::outerSize;
-    using Base::IA_;
-    using Base::JA_;
+	using Base::getSparsityPattern;
 
     /**
      * \brief Accesses a single entry, performs a search for the specific entry.
@@ -137,27 +133,24 @@ public:
      */
     __device__ Scalar coeff(Index row, Index col, Index batch, Index /*linear*/) const
     {
-        //TODO: optimize with a binary search and early bound checks
-        if (_SparseFlags == SparseFlags::CSC)
-        {
-            const int start = JA_.getRawCoeff(col);
-            const int end = JA_.getRawCoeff(col + 1);
-            for (int i=start; i<end; ++i)
-            {
-                int r = IA_.getRawCoeff(i);
-                if (r == row) return A_.coeff(i, 0, batch, -1);
-            }
-        } else //CSR
-        {
-            const int start = JA_.getRawCoeff(row);
-            const int end = JA_.getRawCoeff(row + 1);
-            for (int i = start; i<end; ++i)
-            {
-                int c = IA_.getRawCoeff(i);
-                if (c == col) return A_.coeff(i, 0, batch, -1);
-            }
-        }
-        return Scalar(0);
+		Index linear = internal::SparseMatrixIndexEvaluator<_SparseFlags>::coordsToLinear(sparsity_, row, col, batch);
+		if (linear >= 0)
+			return A_.getRawCoeff(linear);
+		else
+			return Scalar(0);
+    }
+
+	/**
+	 * \brief Converts from the linear index back to row, column and batch index.
+	 * Requirement of \c AccessFlags::WriteCwise
+	 * \param index the linear index
+	 * \param row the row index (output)
+	 * \param col the column index (output)
+	 * \param batch the batch index (output)
+	 */
+	__device__ void index(Index index, Index& row, Index& col, Index& batch) const
+    {
+		return internal::SparseMatrixIndexEvaluator<_SparseFlags>::linearToCoords(sparsity_, index, row, col, batch);
     }
 
     /**
@@ -293,13 +286,8 @@ public:
      */
     Type deepClone(bool cloneSparsity = false) const
 	{
-        Type mat(*this); //shallow
-        mat.A_ = mat.A_.deepClone();
-        if (cloneSparsity)
-        {
-            mat.IA_ = mat.IA_.deepClone();
-            mat.JA_ = mat.JA_.deepClone();
-        }
+        Type mat(cloneSparsity ? getSparsityPattern().deepClone() : getSparsityPattern(), batches());
+        mat.A_ = A_.deepClone();
         return mat;
 	}
 
@@ -366,7 +354,7 @@ public:
 
     CUMAT_COMPOUND_ASSIGNMENT(operator+=, ADD)
     CUMAT_COMPOUND_ASSIGNMENT(operator-=, SUB)
-    //CUMAT_COMPOUND_ASSIGNMENT(operator*=, MUL) //multiplication is ambigious: do you want cwise or matrix multiplication?
+    //CUMAT_COMPOUND_ASSIGNMENT(operator*=, MUL) //multiplication is ambiguous: do you want cwise or matrix multiplication?
     CUMAT_COMPOUND_ASSIGNMENT(operator/=, DIV)
     CUMAT_COMPOUND_ASSIGNMENT(operator%=, MOD)
     CUMAT_COMPOUND_ASSIGNMENT(operator&=, AND)
@@ -435,21 +423,74 @@ public:
 * \param m the matrix
 * \return the output stream again
 */
-template <typename _Scalar, int _Batches, int _SparseFlags>
-__host__ std::ostream& operator<<(std::ostream& os, const SparseMatrix<_Scalar, _Batches, _SparseFlags>& m)
+template <typename _Scalar, int _Batches>
+__host__ std::ostream& operator<<(std::ostream& os, const SparseMatrix<_Scalar, _Batches, SparseFlags::CSR>& m)
 {
     os << "SparseMatrix: " << std::endl;
     os << " rows=" << m.rows();
     os << ", cols=" << m.cols();
     os << ", batches=" << m.batches() << " (" << (_Batches == Dynamic ? "dynamic" : "compile-time") << ")";
-    os << ", storage=" << (_SparseFlags==SparseFlags::CSC ? "CSC" : "CSR") << std::endl;
-    os << " Outer Indices (" << (_SparseFlags == SparseFlags::CSC ? "column" : "row") << "): " << m.getOuterIndices().toEigen().transpose() << std::endl;
-    os << " Inner Indices (" << (_SparseFlags == SparseFlags::CSC ? "row" : "column") << "): " << m.getInnerIndices().toEigen().transpose() << std::endl;
+    os << ", storage=CSR" << std::endl;
+    os << " Outer Indices (row): " << m.getSparsityPattern().JA.toEigen().transpose() << std::endl;
+    os << " Inner Indices (column): " << m.getSparsityPattern().IA.toEigen().transpose() << std::endl;
     for (int batch = 0; batch < m.batches(); ++batch)
     {
         os << " Data (Batch " << batch << "): " << m.getData().slice(batch).eval().toEigen().transpose() << std::endl;
     }
     return os;
+}
+/**
+* \brief Custom operator<< that prints the sparse matrix and additional information.
+* First, information about the matrix like shape and storage options are printed,
+* followed by the sparse data of the matrix.
+*
+* This operations involves copying the matrix from device to host.
+* It is slow, use it only for debugging purpose.
+* \param os the output stream
+* \param m the matrix
+* \return the output stream again
+*/
+template <typename _Scalar, int _Batches>
+__host__ std::ostream& operator<<(std::ostream& os, const SparseMatrix<_Scalar, _Batches, SparseFlags::CSC>& m)
+{
+	os << "SparseMatrix: " << std::endl;
+	os << " rows=" << m.rows();
+	os << ", cols=" << m.cols();
+	os << ", batches=" << m.batches() << " (" << (_Batches == Dynamic ? "dynamic" : "compile-time") << ")";
+	os << ", storage=CSC" << std::endl;
+	os << " Outer Indices (column): " << m.getSparsityPattern().JA.toEigen().transpose() << std::endl;
+	os << " Inner Indices (row): " << m.getSparsityPattern().IA.toEigen().transpose() << std::endl;
+	for (int batch = 0; batch < m.batches(); ++batch)
+	{
+		os << " Data (Batch " << batch << "): " << m.getData().slice(batch).eval().toEigen().transpose() << std::endl;
+	}
+	return os;
+}
+/**
+* \brief Custom operator<< that prints the sparse matrix and additional information.
+* First, information about the matrix like shape and storage options are printed,
+* followed by the sparse data of the matrix.
+*
+* This operations involves copying the matrix from device to host.
+* It is slow, use it only for debugging purpose.
+* \param os the output stream
+* \param m the matrix
+* \return the output stream again
+*/
+template <typename _Scalar, int _Batches>
+__host__ std::ostream& operator<<(std::ostream& os, const SparseMatrix<_Scalar, _Batches, SparseFlags::ELLPACK>& m)
+{
+	os << "SparseMatrix: " << std::endl;
+	os << " rows=" << m.rows();
+	os << ", cols=" << m.cols();
+	os << ", batches=" << m.batches() << " (" << (_Batches == Dynamic ? "dynamic" : "compile-time") << ")";
+	os << ", storage=ELLPACK" << std::endl;
+	os << " Indices:\n" << m.getSparsityPattern().indices.toEigen() << std::endl;
+	for (int batch = 0; batch < m.batches(); ++batch)
+	{
+		os << " Data (Batch " << batch << "): " << m.getData().slice(batch).eval().toEigen() << std::endl;
+	}
+	return os;
 }
 
 namespace internal
@@ -551,9 +592,11 @@ namespace internal
     /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, Dynamic, CSR> BSMatrixX ## scalar2; \
     /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, Dynamic, CSR> BSMatrixX ## scalar2 ## _CSR; \
     /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, Dynamic, CSC> BSMatrixX ## scalar2 ## _CSC; \
+	/** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, Dynamic, ELLPACK> BSMatrixX ## scalar2 ## _ELLPACK; \
     /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, 1, CSR> SMatrixX ## scalar2; \
     /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, 1, CSR> SMatrixX ## scalar2 ## _CSR; \
     /** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, 1, CSC> SMatrixX ## scalar2 ## _CSC; \
+	/** \ingroup sparsematrixtypedefs */ typedef SparseMatrix<scalar1, 1, ELLPACK> SMatrixX ## scalar2 ## _ELLPACK; \
 
 CUMAT_DEF_MATRIX1(bool, b)
 CUMAT_DEF_MATRIX1(int, i)

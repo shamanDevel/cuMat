@@ -61,31 +61,28 @@ namespace internal {
         }
     };
 
-}
-
-namespace
-{
-	template <typename T, typename M, AssignmentMode Mode>
-	__global__ void CwiseEvaluationKernel(dim3 virtual_size, const T expr, M matrix)
+	namespace kernels
 	{
-		//By using a 1D-loop over the linear index,
-		//the target matrix can determine the order of rows, columns and batches.
-		//E.g. by storage order (row major / column major)
-		//Later, this may come in hand if sparse matrices or diagonal matrices are allowed
-		//that only evaluate certain elements.
-		CUMAT_KERNEL_1D_LOOP(index, virtual_size)
-			Index i, j, k;
-			matrix.index(index, i, j, k);
+		template <typename T, typename M, AssignmentMode Mode>
+		__global__ void CwiseEvaluationKernel(dim3 virtual_size, const T expr, M matrix)
+		{
+			//By using a 1D-loop over the linear index,
+			//the target matrix can determine the order of rows, columns and batches.
+			//E.g. by storage order (row major / column major)
+			//Later, this may come in hand if sparse matrices or diagonal matrices are allowed
+			//that only evaluate certain elements.
+			CUMAT_KERNEL_1D_LOOP(index, virtual_size)
 
-            //there seems to be a bug in CUDA if the result of expr.coeff is directly passed to setRawCoeff.
-            //By saving it in a local variable, this is prevented
-            auto val = expr.coeff(i, j, k, index);
-            internal::CwiseAssignmentHandler<M, decltype(val), Mode>::assign(matrix, val, index);
-		    //matrix.setRawCoeff(index, val);
-		    //matrix.setRawCoeff(index, expr.coeff(i, j, k));
+				Index i, j, k;
+				matrix.index(index, i, j, k);
 
-            //printf("eval at row=%d, col=%d, batch=%d, index=%d -> %f\n", (int)i, (int)j, (int)k, (int)matrix.index(i, j, k), (float)val);
-		CUMAT_KERNEL_1D_LOOP_END
+				//there seems to be a bug in CUDA if the result of expr.coeff is directly passed to setRawCoeff.
+				//By saving it in a local variable, this is prevented
+				auto val = expr.coeff(i, j, k, index);
+				internal::CwiseAssignmentHandler<M, decltype(val), Mode>::assign(matrix, val, index);
+
+			CUMAT_KERNEL_1D_LOOP_END
+		}
 	}
 }
 
@@ -125,28 +122,6 @@ public:
 		return derived().coeff(row, col, batch, index);
 	}
 
-    /*
-	template<typename Derived, AssignmentMode Mode>
-	void evalTo(MatrixBase<Derived>& m) const
-	{
-        CUMAT_PROFILING_INC(EvalCwise);
-        CUMAT_PROFILING_INC(EvalAny);
-		if (size() == 0) return;
-		CUMAT_ASSERT(rows() == m.rows());
-		CUMAT_ASSERT(cols() == m.cols());
-		CUMAT_ASSERT(batches() == m.batches());
-
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluate component wise expression " << typeid(derived()).name();
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << " rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches();
-
-		//here is now the real logic
-		Context& ctx = Context::current();
-		KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.size());
-        CwiseEvaluationKernel<_Derived, Derived, Mode> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream()>>>(cfg.virtual_size, derived(), m.derived());
-		CUMAT_CHECK_ERROR();
-		CUMAT_LOG(CUMAT_LOG_DEBUG) << "Evaluation done";
-	}
-    */
 };
 
 namespace internal
@@ -171,8 +146,8 @@ namespace internal
 
             //here is now the real logic
             Context& ctx = Context::current();
-            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(static_cast<unsigned int>(dst.size()), CwiseEvaluationKernel<SrcActual, DstActual, _Mode>);
-            CwiseEvaluationKernel<SrcActual, DstActual, _Mode> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> (cfg.virtual_size, src.derived(), dst.derived());
+            KernelLaunchConfig cfg = ctx.createLaunchConfig1D(static_cast<unsigned int>(dst.size()), kernels::CwiseEvaluationKernel<SrcActual, DstActual, _Mode>);
+            kernels::CwiseEvaluationKernel<SrcActual, DstActual, _Mode> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> (cfg.virtual_size, src.derived(), dst.derived());
             CUMAT_CHECK_ERROR();
             CUMAT_LOG_DEBUG("Evaluation done");
         }

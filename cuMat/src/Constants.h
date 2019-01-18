@@ -61,7 +61,7 @@ enum AccessFlags
      * To allow the implementation to specify the access order, the following methods have to be provided:
      * \code
      * __host__ Index size() const;
-     * __host__ __device__ void index(Index index, Index& row, Index& col, Index& batch) const;
+     * __device__ void index(Index index, Index& row, Index& col, Index& batch) const;
      *  __device__ void setRawCoeff(Index index, const Scalar& newValue);
      * \endcode
      */
@@ -135,7 +135,12 @@ enum SparseFlags
     /**
     * \brief Matrix stored in the Compressed Sparse Row format.
     */
-    CSR = 2
+    CSR = 2,
+	/**
+	 * \brief Column-major ELLPACK format. 
+	 * This format is optimized for matrices with uniform nnz per row.
+	 */
+	ELLPACK = 3,
 };
 
 CUMAT_NAMESPACE_END

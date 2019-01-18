@@ -57,6 +57,42 @@ BINARY_OP_ACCESSOR(cwisePow)
 */
 BINARY_OP_ACCESSOR_INV(cwisePow)
 
+/**
+* \brief computes the component-wise binary AND (this & rhs).
+* Only available for integer matrices.
+*/
+BINARY_OP_ACCESSOR(cwiseBinaryAnd)
+
+/**
+* \brief computes the component-wise binary OR (this | rhs).
+* Only available for integer matrices.
+*/
+BINARY_OP_ACCESSOR(cwiseBinaryOr)
+
+/**
+* \brief computes the component-wise binary XOR (this ^ rhs).
+* Only available for integer matrices.
+*/
+BINARY_OP_ACCESSOR(cwiseBinaryXor)
+
+/**
+* \brief computes the component-wise logical AND (this && rhs).
+* Only available for boolean matrices
+*/
+BINARY_OP_ACCESSOR(cwiseLogicalAnd)
+
+/**
+* \brief computes the component-wise logical OR (this || rhs).
+* Only available for boolean matrices
+*/
+BINARY_OP_ACCESSOR(cwiseLogicalOr)
+
+/**
+* \brief computes the component-wise logical XOR (this ^ rhs).
+* Only available for boolean matrices
+*/
+BINARY_OP_ACCESSOR(cwiseLogicalXor)
+
 #undef BINARY_OP_ACCESSOR
 #undef BINARY_OP_ACCESSOR_INV
 

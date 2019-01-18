@@ -51,7 +51,7 @@
  */
 template<SparseFlags _SparseFlags>
 SparseExpressionOp<Type, _SparseFlags>
-sparseView(const SparsityPattern& pattern)
+sparseView(const SparsityPattern<_SparseFlags>& pattern)
 {
     return SparseExpressionOp<Type, _SparseFlags>(derived(), pattern);
 }

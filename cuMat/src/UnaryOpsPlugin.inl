@@ -138,6 +138,18 @@ UNARY_OP_ACCESSOR(cwiseErfc);
 UNARY_OP_ACCESSOR(cwiseLgamma);
 
 /**
+* \brief Calculate the component-wise binary negation (x -> ~x).
+* Only available for integer matrices.
+*/
+UNARY_OP_ACCESSOR(cwiseBinaryNot);
+
+/**
+* \brief Calculate the component-wise logical negation (x -> !x).
+* Only available for boolean matrices.
+*/
+UNARY_OP_ACCESSOR(cwiseLogicalNot);
+
+/**
 * \brief Conjugates the matrix. This is a no-op for non-complex matrices.
 */
 UNARY_OP_ACCESSOR(conjugate);

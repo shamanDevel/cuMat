@@ -200,17 +200,32 @@ namespace functor
 		} \
 	}
 
+	//the std::is_same hack is needed so that the static assert evaluates to false only on template instantiation
+#define DEFINE_FALLBACK_FUNCTOR(Name) \
+	template<typename _Scalar> \
+	struct BinaryMathFunctor_ ## Name \
+	{ \
+	public: \
+		CUMAT_STATIC_ASSERT((!std::is_same<_Scalar, _Scalar>::value), "Functor not available for the selected type"); \
+	}
+
 #define DEFINE_FUNCTOR_FLOAT(Name, Fn) \
+	DEFINE_FALLBACK_FUNCTOR(Name);     \
 	DEFINE_FUNCTOR(Name, float, Fn);   \
 	DEFINE_FUNCTOR(Name, double, Fn);
 #define DEFINE_FUNCTOR_FLOAT_COMPLEX(Name, Fn) \
+	DEFINE_FALLBACK_FUNCTOR(Name);     \
 	DEFINE_FUNCTOR(Name, float, Fn);   \
 	DEFINE_FUNCTOR(Name, double, Fn);  \
     DEFINE_FUNCTOR(Name, cfloat, Fn);  \
 	DEFINE_FUNCTOR(Name, cdouble, Fn);
 #define DEFINE_FUNCTOR_INT(Name, Fn) \
+	DEFINE_FALLBACK_FUNCTOR(Name);   \
 	DEFINE_FUNCTOR(Name, int, Fn);   \
 	DEFINE_FUNCTOR(Name, long, Fn);
+#define DEFINE_FUNCTOR_SINGLE(Name, Type, Fn) \
+	DEFINE_FALLBACK_FUNCTOR(Name);     \
+	DEFINE_FUNCTOR(Name, Type, Fn);
 
     DEFINE_GENERAL_FUNCTOR(cwiseAdd, x + y);
     DEFINE_GENERAL_FUNCTOR(cwiseSub, x - y);
@@ -220,12 +235,21 @@ namespace functor
     DEFINE_FUNCTOR_INT(cwiseMod, x % y);
     DEFINE_FUNCTOR_FLOAT_COMPLEX(cwisePow, pow(x, y));
 
+	DEFINE_FUNCTOR_INT(cwiseBinaryAnd, x & y);
+	DEFINE_FUNCTOR_INT(cwiseBinaryOr, x | y);
+	DEFINE_FUNCTOR_INT(cwiseBinaryXor, x ^ y);
+	DEFINE_FUNCTOR_SINGLE(cwiseLogicalAnd, bool, x && y);
+	DEFINE_FUNCTOR_SINGLE(cwiseLogicalOr, bool, x || y);
+	DEFINE_FUNCTOR_SINGLE(cwiseLogicalXor, bool, x ^ y);
 
 #undef DECLARE_FUNCTOR
 #undef DEFINE_GENERAL_FUNCTOR
 #undef DEFINE_FUNCTOR
 #undef DEFINE_FUNCTOR_FLOAT
+#undef DEFINE_FUNCTOR_FLOAT_COMPLEX
 #undef DEFINE_FUNCTOR_INT
+#undef DEFINE_FALLBACK_FUNCTOR
+#undef DEFINE_FUNCTOR_SINGLE
 } //end namespace functor
 
 CUMAT_NAMESPACE_END

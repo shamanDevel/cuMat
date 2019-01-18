@@ -98,17 +98,32 @@ namespace functor
 		} \
 	}
 
+	//the std::is_same hack is needed so that the static assert evaluates to false only on template instantiation
+#define DEFINE_FALLBACK_FUNCTOR(Name) \
+	template<typename _Scalar> \
+	struct UnaryMathFunctor_ ## Name \
+	{ \
+	public: \
+		CUMAT_STATIC_ASSERT((!std::is_same<_Scalar, _Scalar>::value), "Functor not available for the selected type"); \
+	}
+
 #define DEFINE_FUNCTOR_FLOAT(Name, Fn) \
+	DEFINE_FALLBACK_FUNCTOR(Name);     \
 	DEFINE_FUNCTOR(Name, float, Fn);   \
 	DEFINE_FUNCTOR(Name, double, Fn);
 #define DEFINE_FUNCTOR_FLOAT_COMPLEX(Name, Fn) \
+	DEFINE_FALLBACK_FUNCTOR(Name);     \
 	DEFINE_FUNCTOR(Name, float, Fn);   \
 	DEFINE_FUNCTOR(Name, double, Fn);  \
     DEFINE_FUNCTOR(Name, cfloat, Fn);  \
 	DEFINE_FUNCTOR(Name, cdouble, Fn);
 #define DEFINE_FUNCTOR_INT(Name, Fn) \
+	DEFINE_FALLBACK_FUNCTOR(Name);   \
 	DEFINE_FUNCTOR(Name, int, Fn);   \
 	DEFINE_FUNCTOR(Name, long, Fn);
+#define DEFINE_FUNCTOR_SINGLE(Name, Scalar, Fn) \
+	DEFINE_FALLBACK_FUNCTOR(Name);   \
+	DEFINE_FUNCTOR(Name, Scalar, Fn);
 
 	DEFINE_GENERAL_FUNCTOR(cwiseNegate, (-x));
 
@@ -189,9 +204,9 @@ namespace functor
 	DEFINE_FUNCTOR_FLOAT(cwiseFloor, floor(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseCeil, ceil(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseRound, round(x));
-	DEFINE_FUNCTOR_INT(cwiseFloor, x);
-	DEFINE_FUNCTOR_INT(cwiseCeil, x);
-	DEFINE_FUNCTOR_INT(cwiseRound, x);
+	DEFINE_FUNCTOR(cwiseFloor, int, x); DEFINE_FUNCTOR(cwiseFloor, long, x);;
+	DEFINE_FUNCTOR(cwiseCeil, int, x); DEFINE_FUNCTOR(cwiseCeil, long, x);;
+	DEFINE_FUNCTOR(cwiseRound, int, x); DEFINE_FUNCTOR(cwiseRound, long, x);;
 
 	DEFINE_FUNCTOR_FLOAT(cwiseErf, erf(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseErfc, erfc(x));
@@ -201,11 +216,17 @@ namespace functor
     DEFINE_FUNCTOR(conjugate, cfloat, conj(x));
     DEFINE_FUNCTOR(conjugate, cdouble, conj(x));
 
+	DEFINE_FUNCTOR_INT(cwiseBinaryNot, ~x);
+	DEFINE_FUNCTOR_SINGLE(cwiseLogicalNot, bool, !x);
+
 #undef DECLARE_FUNCTOR
 #undef DEFINE_GENERAL_FUNCTOR
+#undef DEFINE_FALLBACK_FUNCTOR
 #undef DEFINE_FUNCTOR
 #undef DEFINE_FUNCTOR_FLOAT
+#undef DEFINE_FUNCTOR_FLOAT_COMPLEX
 #undef DEFINE_FUNCTOR_INT
+#undef DEFINE_FUNCTOR_SINGLE
 } //end namespace functor
 
 

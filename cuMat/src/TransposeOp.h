@@ -46,15 +46,11 @@ namespace internal {
         __device__ _Scalar operator()(const _Scalar& val) const { return val; }
     };
 
+	//helper functions to conjugate the argument if supported
+	template<typename Scalar, bool _IsConjugated> __device__ CUMAT_STRONG_INLINE Scalar conjugateCoeff(const Scalar& val) { return val; };
+	template<> __device__ CUMAT_STRONG_INLINE cfloat conjugateCoeff<cfloat, true>(const cfloat& val) { return conj(val); }
+	template<> __device__ CUMAT_STRONG_INLINE cdouble conjugateCoeff<cdouble, true>(const cdouble& val) { return conj(val); }
 } //end namespace internal
-
-//helper functions to conjugate the argument if supported
-namespace
-{
-    template<typename Scalar, bool _IsConjugated> __device__ CUMAT_STRONG_INLINE Scalar conjugateCoeff(const Scalar& val) { return val; };
-    template<> __device__ CUMAT_STRONG_INLINE cfloat conjugateCoeff<cfloat, true>(const cfloat& val) { return conj(val); }
-    template<> __device__ CUMAT_STRONG_INLINE cdouble conjugateCoeff<cdouble, true>(const cdouble& val) { return conj(val); }
-}
 
 namespace internal
 {
@@ -145,7 +141,7 @@ public:
     { //read acces (cwise)
         Scalar val = matrix_.coeff(col, row, batch, -1);
         val = internal::TransposeFunctor<Scalar>()(val);
-        val = conjugateCoeff<Scalar, IsConjugated>(val);
+        val = internal::conjugateCoeff<Scalar, IsConjugated>(val);
         return val;
     }
     __device__ CUMAT_STRONG_INLINE Scalar& coeff(Index row, Index col, Index batch, Index index)

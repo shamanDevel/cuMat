@@ -358,6 +358,7 @@ public:
 		//Improved version using cudaOccupancyMaxPotentialBlockSize
 		int minGridSize = 0, bestBlockSize = 0;
 		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
+		minGridSize = std::min(int(CUMAT_DIV_UP(size, bestBlockSize)), minGridSize);
 		CUMAT_LOG_DEBUG("Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 		KernelLaunchConfig cfg = {
 			dim3(size, 1, 1),

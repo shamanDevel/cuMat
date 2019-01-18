@@ -143,6 +143,8 @@ namespace functor
 	template<typename _Scalar> struct UnaryMathFunctor_cwiseErf;
 	template<typename _Scalar> struct UnaryMathFunctor_cwiseErfc;
 	template<typename _Scalar> struct UnaryMathFunctor_cwiseLgamma;
+	template<typename _Scalar> struct UnaryMathFunctor_cwiseLogicalNot;
+	template<typename _Scalar> struct UnaryMathFunctor_cwiseBinaryNot;
     template<typename _Scalar> struct UnaryMathFunctor_conjugate;
 	//casting
 	template<typename _Source, typename _Target> struct CastFunctor;
@@ -154,6 +156,12 @@ namespace functor
     template<typename _Scalar> struct BinaryMathFunctor_cwiseDiv;
     template<typename _Scalar> struct BinaryMathFunctor_cwiseMod;
     template<typename _Scalar> struct BinaryMathFunctor_cwisePow;
+	template<typename _Scalar> struct BinaryMathFunctor_cwiseBinaryAnd;
+	template<typename _Scalar> struct BinaryMathFunctor_cwiseBinaryOr;
+	template<typename _Scalar> struct BinaryMathFunctor_cwiseBinaryXor;
+	template<typename _Scalar> struct BinaryMathFunctor_cwiseLogicalAnd;
+	template<typename _Scalar> struct BinaryMathFunctor_cwiseLogicalOr;
+	template<typename _Scalar> struct BinaryMathFunctor_cwiseLogicalXor;
     template<typename _Scalar> struct BinaryLogicFunctor_cwiseEqual;
     template<typename _Scalar> struct BinaryLogicFunctor_cwiseNequal;
     template<typename _Scalar> struct BinaryLogicFunctor_cwiseLess;
@@ -187,9 +195,9 @@ template<typename _Child> class DeterminantOp;
 
 // SPARSE
 
-struct SparsityPattern;
+template<int _SparseFlags> struct SparsityPattern;
 template<typename _Derived> class SparseMatrixBase;
-template<typename _Scalar, int _Batches, int _Flags> class SparseMatrix;
+template<typename _Scalar, int _Batches, int _SparseFlags> class SparseMatrix;
 template<typename _Child, int _SparseFlags> class SparseExpressionOp;
 
 // ITERATIVE LINEAR SOLVER

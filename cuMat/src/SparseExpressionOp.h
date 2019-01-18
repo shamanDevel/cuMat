@@ -31,9 +31,6 @@ namespace internal
 template<typename _Child, int _SparseFlags>
 class SparseExpressionOp : public SparseMatrixBase<SparseExpressionOp<_Child, _SparseFlags>>
 {
-    CUMAT_STATIC_ASSERT(_SparseFlags == SparseFlags::CSR || _SparseFlags == SparseFlags::CSC,
-        "SparseFlags must be either CSR or CSC");
-
 public:
     typedef SparseExpressionOp<_Child, _SparseFlags> Type;
 	typedef SparseMatrixBase<Type> Base;
@@ -44,23 +41,18 @@ public:
     };
 
     using typename Base::StorageIndex;
-    using typename Base::IndexVector;
-    using typename Base::ConstIndexVector;
     using Base::rows;
     using Base::cols;
     using Base::batches;
     using Base::nnz;
     using Base::size;
-    using Base::outerSize;
-    using Base::getInnerIndices;
-    using Base::getOuterIndices;
 
 protected:
     typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
 	const child_wrapped_t child_;
 
 public:
-    SparseExpressionOp(const MatrixBase<_Child>& child, const SparsityPattern& sparsityPattern)
+    SparseExpressionOp(const MatrixBase<_Child>& child, const SparsityPattern<_SparseFlags>& sparsityPattern)
         : Base(sparsityPattern, child.batches())
         , child_(child.derived())
 	{
