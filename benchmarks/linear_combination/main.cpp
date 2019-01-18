@@ -40,9 +40,7 @@ std::string exec(const char* cmd) {
 
 int main(int argc, char* argv[])
 {
-	std::string pythonPath = "python.exe";
-
-
+	std::string pythonPath = "\"C:/Program Files (x86)/Microsoft Visual Studio/Shared/Python36_64/python.exe\"";
     std::string outputDir = CUMAT_STR(OUTPUT_DIR);
 
     //load json
@@ -89,7 +87,7 @@ int main(int argc, char* argv[])
         //numpy
         std::cout << " Run Numpy" << std::endl;
         std::string numpyFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_numpy.py";
-        std::string launchParams = pythonPath + " " + numpyFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"";
+        std::string launchParams = "\"" + pythonPath + " " + numpyFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"" + "\"";
         std::cout << "  Args: " << launchParams << std::endl;
         std::string resultsNumpyStr = exec(launchParams.c_str());
         Json::Array resultsNumpy = Json::ParseString(resultsNumpyStr);
@@ -112,7 +110,7 @@ int main(int argc, char* argv[])
         std::ofstream outStream(outputDir + setName + ".json");
         outStream << resultAssembled;
         outStream.close();
-        launchParams = pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + outputDir + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE));
+        launchParams = "\"" + pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + outputDir + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE)) + "\"";
         std::cout << launchParams << std::endl;
         system(launchParams.c_str());
     }

@@ -17,11 +17,17 @@
  * \param returnNames 
  * \param returnValues 
  */
-void benchmark_cuMat(
+void benchmark_cuMat_CSR(
     const std::vector<std::string>& parameterNames,
     const Json::Array& parameters,
     const std::vector<std::string>& returnNames,
     Json::Array& returnValues);
+
+void benchmark_cuMat_ELLPACK(
+	const std::vector<std::string>& parameterNames,
+	const Json::Array& parameters,
+	const std::vector<std::string>& returnNames,
+	Json::Array& returnValues);
     
 void benchmark_cuBlas(
     const std::vector<std::string>& parameterNames,

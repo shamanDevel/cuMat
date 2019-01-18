@@ -6,7 +6,7 @@
 #include <iostream>
 #include <cstdlib>
 
-void benchmark_cuMat(
+void benchmark_cuMat_CSR(
     const std::vector<std::string>& parameterNames,
     const Json::Array& parameters,
     const std::vector<std::string>& returnNames,
@@ -44,13 +44,14 @@ void benchmark_cuMat(
 
 		//Send to cuMat
 		typedef cuMat::SparseMatrix<float, 1, cuMat::CSR> SMatrix;
-		cuMat::SparsityPattern pattern;
+		typedef cuMat::SparsityPattern<cuMat::CSR> SPattern;
+		SPattern pattern;
 		pattern.rows = matrixSize;
 		pattern.cols = matrixSize;
 		pattern.nnz = matrix.nonZeros();
-		pattern.JA = SMatrix::IndexVector(matrixSize + 1); pattern.JA.copyFromHost(matrix.outerIndexPtr());
-		pattern.IA = SMatrix::IndexVector(pattern.nnz); pattern.IA.copyFromHost(matrix.innerIndexPtr());
-        pattern.assertValid<cuMat::CSR>();
+		pattern.JA = SPattern::IndexVector(matrixSize + 1); pattern.JA.copyFromHost(matrix.outerIndexPtr());
+		pattern.IA = SPattern::IndexVector(pattern.nnz); pattern.IA.copyFromHost(matrix.innerIndexPtr());
+        pattern.assertValid();
 		SMatrix mat(pattern);
 		mat.getData().copyFromHost(matrix.valuePtr());
 
@@ -60,32 +61,20 @@ void benchmark_cuMat(
         //Run it multiple times
         for (int run = 0; run < runs; ++run)
         {
-            cudaEvent_t start, stop;
-            cudaEventCreate(&start);
-            cudaEventCreate(&stop);
-
             //Main logic
 			cudaDeviceSynchronize();
-			//cudaEventRecord(start, cuMat::Context::current().stream());
-			auto start2 = std::chrono::steady_clock::now();
+			auto start = std::chrono::steady_clock::now();
 
 			for (int i = 0; i < 10; ++i) {
 				r.inplace() = mat * x;
 			}
 
-			//cudaEventRecord(stop, cuMat::Context::current().stream());
-			//cudaEventSynchronize(stop);
-			//float elapsed;
-			//cudaEventElapsedTime(&elapsed, start, stop);
-
 			cudaDeviceSynchronize();
-			auto finish2 = std::chrono::steady_clock::now();
+			auto finish = std::chrono::steady_clock::now();
 			double elapsed = std::chrono::duration_cast<
-				std::chrono::duration<double> >(finish2 - start2).count() * 1000;
+				std::chrono::duration<double>>(finish - start).count() * 100;
 
             totalTime += elapsed;
-            cudaEventDestroy(start);
-            cudaEventDestroy(stop);
         }
 
         //Result

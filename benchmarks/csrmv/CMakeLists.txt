@@ -8,7 +8,8 @@ set(CUMAT_BENCHMARK_CSRMV
   main.cpp
   benchmark.h
   Implementation_cuBlas.cu
-  Implementation_cuMat.cu
+  Implementation_cuMat_CSR.cu
+  Implementation_cuMat_ELLPACK.cu
   Implementation_Eigen.cpp
   MakePlots.py
   )

@@ -39,21 +39,16 @@ void benchmark_cuMat(
             rand.fillUniform(vectors[i], 0, 1);
             factors[i] = std::rand() / (float)(RAND_MAX);
         }
-		cuMat::VectorXf output(numCombinations);
+		cuMat::VectorXf output(vectorSize);
 
         //Run it multiple times
         for (int run = 0; run < runs; ++run)
         {
-            cudaEvent_t start, stop;
-            cudaEventCreate(&start);
-            cudaEventCreate(&stop);
-
 			output.setZero();
 
             //Main logic
             cudaDeviceSynchronize();
-            cudaEventRecord(start, cuMat::Context::current().stream());
-			//auto start2 = std::chrono::steady_clock::now();
+			auto start = std::chrono::steady_clock::now();
 
 			for (int subruns = 0; subruns < 10; ++subruns) {
 				switch (numCombinations)
@@ -71,19 +66,12 @@ void benchmark_cuMat(
 				}
 			}
 
-            cudaEventRecord(stop, cuMat::Context::current().stream());
-            cudaEventSynchronize(stop);
-			float elapsed;
-			cudaEventElapsedTime(&elapsed, start, stop);
-
-			//cudaDeviceSynchronize();
-			//auto finish2 = std::chrono::steady_clock::now();
-			//double elapsed = std::chrono::duration_cast<
-			//	std::chrono::duration<double> >(finish2 - start2).count() * 1000;
+			cudaDeviceSynchronize();
+			auto finish = std::chrono::steady_clock::now();
+			double elapsed = std::chrono::duration_cast<
+				std::chrono::duration<double>>(finish - start).count() * 1000;
 
             totalTime += elapsed;
-            cudaEventDestroy(start);
-            cudaEventDestroy(stop);
         }
 
         //Result

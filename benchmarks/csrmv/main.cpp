@@ -20,8 +20,9 @@
 #include "../Json.h"
 #include "benchmark.h"
 #include <cuMat/src/Macros.h>
+#include <cuMat/src/Errors.h>
 
- //https://stackoverflow.com/a/478960/4053176
+//https://stackoverflow.com/a/478960/4053176
 std::string exec(const char* cmd) {
 	std::array<char, 128> buffer;
 	std::string result;
@@ -39,7 +40,7 @@ std::string exec(const char* cmd) {
 }
 int main(int argc, char* argv[])
 {
-	std::string pythonPath = "python.exe";
+	std::string pythonPath = "\"C:/Program Files (x86)/Microsoft Visual Studio/Shared/Python36_64/python.exe\"";
     std::string outputDir = CUMAT_STR(OUTPUT_DIR);
 
     //load json
@@ -67,31 +68,37 @@ int main(int argc, char* argv[])
         std::string setName = it->first;
         const Json::Array& params = it->second.AsArray();
         std::cout << std::endl << "Test Set '" << setName << "'" << std::endl;
+		Json::Object resultAssembled;
 
         //cuMat
-        std::cout << " Run CuMat" << std::endl;
-        Json::Array resultsCuMat;
-        benchmark_cuMat(parameterNames, params, returnNames, resultsCuMat);
-        
+        std::cout << " Run CuMat - CSR" << std::endl;
+        Json::Array resultsCuMatCSR;
+        benchmark_cuMat_CSR(parameterNames, params, returnNames, resultsCuMatCSR);
+		resultAssembled.Insert(std::make_pair("CuMat_CSR", resultsCuMatCSR));
+
+		//cuMat - ELLPACK
+		std::cout << " Run CuMat - ELLPACK" << std::endl;
+		Json::Array resultsCuMatELLPACK;
+		benchmark_cuMat_ELLPACK(parameterNames, params, returnNames, resultsCuMatELLPACK);
+		resultAssembled.Insert(std::make_pair("CuMat_ELLPACK", resultsCuMatELLPACK));
+
         //cuBlas
         std::cout << " Run cuBLAS" << std::endl;
         Json::Array resultsCuBlas;
         benchmark_cuBlas(parameterNames, params, returnNames, resultsCuBlas);
+		resultAssembled.Insert(std::make_pair("CuBlas", resultsCuBlas));
 
         //Eigen
         std::cout << " Run Eigen" << std::endl;
         Json::Array resultsEigen;
         benchmark_Eigen(parameterNames, params, returnNames, resultsEigen);
+		resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
 
         //write results
-        Json::Object resultAssembled;
-        resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
-        resultAssembled.Insert(std::make_pair("CuBlas", resultsCuBlas));
-        resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
         std::ofstream outStream(outputDir + setName + ".json");
         outStream << resultAssembled;
         outStream.close();
-        std::string launchParams = pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + outputDir + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE));
+        std::string launchParams = "\"" + pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + outputDir + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE)) + "\"";
         std::cout << launchParams << std::endl;
         system(launchParams.c_str());
     }

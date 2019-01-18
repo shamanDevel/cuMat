@@ -51,11 +51,13 @@ void benchmark_Eigen(
             auto start = std::chrono::steady_clock::now();
 
             //csrmv
-			r.noalias() = matrix * x;
+			for (int i = 0; i < 10; ++i) {
+				r.noalias() = matrix * x;
+			}
 
             auto finish = std::chrono::steady_clock::now();
             double elapsed = std::chrono::duration_cast<
-                std::chrono::duration<double> >(finish - start).count() * 1000;
+                std::chrono::duration<double> >(finish - start).count() * 100;
             totalTime += elapsed;
         }
 

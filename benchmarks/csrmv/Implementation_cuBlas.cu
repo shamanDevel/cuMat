@@ -106,16 +106,11 @@ void benchmark_cuBlas(
         //Run it multiple times
         for (int run = 0; run < runs; ++run)
         {
-            cudaEvent_t start, stop;
-            cudaEventCreate(&start);
-            cudaEventCreate(&stop);
-
 			CUMAT_SAFE_CALL(cudaMemsetAsync(rdata, 0, sizeof(float) * matrixSize));
 
             //Main logic
-            cudaDeviceSynchronize();
-            //cudaEventRecord(start, cuMat::Context::current().stream());
-			auto start2 = std::chrono::steady_clock::now();
+			cudaDeviceSynchronize();
+			auto start = std::chrono::steady_clock::now();
             
             //pure cuBLAS + CUDA:
 
@@ -124,19 +119,12 @@ void benchmark_cuBlas(
 					Adata, JAdata, IAdata, xdata, &beta, rdata));
 			}
 
-            //cudaEventRecord(stop, cuMat::Context::current().stream());
-            //cudaEventSynchronize(stop);
-            //float elapsed;
-            //cudaEventElapsedTime(&elapsed, start, stop);
-
-			cudaDeviceSynchronize();
-			auto finish2 = std::chrono::steady_clock::now();
+            cudaDeviceSynchronize();
+			auto finish = std::chrono::steady_clock::now();
 			double elapsed = std::chrono::duration_cast<
-				std::chrono::duration<double> >(finish2 - start2).count() * 1000;
+				std::chrono::duration<double>>(finish - start).count() * 100;
 
             totalTime += elapsed;
-            cudaEventDestroy(start);
-            cudaEventDestroy(stop);
         }
         
         CUSPARSE_SAFE_CALL(cusparseDestroy(handle));

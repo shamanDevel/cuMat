@@ -19,76 +19,94 @@ namespace internal
 	{
 		typedef unsigned long long state_t;
 
-		__device__ int randNext(int bits, state_t* seed)
-		{
-			*seed = (*seed * 0x5DEECE66DL + 0xBL) & ((1LL << 48) - 1);
-			return (int)(*seed >> (48 - bits));
-		}
+		struct RandNextHelper {
+			static __device__ int eval(int bits, state_t* seed)
+			{
+				*seed = (*seed * 0x5DEECE66DL + 0xBL) & ((1LL << 48) - 1);
+				return (int)(*seed >> (48 - bits));
+			}
+		};
 
 		template<typename S>
-		__device__ S randNext(state_t* seed, S min, S max);
+		struct RandNext {
+			static __device__ S eval(state_t* seed, S min, S max);
+		};
 
 		template<>
-		__device__ int randNext<int>(state_t* seed, int min, int max)
-		{
-			int n = max - min;
-			if (n <= 0)
-				return 0;
+		struct RandNext<int> {
+			static __device__ int eval(state_t* seed, int min, int max)
+			{
+				int n = max - min;
+				if (n <= 0)
+					return 0;
 
-			if ((n & -n) == n)  // i.e., n is a power of 2
-				return (int)((n * (long)randNext(31, seed)) >> 31) + min;
+				if ((n & -n) == n)  // i.e., n is a power of 2
+					return (int)((n * (long)RandNextHelper::eval(31, seed)) >> 31) + min;
 
-			int bits, val;
-			do {
-				bits = randNext(31, seed);
-				val = bits % n;
-			} while (bits - val + (n - 1) < 0);
-			return val + min;
-		}
-
-		template<>
-		__device__ long long randNext<long long>(state_t* seed, long long min, long long max)
-		{
-			long long v = ((long long)(randNext(32, seed)) << 32) + randNext(32, seed);
-			return (v % (max - min)) + min;
-		}
+				int bits, val;
+				do {
+					bits = RandNextHelper::eval(31, seed);
+					val = bits % n;
+				} while (bits - val + (n - 1) < 0);
+				return val + min;
+			}
+		};
 
 		template<>
-		__device__ bool randNext<bool>(state_t* seed, bool dummyMin, bool dummyMax)
-		{
-			return randNext(1, seed) != 0;
-		}
+		struct RandNext<long long> {
+			static __device__ long long eval(state_t* seed, long long min, long long max)
+			{
+				long long v = ((long long)(RandNextHelper::eval(32, seed)) << 32) + RandNextHelper::eval(32, seed);
+				return (v % (max - min)) + min;
+			}
+		};
 
 		template<>
-		__device__ float randNext<float>(state_t* seed, float min, float max)
-		{
-			float v = randNext(24, seed) / ((float)(1 << 24));
-			return (v * (max - min)) + min;
-		}
+		struct RandNext<bool> {
+			static __device__ bool eval(state_t* seed, bool dummyMin, bool dummyMax)
+			{
+				return RandNextHelper::eval(1, seed) != 0;
+			}
+		};
 
 		template<>
-		__device__ double randNext<double>(state_t* seed, double min, double max)
-		{
-			double v = (((long)(randNext(26, seed)) << 27) + randNext(27, seed))
-				/ (double)(1LL << 53);
-			return (v * (max - min)) + min;
-		}
+		struct RandNext<float> {
+			static __device__ float eval(state_t* seed, float min, float max)
+			{
+				float v = RandNextHelper::eval(24, seed) / ((float)(1 << 24));
+				return (v * (max - min)) + min;
+			}
+		};
 
 		template<>
-		__device__ cfloat randNext<cfloat>(state_t* seed, cfloat min, cfloat max)
-		{
-			float real = randNext<float>(seed, min.real(), max.real());
-			float imag = randNext<float>(seed, min.imag(), max.imag());
-			return cfloat(real, imag);
-		}
+		struct RandNext<double> {
+			static __device__ double eval(state_t* seed, double min, double max)
+			{
+				double v = (((long)(RandNextHelper::eval(26, seed)) << 27) + RandNextHelper::eval(27, seed))
+					/ (double)(1LL << 53);
+				return (v * (max - min)) + min;
+			}
+		};
 
 		template<>
-		__device__ cdouble randNext<cdouble>(state_t* seed, cdouble min, cdouble max)
-		{
-			double real = randNext<double>(seed, min.real(), max.real());
-			double imag = randNext<double>(seed, min.imag(), max.imag());
-			return cdouble(real, imag);
-		}
+		struct RandNext<cfloat> {
+			static __device__ cfloat eval(state_t* seed, cfloat min, cfloat max)
+			{
+				float real = RandNext<float>::eval(seed, min.real(), max.real());
+				float imag = RandNext<float>::eval(seed, min.imag(), max.imag());
+				return cfloat(real, imag);
+			}
+		};
+
+		template<>
+		struct RandNext<cdouble> {
+			static __device__ cdouble eval(state_t* seed, cdouble min, cdouble max)
+			{
+				double real = RandNext<double>::eval(seed, min.real(), max.real());
+				double imag = RandNext<double>::eval(seed, min.imag(), max.imag());
+				return cdouble(real, imag);
+			}
+		};;
 
 		template<typename M, typename S>
 		__global__ void RandomEvaluationKernel(dim3 virtual_size, M matrix, S min, S max, state_t* seeds)
@@ -98,7 +116,7 @@ namespace internal
 				Index i, j, k;
 			matrix.index(index, i, j, k);
 			//printf("eval at row=%d, col=%d, batch=%d, index=%d\n", (int)i, (int)j, (int)k, (int)matrix.index(i, j, k));
-			matrix.setRawCoeff(index, randNext<S>(&seed, min, max));
+			matrix.setRawCoeff(index, RandNext<S>::eval(&seed, min, max));
 			CUMAT_KERNEL_1D_LOOP_END
 				seeds[threadIdx.x] = seed;
 		}

@@ -4,9 +4,6 @@
 "Returns":["Time"],
 "Sets":{
     "CSRMV - 2D-Poisson Matrix":[
-        [10],
-		[100],
-		[1000],
 		[10000]
     ]
 }
