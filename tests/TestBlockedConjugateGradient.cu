@@ -244,12 +244,13 @@ CUMAT_NAMESPACE_END
 TEST_CASE("Blocked CG", "[CG]")
 {
 	//setup matrix
-    cuMat::SparsityPattern pattern;
+	typedef cuMat::SparsityPattern<cuMat::CSR> SPattern;
+	SPattern pattern;
 	pattern.rows = 3;
 	pattern.cols = 3;
 	pattern.nnz = 7;
-	pattern.JA = SMatrix3x3::IndexVector::fromEigen((Eigen::VectorXi(4) << 0, 2, 5, 7).finished());
-	pattern.IA = SMatrix3x3::IndexVector::fromEigen((Eigen::VectorXi(7) << 0, 1, 0, 1, 2, 1, 2).finished());
+	pattern.JA = SPattern::IndexVector::fromEigen((Eigen::VectorXi(4) << 0, 2, 5, 7).finished());
+	pattern.IA = SPattern::IndexVector::fromEigen((Eigen::VectorXi(7) << 0, 1, 0, 1, 2, 1, 2).finished());
 	SMatrix3x3 mat(pattern);
 	std::vector<real3x3> data1 = {
 		real3x3(make_real3(2, -1, 0), make_real3(-1, 2, -1), make_real3(0, -1, 2)), real3x3(make_real3(0,0,0), make_real3(0,0,0), make_real3(-1,0,0)),
