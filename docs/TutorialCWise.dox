@@ -71,6 +71,10 @@ Supported types: i: integer types (int, long, ...); f: floating point types (flo
 <tr><td>Error function \f$ \text{erf}(x) \f$</td>  <td>\c m.cwiseErf() </td>  <td> \c erf(m) </td> <td>f</td></tr>
 <tr><td>Complementary error function \f$ \text{cerf}(x) \f$</td>  <td>\c m.cwiseCerf() </td>  <td> \c cerf(m) </td> <td>f</td></tr>
 <tr><td>Log-gamma function \f$ \ln \Gamma(x) \f$</td>  <td>\c m.cwiseLgamma() </td>  <td> \c lgamma(m) </td> <td>f</td></tr>
+
+<tr><td>Binary NOT <code>~x</code></td>  <td>\c m.cwiseBinaryNot() </td>  <td> \c - </td> <td>i</td></tr>
+<tr><td>Logical NOT <code>!x</code></td>  <td>\c m.cwiseLogicalNot() </td>  <td> \c - </td> <td>bool</td></tr>
+
 </table>
 
 \section TutorialCWise_Binary Binary operations
@@ -91,6 +95,13 @@ cuMat also supports broadcasting, e.g. combine a vector and a matrix by a binary
 <tr><td> \f$ x / y \f$ </td>  <td> \c m1.cwiseDiv(m2) </td>  <td> not available </td> <td>f, i, c</td></tr>
 <tr><td> \f$ x \% y \f$ </td>  <td> \c m1.cwiseMod(m2) </td>  <td> \c m1 \% \c m2 </td> <td>i</td></tr>
 <tr><td> \f$ x^y \f$ </td>  <td> \c m1.cwisePow(m2) </td>  <td> \c pow(m1,m2) </td> <td>f, c</td></tr>
+
+<tr><td> Binary AND <code>x & y</code> </td>  <td> \c m1.cwiseBinaryAnd(m2) </td>  <td> \c - </td> <td>i</td></tr>
+<tr><td> Binary OR <code>x | y</code> </td>  <td> \c m1.cwiseBinaryOr(m2) </td>  <td> \c - </td> <td>i</td></tr>
+<tr><td> Binary XOR <code>x ^ y</code> </td>  <td> \c m1.cwiseBinaryXor(m2) </td>  <td> \c - </td> <td>i</td></tr>
+<tr><td> Logical AND <code>x && y</code> </td>  <td> \c m1.cwiseLogicalAnd(m2) </td>  <td> \c - </td> <td>bool</td></tr>
+<tr><td> Logical OR <code>x || y</code> </td>  <td> \c m1.cwiseLogicalOr(m2) </td>  <td> \c - </td> <td>bool</td></tr>
+<tr><td> Logical XOR <code>x ^ y</code> </td>  <td> \c m1.cwiseLogicalXor(m2) </td>  <td> \c - </td> <td>bool</td></tr>
 
 </table>
 
