@@ -12,6 +12,7 @@ set(CUMAT_BENCHMARK_CSRMV
   Implementation_cuMat_ELLPACK.cu
   Implementation_Eigen.cpp
   MakePlots.py
+  configuration.json
   )
   
 if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")

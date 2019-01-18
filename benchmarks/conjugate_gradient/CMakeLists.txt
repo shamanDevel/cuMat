@@ -10,6 +10,7 @@ set(CUMAT_BENCHMARK_CONJUGATE_GRADIENT
   Implementation_cuMat.cu
   Implementation_Eigen.cpp
   MakePlots.py
+  configuration.json
   )
   
 if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")

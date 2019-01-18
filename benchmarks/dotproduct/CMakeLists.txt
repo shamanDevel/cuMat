@@ -1,6 +1,6 @@
 # Linear Combinations
 
-set(CUMAT_BENCHMARK_LINEAR_COMBINATIONS
+set(CUMAT_BENCHMARK_DOTPRODUCT
   ../json_st.h
   ../json_st.cpp
   ../Json.h
@@ -10,8 +10,6 @@ set(CUMAT_BENCHMARK_LINEAR_COMBINATIONS
   Implementation_cuBlas.cu
   Implementation_cuMat.cu
   Implementation_Eigen.cpp
-  Implementation_numpy.py
-  Implementation_tensorflow.py
   MakePlots.py
   configuration.json
   )
@@ -23,13 +21,13 @@ endif()
 add_definitions(-DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
 
 cuda_add_executable(
-	linear_combination 
-	${CUMAT_BENCHMARK_LINEAR_COMBINATIONS})
-cuda_add_cublas_to_target(linear_combination)
-set_target_properties(linear_combination PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(linear_combination PROPERTIES FOLDER Benchmarks)
-target_link_libraries(linear_combination ${CUDA_LIBRARIES} ${CUDA_cusolver_LIBRARY})
-target_compile_definitions(linear_combination PRIVATE 
+	dotproduct
+	${CUMAT_BENCHMARK_DOTPRODUCT})
+cuda_add_cublas_to_target(dotproduct)
+set_target_properties(dotproduct PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(dotproduct PROPERTIES FOLDER Benchmarks)
+target_link_libraries(dotproduct ${CUDA_LIBRARIES} ${CUDA_cusolver_LIBRARY})
+target_compile_definitions(dotproduct PRIVATE 
 	CUMAT_EIGEN_SUPPORT=1 
 	CONFIG_FILE=${CMAKE_CURRENT_SOURCE_DIR}/configuration.json
 	PYTHON_FILES=${CMAKE_CURRENT_SOURCE_DIR}/
@@ -39,15 +37,15 @@ target_compile_definitions(linear_combination PRIVATE
 # OpenMP
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(linear_combination OpenMP::OpenMP_CXX)
+    target_link_libraries(dotproduct OpenMP::OpenMP_CXX)
 endif()
 
 # MKL
 find_package(MKL)
 if(MKL_FOUND)
-	target_include_directories(linear_combination PRIVATE ${MKL_INCLUDE_DIRS})
-	target_link_libraries(linear_combination ${MKL_LIBRARIES})
-	target_compile_definitions(linear_combination PRIVATE EIGEN_USE_MKL_ALL)
+	target_include_directories(dotproduct PRIVATE ${MKL_INCLUDE_DIRS})
+	target_link_libraries(dotproduct ${MKL_LIBRARIES})
+	target_compile_definitions(dotproduct PRIVATE EIGEN_USE_MKL_ALL)
 else()
 	message("MKL not found. If you are missing FindMKL.cmake, you can download it at https://gist.github.com/scivision/5108cf6ab1515f581a84cd9ad1ef72aa")
 endif()
