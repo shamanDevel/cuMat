@@ -14,7 +14,7 @@ void benchmark_cuMat(
 	Json::Array& returnValues)
 {
 	//number of runs for time measures
-	const int runs = 10;
+	const int runs = 2;
 
 	int numConfigs = parameters.Size();
 	for (int config = 0; config < numConfigs; ++config)
@@ -77,7 +77,6 @@ void benchmark_cuMat(
 			cudaDeviceSynchronize();
 			//cudaEventRecord(start, cuMat::Context::current().stream());
 			auto start2 = std::chrono::steady_clock::now();
-
 			cuMat::ConjugateGradient<SMatrix> cg(mat);
 			cg.setTolerance(1e-4);
 			r.inplace() = cg.solve(rhs);

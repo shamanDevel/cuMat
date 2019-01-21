@@ -14,7 +14,7 @@ void benchmark_Thrust(
 {
 	//number of runs for time measures
 	const int runs = 10;
-	const int subruns = 1;
+	const int subruns = 10;
 
 	//test if the config is valid
 	assert(parameterNames.size() == 1);
@@ -38,16 +38,16 @@ void benchmark_Thrust(
 		cuMat::Scalarf resultDevice;
 
 		//Run it multiple times
+		volatile float res;
 		for (int run = 0; run < runs; ++run)
 		{
-
 			//Main logic
 			cudaDeviceSynchronize();
 			auto start = std::chrono::steady_clock::now();
 
 			for (int i = 0; i < subruns; ++i)
 			{
-				float result = thrust::inner_product(thrust::device, a.data(), a.data()+vectorSize, b.data(), float(0));
+				res = thrust::inner_product(thrust::device, a.data(), a.data()+vectorSize, b.data(), float(0));
 			}
 
 			cudaDeviceSynchronize();

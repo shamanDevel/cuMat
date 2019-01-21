@@ -12,7 +12,7 @@ void benchmark_cuMat(
 {
     //number of runs for time measures
     const int runs = 10;
-	const int subruns = 1;
+	const int subruns = 10;
 
     //test if the config is valid
     assert(parameterNames.size() == 1);
@@ -34,6 +34,7 @@ void benchmark_cuMat(
 		cuMat::VectorXf a(vectorSize); rand.fillUniform(a, 0, 1);
 		cuMat::VectorXf b(vectorSize); rand.fillUniform(b, 0, 1);
 
+		volatile float res;
         //Run it multiple times
         for (int run = 0; run < runs; ++run)
         {
@@ -44,7 +45,7 @@ void benchmark_cuMat(
 
 			for (int i=0; i<subruns; ++i)
 			{
-				float result = static_cast<float>(a.dot(b));
+				res = static_cast<float>(a.dot(b));
 			}
 
 			cudaDeviceSynchronize();

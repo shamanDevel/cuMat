@@ -8,12 +8,12 @@ To elaborate the execution time of the cuMat operations, we compare the implemen
 
 The operation system used to execute the benchmarks:
  - Windows 10 Home
- - Intel Xeon E5-1650 v3 @ 3.50GHz
- - 32.00GB RAM
+ - Intel Xeon W-2123 @ 3.60GHz
+ - 64.00GB RAM
  - NVIDIA GeForce RTX 2070
  - Visual Studio Enterprise 2017
  - CUDA SDK 10.0
- - Python: Python 3.5.2, 64-bit
+ - Python: Python 3.6.6, 64-bit
  - Numpy version 1.12.0
  - Eigen 3.3.2 with MKL enabled
 
@@ -45,21 +45,34 @@ Second test case: constant size of the vectors (\f$n=1000000\f$), varying number
 This test case shows the power of the kernel merging performed by cuMat. The linear combination is evaluated in a single kernel in cuMat (without storing the intermediate results in memory), while cuBLAS needs one call to AXPY per factor (and writes the intermediate results into memory every time).
 Between 3 and 4 linear combinations, cuMat becomes faster than cuBLAS. 
 
-\section Benchmark_CSRMV Benchmark 2: Sparse Matrix - Vector multiplication
+\section Benchmark_Dotproduct Benchmark 2: Dotproduct
+
+As a demonstration of our reduction API we evaluate the performance of the inner product (scalar/dot product) of two vectors.
+We compare our implementation to Eigen, cuBLAS, Thrust and CUB.
+
+\htmlonly <style>div.image img[src="Dotproduct.png"]{width:500px;}</style> \endhtmlonly
+\image html "Dotproduct.png"
+\image latex "Dotproduct.png" width=10cm
+
+One can see that all GPU versions are almost exactly equal. One might say that our implementation of the reduction is a bit slower than cuBLAS or CUB, but this is due to a little overhead of index computations. 
+These index computations, however, allow the reduction kernels to perform reductions over arbitrary axises and arbitrary complex operations.
+
+\section Benchmark_CSRMV Benchmark 3: Sparse Matrix - Vector multiplication
 
 Next we compute the performance of our custom sparse matrix (CSR-format) - vector multiplication routine with the implementations in Eigen and in cuSparse.
 The matrix is a 2D poisson matrix with increasing grid size.
-Our implementation achieves even a slightly better performance than the optimized routine provided by NVIDIA’s cuSparse library and is 10x faster than Eigen.
+Our implementation achieves even a slightly better performance than the optimized routine provided by NVIDIA's cuSparse library and is 10x faster than Eigen.
 
 \htmlonly <style>div.image img[src="CSRMV - 2D-Poisson Matrix.png"]{width:500px;}</style> \endhtmlonly
 \image html "CSRMV - 2D-Poisson Matrix.png"
 \image latex "CSRMV - 2D-Poisson Matrix.png" width=10cm
 
-\section Benchmark_CG Benchmark 3: Conjugate Gradient Solver
+\section Benchmark_CG Benchmark 4: Conjugate Gradient Solver
 
 In a last benchmark we compare our implementation of the Conjugate Gradient Solver with the implementation shipped with Eigen.
 As a model problem, a 2D diffusion process with random Dirichlet and Neumann boundaries is solved.
-For large enough problems, our GPU implementation is more than 10x as fast as the Eigen implementation. This is because the sparse matrix-vector multiplication is faster on the GPU than on the CPU as shown before, and for large problems the memory transfer from device to host to query the current error is not the bottleneck.
+For large enough problems, our GPU implementation is more than 20x as fast as the Eigen implementation.
+This is because the sparse matrix-vector multiplication and reductions are much faster on the GPU than on the CPU as shown before, and for large problems the memory transfer from device to host to query the current error is not the bottleneck.
 \htmlonly <style>div.image img[src="Conjugate Gradient - 2D-Poisson Matrix.png"]{width:500px;}</style> \endhtmlonly
 \image html "Conjugate Gradient - 2D-Poisson Matrix.png"
 \image latex "Conjugate Gradient - 2D-Poisson Matrix" width=10cm

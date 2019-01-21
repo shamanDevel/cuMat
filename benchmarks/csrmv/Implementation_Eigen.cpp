@@ -15,6 +15,7 @@ void benchmark_Eigen(
 {
     //number of runs for time measures
     const int runs = 10;
+	const int subruns = 2;
 
     int numConfigs = parameters.Size();
     for (int config = 0; config < numConfigs; ++config)
@@ -51,13 +52,13 @@ void benchmark_Eigen(
             auto start = std::chrono::steady_clock::now();
 
             //csrmv
-			for (int i = 0; i < 10; ++i) {
+			for (int i = 0; i < subruns; ++i) {
 				r.noalias() = matrix * x;
 			}
 
             auto finish = std::chrono::steady_clock::now();
             double elapsed = std::chrono::duration_cast<
-                std::chrono::duration<double> >(finish - start).count() * 100;
+                std::chrono::duration<double> >(finish - start).count() * 1000 / subruns;
             totalTime += elapsed;
         }
 

@@ -13,7 +13,7 @@ void benchmark_Eigen(
     Json::Array& returnValues)
 {
 	//number of runs for time measures
-	const int runs = 10;
+	const int runs = 2;
 
 	int numConfigs = parameters.Size();
 	for (int config = 0; config < numConfigs; ++config)

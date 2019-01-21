@@ -48,7 +48,7 @@ void benchmark_cuBlas(
 {
     //number of runs for time measures
     const int runs = 10;
-	const int subruns = 1;
+	const int subruns = 10;
 
     //test if the config is valid
     assert(parameterNames.size() == 1);

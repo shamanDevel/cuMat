@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <cuMat/Core>
+#include "Utils.h"
 
 // Tests of the primitive reduction ops
 
@@ -28,7 +29,11 @@ BMatrixXiR createTestMatrix()
 
 TEST_CASE("raw_reduce_none", "[reduce]")
 {
-    //TODO
+	auto m = createTestMatrix();
+	BMatrixXiR out(4, 3, 2);
+	internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, 0, cub::Sum, int>
+		::eval(m, out, cub::Sum(), 0);
+	assertMatrixEquality(m, out);
 }
 
 TEST_CASE("raw_reduce_R", "[reduce]")
@@ -39,12 +44,12 @@ TEST_CASE("raw_reduce_R", "[reduce]")
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(6);
     out.copyToHost(&result[0]);
-    REQUIRE(result[0] == 22);
-    REQUIRE(result[1] == 26);
-    REQUIRE(result[2] == 30);
-    REQUIRE(result[3] == 70);
-    REQUIRE(result[4] == 74);
-    REQUIRE(result[5] == 78);
+    CHECK(result[0] == 22);
+    CHECK(result[1] == 26);
+    CHECK(result[2] == 30);
+    CHECK(result[3] == 70);
+    CHECK(result[4] == 74);
+    CHECK(result[5] == 78);
 }
 
 TEST_CASE("raw_reduce_C", "[reduce]")
@@ -55,14 +60,14 @@ TEST_CASE("raw_reduce_C", "[reduce]")
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(8);
     out.copyToHost(&result[0]);
-    REQUIRE(result[0] == 6);
-    REQUIRE(result[1] == 15);
-    REQUIRE(result[2] == 24);
-    REQUIRE(result[3] == 33);
-    REQUIRE(result[4] == 42);
-    REQUIRE(result[5] == 51);
-    REQUIRE(result[6] == 60);
-    REQUIRE(result[7] == 69);
+    CHECK(result[0] == 6);
+    CHECK(result[1] == 15);
+    CHECK(result[2] == 24);
+    CHECK(result[3] == 33);
+    CHECK(result[4] == 42);
+    CHECK(result[5] == 51);
+    CHECK(result[6] == 60);
+    CHECK(result[7] == 69);
 }
 
 TEST_CASE("raw_reduce_B", "[reduce]")
@@ -73,18 +78,18 @@ TEST_CASE("raw_reduce_B", "[reduce]")
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(12);
     out.copyToHost(&result[0]);
-    REQUIRE(result[0] == 14);
-    REQUIRE(result[1] == 16);
-    REQUIRE(result[2] == 18);
-    REQUIRE(result[3] == 20);
-    REQUIRE(result[4] == 22);
-    REQUIRE(result[5] == 24);
-    REQUIRE(result[6] == 26);
-    REQUIRE(result[7] == 28);
-    REQUIRE(result[8] == 30);
-    REQUIRE(result[9] == 32);
-    REQUIRE(result[10] == 34);
-    REQUIRE(result[11] == 36);
+    CHECK(result[0] == 14);
+    CHECK(result[1] == 16);
+    CHECK(result[2] == 18);
+    CHECK(result[3] == 20);
+    CHECK(result[4] == 22);
+    CHECK(result[5] == 24);
+    CHECK(result[6] == 26);
+    CHECK(result[7] == 28);
+    CHECK(result[8] == 30);
+    CHECK(result[9] == 32);
+    CHECK(result[10] == 34);
+    CHECK(result[11] == 36);
 }
 
 TEST_CASE("raw_reduce_RC", "[reduce]")
@@ -95,8 +100,8 @@ TEST_CASE("raw_reduce_RC", "[reduce]")
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(2);
     out.copyToHost(&result[0]);
-    REQUIRE(result[0] == 78);
-    REQUIRE(result[1] == 222);
+    CHECK(result[0] == 78);
+    CHECK(result[1] == 222);
 }
 
 TEST_CASE("raw_reduce_RB", "[reduce]")
@@ -107,9 +112,9 @@ TEST_CASE("raw_reduce_RB", "[reduce]")
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(3);
     out.copyToHost(&result[0]);
-    REQUIRE(result[0] == 92);
-    REQUIRE(result[1] == 100);
-    REQUIRE(result[2] == 108);
+    CHECK(result[0] == 92);
+    CHECK(result[1] == 100);
+    CHECK(result[2] == 108);
 }
 
 TEST_CASE("raw_reduce_CB", "[reduce]")
@@ -120,10 +125,10 @@ TEST_CASE("raw_reduce_CB", "[reduce]")
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(4);
     out.copyToHost(&result[0]);
-    REQUIRE(result[0] == 48);
-    REQUIRE(result[1] == 66);
-    REQUIRE(result[2] == 84);
-    REQUIRE(result[3] == 102);
+    CHECK(result[0] == 48);
+    CHECK(result[1] == 66);
+    CHECK(result[2] == 84);
+    CHECK(result[3] == 102);
 }
 
 TEST_CASE("raw_reduce_RCB", "[reduce]")
@@ -134,5 +139,5 @@ TEST_CASE("raw_reduce_RCB", "[reduce]")
         ::eval(m, out, cub::Sum(), 0);
     int result;
     out.copyToHost(&result);
-    REQUIRE(result == 300);
+    CHECK(result == 300);
 }

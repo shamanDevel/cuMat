@@ -96,7 +96,7 @@ void benchmark_cuBlas(
 			auto start = std::chrono::steady_clock::now();
             
             //pure cuBLAS + CUDA:
-			for (int subruns = 0; subruns < subruns; ++subruns) {
+			for (int subrun = 0; subrun < subruns; ++subrun) {
 				for (int i = 0; i < numCombinations; ++i) {
 					CUBLAS_SAFE_CALL(cublasSaxpy(handle, vectorSize, &factors[i], vectorsRaw[i], 1, outputRaw, 1));
 				}

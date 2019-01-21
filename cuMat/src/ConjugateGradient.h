@@ -150,7 +150,7 @@ public:
         rhs.squaredNorm().eval().copyToHost(&rhsNorm2[0]);
         //RealScalar rhsNorm2 = static_cast<RealScalar>(rhs.squaredNorm()); //SLOW: device->host memcopy (explicit conversion operator)
         bool all = true;
-        for (int b = 0; b < Batches; ++b) all = all && rhsNorm2[b] == 0;
+        for (int b = 0; b < Batches; ++b) all = all && (rhsNorm2[b] < tolerance_ * tolerance_);
         if (all)
         {
             //early out, right-hand side is zero

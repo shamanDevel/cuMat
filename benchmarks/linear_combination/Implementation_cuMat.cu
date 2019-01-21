@@ -51,7 +51,7 @@ void benchmark_cuMat(
             cudaDeviceSynchronize();
 			auto start = std::chrono::steady_clock::now();
 
-			for (int subruns = 0; subruns < subruns; ++subruns) {
+			for (int subrun = 0; subrun < subruns; ++subrun) {
 				switch (numCombinations)
 				{
 				case 1: output.inplace() = (vectors[0] * factors[0]); break;

@@ -32,6 +32,7 @@ set(CUMAT_TEST_FILES
   TestReductionOps2.cu
   TestReductionOps3.cu
   TestReductionOps4.cu
+  TestReductionOps5.cu
   TestIterator.cu
   TestRandom.cu
   TestMatrixMultOp.cu
@@ -54,7 +55,8 @@ list(APPEND CUDA_NVCC_FLAGS --device-debug)
 endif()
 enable_testing()
 
-add_definitions(-DCUMAT_CONTEXT_DEBUG_MEMORY=1 -DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
+add_definitions(-DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCUMAT_CONTEXT_DEBUG_MEMORY=1")
 #add_definitions(-DCUMAT_EIGEN_SUPPORT=1)
 
 if(CUMAT_SEPARATE_TESTS)
