@@ -48,6 +48,7 @@ void benchmark_cuBlas(
 {
     //number of runs for time measures
     const int runs = 10;
+	const int subruns = 10;
 
     //test if the config is valid
     assert(parameterNames.size() == 2);
@@ -95,7 +96,7 @@ void benchmark_cuBlas(
 			auto start = std::chrono::steady_clock::now();
             
             //pure cuBLAS + CUDA:
-			for (int subruns = 0; subruns < 10; ++subruns) {
+			for (int subruns = 0; subruns < subruns; ++subruns) {
 				for (int i = 0; i < numCombinations; ++i) {
 					CUBLAS_SAFE_CALL(cublasSaxpy(handle, vectorSize, &factors[i], vectorsRaw[i], 1, outputRaw, 1));
 				}
@@ -104,7 +105,7 @@ void benchmark_cuBlas(
             cudaDeviceSynchronize();
 			auto finish = std::chrono::steady_clock::now();
 			double elapsed = std::chrono::duration_cast<
-				std::chrono::duration<double>>(finish - start).count() * 1000;
+				std::chrono::duration<double>>(finish - start).count() * 1000 / subruns;
 
             totalTime += elapsed;
         }
