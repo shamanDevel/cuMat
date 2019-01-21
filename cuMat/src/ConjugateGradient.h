@@ -192,13 +192,13 @@ public:
             if (all)
                 break;
 
-            z = preconditioner_.solve(residual); // approximately solve for "A z = residual"
+            z.inplace() = preconditioner_.solve(residual); // approximately solve for "A z = residual"
 
             RealScalarDevice absOld = absNew;
             absNew = residual.dot(z).real(); // update the absolute value of r
             auto beta = absNew.cwiseDiv(absOld); //expression, not evaluated
             // calculate the Gram-Schmidt value used to create the new search direction
-            p = z + beta.template cast<VectorScalarType>().cwiseMul(p); // update search direction
+            p.inplace() = z + beta.template cast<VectorScalarType>().cwiseMul(p); // update search direction
             i++;
         }
         error_ = sqrt((residualNorm2 / rhsNorm2).max());

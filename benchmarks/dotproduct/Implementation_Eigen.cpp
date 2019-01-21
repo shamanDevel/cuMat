@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cstdlib>
 
+double dontOptimizeAway = 0;
+
 void benchmark_Eigen(
     const std::vector<std::string>& parameterNames,
     const Json::Array& parameters,
@@ -13,6 +15,7 @@ void benchmark_Eigen(
 {
     //number of runs for time measures
     const int runs = 10;
+	const int subruns = 1;
 
     //test if the config is valid
     assert(parameterNames.size() == 1);
@@ -38,13 +41,14 @@ void benchmark_Eigen(
             //Main logic
             auto start = std::chrono::steady_clock::now();
 
-			for (int i = 0; i < 10; ++i) {
+			for (int i = 0; i < subruns; ++i) {
 				float result = a.dot(b);
+				dontOptimizeAway += result;
 			}
 
             auto finish = std::chrono::steady_clock::now();
             double elapsed = std::chrono::duration_cast<
-                std::chrono::duration<double> >(finish - start).count() * 100;
+                std::chrono::duration<double> >(finish - start).count() * 1000 / subruns;
             totalTime += elapsed;
         }
 

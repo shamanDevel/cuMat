@@ -68,27 +68,39 @@ int main(int argc, char* argv[])
         std::string setName = it->first;
         const Json::Array& params = it->second.AsArray();
         std::cout << std::endl << "Test Set '" << setName << "'" << std::endl;
+		Json::Object resultAssembled;
 
         //cuMat
         std::cout << " Run CuMat" << std::endl;
         Json::Array resultsCuMat;
         benchmark_cuMat(parameterNames, params, returnNames, resultsCuMat);
+		resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
         
+		//CUB
+		std::cout << " Run CUB" << std::endl;
+		Json::Array resultsCub;
+		benchmark_CUB(parameterNames, params, returnNames, resultsCub);
+		resultAssembled.Insert(std::make_pair("CUB", resultsCub));
+
+		//Thrust
+		std::cout << " Run Thrust" << std::endl;
+		Json::Array resultsThrust;
+		benchmark_Thrust(parameterNames, params, returnNames, resultsThrust);
+		resultAssembled.Insert(std::make_pair("Thrust", resultsThrust));
+
         //cuBlas
         std::cout << " Run cuBLAS" << std::endl;
         Json::Array resultsCuBlas;
         benchmark_cuBlas(parameterNames, params, returnNames, resultsCuBlas);
+		resultAssembled.Insert(std::make_pair("CuBlas", resultsCuBlas));
 
         //Eigen
         std::cout << " Run Eigen" << std::endl;
         Json::Array resultsEigen;
         benchmark_Eigen(parameterNames, params, returnNames, resultsEigen);
+		resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
 
         //write results
-        Json::Object resultAssembled;
-        resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
-        resultAssembled.Insert(std::make_pair("CuBlas", resultsCuBlas));
-        resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
         std::ofstream outStream(outputDir + setName + ".json");
         outStream << resultAssembled;
         outStream.close();

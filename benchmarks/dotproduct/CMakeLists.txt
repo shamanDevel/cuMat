@@ -9,6 +9,8 @@ set(CUMAT_BENCHMARK_DOTPRODUCT
   benchmark.h
   Implementation_cuBlas.cu
   Implementation_cuMat.cu
+  Implementation_CUB.cu
+  Implementation_Thrust.cu
   Implementation_Eigen.cpp
   MakePlots.py
   configuration.json
