@@ -12,6 +12,7 @@ void benchmark_cuMat(
 {
     //number of runs for time measures
     const int runs = 10;
+	const int subruns = 1;
 
     //test if the config is valid
     assert(parameterNames.size() == 1);
@@ -41,7 +42,7 @@ void benchmark_cuMat(
             cudaDeviceSynchronize();
 			auto start = std::chrono::steady_clock::now();
 
-			for (int i=0; i<10; ++i)
+			for (int i=0; i<subruns; ++i)
 			{
 				float result = static_cast<float>(a.dot(b));
 			}
@@ -49,7 +50,7 @@ void benchmark_cuMat(
 			cudaDeviceSynchronize();
 			auto finish = std::chrono::steady_clock::now();
 			double elapsed = std::chrono::duration_cast<
-				std::chrono::duration<double>>(finish - start).count() * 100;
+				std::chrono::duration<double>>(finish - start).count() * 1000 / subruns;
 
             totalTime += elapsed;
         }

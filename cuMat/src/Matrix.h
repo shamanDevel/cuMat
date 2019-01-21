@@ -839,7 +839,7 @@ public:
 	*/
 	void copyToHost(_Scalar* data) const
 	{
-	    CUMAT_SAFE_CALL(cudaDeviceSynchronize()); //wait until everything is evaluated
+	    //CUMAT_SAFE_CALL(cudaDeviceSynchronize()); //wait until everything is evaluated
 		CUMAT_SAFE_CALL(cudaMemcpy(data, data_.data(), sizeof(_Scalar)*size(), cudaMemcpyDeviceToHost));
         CUMAT_PROFILING_INC(MemcpyDeviceToHost);
 	}

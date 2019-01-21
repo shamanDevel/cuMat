@@ -272,8 +272,16 @@ public:
 			<< "\n rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches()
             << ", axis=" << ((axis_ & ReductionAxis::Row) ? "R" : "") << ((axis_ & ReductionAxis::Column) ? "C" : "") << ((axis_ & ReductionAxis::Batch) ? "B" : ""));
 
+		//simplify axis, less segments are better
+		const int axisSimplified =
+			axis_ == 0 ? 0 : (
+				axis_ | (internal::traits<_Child>::RowsAtCompileTime==1 ? ReductionAxis::Row : 0)
+				      | (internal::traits<_Child>::ColsAtCompileTime==1 ? ReductionAxis::Column : 0)
+				      | (internal::traits<_Child>::BatchesAtCompileTime==1 ? ReductionAxis::Batch : 0)
+			);
+
         //runtime switch to the implementations
-        switch (axis_)
+        switch (axisSimplified)
         {
         case 0: internal::ReductionEvaluator<_Child, Derived, 0, _ReductionOp, Scalar>::eval(child_, m.derived(), op_, initialValue_); break;
         case 1: internal::ReductionEvaluator<_Child, Derived, 1, _ReductionOp, Scalar>::eval(child_, m.derived(), op_, initialValue_); break;
@@ -357,12 +365,22 @@ public:
         CUMAT_ASSERT(cols() == m.cols());
         CUMAT_ASSERT(batches() == m.batches());
 
-        CUMAT_LOG_DEBUG("Evaluate reduction expression " << typeid(derived()).name()
-			<< "\n rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches()
-            << ", axis=" << ((_Axis & ReductionAxis::Row) ? "R" : "") << ((_Axis & ReductionAxis::Column) ? "C" : "") << ((_Axis & ReductionAxis::Batch) ? "B" : ""));
+		//simplify axis, less segments are better
+		constexpr int AxisSimplified =
+			_Axis == 0 ? 0 : (
+				_Axis | (internal::traits<_Child>::RowsAtCompileTime==1 ? ReductionAxis::Row : 0)
+				      | (internal::traits<_Child>::ColsAtCompileTime==1 ? ReductionAxis::Column : 0)
+				      | (internal::traits<_Child>::BatchesAtCompileTime==1 ? ReductionAxis::Batch : 0)
+			);
+
+		CUMAT_LOG_DEBUG("Evaluate reduction expression " << typeid(derived()).name()
+			<< "\n rows=" << m.rows() << "(" << internal::traits<_Child>::RowsAtCompileTime << ")"
+    		<< ", cols=" << m.cols() << "(" << internal::traits<_Child>::ColsAtCompileTime  << ")" 
+    		<< ", batches=" << m.batches() << "(" << internal::traits<_Child>::BatchesAtCompileTime << ")"
+            << ", axis=" << ((AxisSimplified & ReductionAxis::Row) ? "R" : "") << ((AxisSimplified & ReductionAxis::Column) ? "C" : "") << ((AxisSimplified & ReductionAxis::Batch) ? "B" : ""));
 
         //compile-time switch to the implementations
-        internal::ReductionEvaluator<_Child, Derived, _Axis, _ReductionOp, Scalar>::eval(child_, m.derived(), op_, initialValue_);
+        internal::ReductionEvaluator<_Child, Derived, AxisSimplified, _ReductionOp, Scalar>::eval(child_, m.derived(), op_, initialValue_);
         CUMAT_LOG_DEBUG("Evaluation done");
     }
 };
