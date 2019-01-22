@@ -1,0 +1,10 @@
+{
+"Title":"Gaussian Mixture Model",
+"Parameters":["Dimension", "Num-True-Components","Num-Model-Components", "Num-Points"],
+"Returns":["Time","Means", "Covariances"],
+"Sets":{
+    "Gaussian Mixture Model":[
+        [2, 4, 4, 100]
+    ]
+}
+}
