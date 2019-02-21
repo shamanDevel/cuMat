@@ -71,6 +71,11 @@ if __name__== "__main__":
         plt.plot(gMeans[cluster, 0], gMeans[cluster, 1], ".", color=color, zorder=1)
         draw_ellipse(gMeans[cluster,:], gCovariance[cluster,:,:], color=color, zorder=-1, alpha=gWeights[cluster]);
 
+    # parse results
+    results = sys.argv[2]
+    print('Read results from', results)
+
+
     plt.show()
 
 #plt.savefig(setPath+'.png', bbox_inches='tight', dpi=300)

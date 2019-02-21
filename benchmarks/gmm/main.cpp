@@ -15,6 +15,7 @@
 #include <stdexcept>
 #include <array>
 #include <fstream>
+#include <random>
 
 #include "../json_st.h"
 #include "../Json.h"
@@ -61,56 +62,63 @@ int main(int argc, char* argv[])
         returnNames.push_back(it->AsString());
     }
 
+	std::string numpyFile, launchParams;
+
+	auto seed = std::random_device()();
+
     //start test sets
-    const Json::Object& sets = config["Sets"].AsObject();
+    const Json::Array& sets = config["Settings"].AsArray();
     for (auto it = sets.Begin(); it != sets.End(); ++it)
     {
-        std::string setName = it->first;
-        const Json::Array& params = it->second.AsArray();
-        std::cout << std::endl << "Test Set '" << setName << "'" << std::endl;
+        const Json::Array& params = it->AsArray();
+		int dimension = params[0].AsInt32();
+		int numTrueComponents = params[1].AsInt32();
+		int numModelComponents = params[2].AsInt32();
+		int numPoints = params[3].AsInt32();
+		int numIterations = params[4].AsInt32();
+		std::cout << std::endl << "Configuration: dimension=" << dimension
+			<< ", numTrueComponents=" << numTrueComponents
+			<< ", numModelComponents=" << numModelComponents
+			<< ", numPoints=" << numPoints
+			<< ", numIterations=" << numIterations << std::endl;
 
-        //cuMat
-        std::cout << " Run CuMat" << std::endl;
-        Json::Array resultsCuMat;
-        benchmark_cuMat(parameterNames, params, returnNames, resultsCuMat);
-        
-        //cuBlas
-        std::cout << " Run cuBLAS" << std::endl;
-        Json::Array resultsCuBlas;
-        benchmark_cuBlas(parameterNames, params, returnNames, resultsCuBlas);
+		//create ground truth and test set
+		std::cout << " Generate Testset" << std::endl;
+		numpyFile = std::string(CUMAT_STR(PYTHON_FILES)) + "GenerateData.py";
+		launchParams = "\"" + pythonPath + " " + numpyFile
+    		+ " " + std::to_string(dimension) + " " + std::to_string(numTrueComponents) + " " + std::to_string(numPoints) + " " + std::to_string(++seed)
+    		+ " GroundTruth.txt \"";
+		std::cout << "  Args: " << launchParams << std::endl;
+		exec(launchParams.c_str());
+		numpyFile = std::string(CUMAT_STR(PYTHON_FILES)) + "GenerateData.py";
+		launchParams = "\"" + pythonPath + " " + numpyFile
+			+ " " + std::to_string(dimension) + " " + std::to_string(numTrueComponents) + " 0" + " " + std::to_string(++seed)
+			+ " Initial.txt \"";
+		std::cout << "  Args: " << launchParams << std::endl;
+		exec(launchParams.c_str());
+
+		//prepare results
+		Json::Object resultAssembled;
 
         //Eigen
         std::cout << " Run Eigen" << std::endl;
-        Json::Array resultsEigen;
-        benchmark_Eigen(parameterNames, params, returnNames, resultsEigen);
+        Json::Object resultsEigen;
+        benchmark_Eigen("GroundTruth.txt", "Initial.txt", numIterations, resultsEigen);
+		resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
 
         //numpy
-        std::cout << " Run Numpy" << std::endl;
-        std::string numpyFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_numpy.py";
-        std::string launchParams = "\"" + pythonPath + " " + numpyFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"" + "\"";
-        std::cout << "  Args: " << launchParams << std::endl;
-        std::string resultsNumpyStr = exec(launchParams.c_str());
-        Json::Array resultsNumpy = Json::ParseString(resultsNumpyStr);
-
-        ////tensorflow
-        //std::cout << " Run Tensorflow" << std::endl;
-        //std::string tfFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_tensorflow.py";
-        //launchParams = pythonPath + " " + tfFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"";
+        //std::cout << " Run Numpy" << std::endl;
+        //std::string numpyFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_numpy.py";
+        //std::string launchParams = "\"" + pythonPath + " " + numpyFile + " " + std::string(CUMAT_STR(CONFIG_FILE)) + " \"" + setName + "\"" + "\"";
         //std::cout << "  Args: " << launchParams << std::endl;
-        //std::string resultsTFStr = exec(launchParams.c_str());
-        //Json::Array resultsTF = Json::ParseString(resultsTFStr);
+        //std::string resultsNumpyStr = exec(launchParams.c_str());
+        //Json::Array resultsNumpy = Json::ParseString(resultsNumpyStr);
 
         //write results
-        Json::Object resultAssembled;
-        resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
-        resultAssembled.Insert(std::make_pair("CuBlas", resultsCuBlas));
-        resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
-        resultAssembled.Insert(std::make_pair("Numpy", resultsNumpy));
-        //resultAssembled.Insert(std::make_pair("Tensorflow", resultsTF));
-        std::ofstream outStream(outputDir + setName + ".json");
+        std::ofstream outStream(outputDir + "GMM.json");
         outStream << resultAssembled;
         outStream.close();
-        launchParams = "\"" + pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " \"" + outputDir + setName + "\" " + std::string(CUMAT_STR(CONFIG_FILE)) + "\"";
+        launchParams = "\"" + pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " GroundTruth.txt " + " \"" + outputDir + "GMM.json" + "\" " + std::string(CUMAT_STR(CONFIG_FILE)) + "\"";
         std::cout << launchParams << std::endl;
         system(launchParams.c_str());
     }

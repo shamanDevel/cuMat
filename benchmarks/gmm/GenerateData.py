@@ -16,17 +16,23 @@ if __name__== "__main__":
     d = int(sys.argv[1])
     c = int(sys.argv[2])
     n = int(sys.argv[3])
-    print("Dimensions:",d,", Num Components:",c,", Num Points",n)
-    outName = sys.argv[4]
+    seed = int(sys.argv[4])
+    print("Dimensions:",d,", Num Components:",c,", Num Points",n,", Seed", seed)
+    outName = sys.argv[5]
     print("Output file name:",outName);
 
-    np.random.seed(10)
-
     #ground truth
+    np.random.seed(42)
     c_means = np.random.normal(size=[c, d]) * 10
-    c_covariances = np.abs(np.random.normal(size=[c, d, d])) * 0.2 + 0.8 * np.array([np.diag(np.abs(np.random.normal(size=[d]))) for i in range(c)])
+    c_covariances = np.abs(np.random.normal(size=[c, d, d])) * 1 + 5 * np.array([np.diag(np.abs(np.random.normal(size=[d]))) for i in range(c)])
     c_covariances = np.matmul(c_covariances, np.transpose(c_covariances, (0,2,1)))
-    c_weights = np.abs(np.random.normal(size=[c]))
+    c_weights = np.abs(np.random.normal(size=[c])) + 0.3
+
+    #pertubate data
+    np.random.seed(seed)
+    c_means += np.random.normal(size=[c, d]) * 0.1
+    c_covariances += np.random.normal(size=[c, 1, 1]) * np.eye(d).reshape((1, d, d))
+    c_weights += (np.random.normal(size=[c]) * 0.01 + 0.01)
     c_weights /= np.sum(c_weights)
 
     result = np.zeros((n, d), dtype=np.float32)

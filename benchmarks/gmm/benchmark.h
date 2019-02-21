@@ -21,18 +21,18 @@ void benchmark_cuMat(
     const std::vector<std::string>& parameterNames,
     const Json::Array& parameters,
     const std::vector<std::string>& returnNames,
-    Json::Array& returnValues);
+    Json::Object& returnValues);
     
 void benchmark_cuBlas(
     const std::vector<std::string>& parameterNames,
     const Json::Array& parameters,
     const std::vector<std::string>& returnNames,
-    Json::Array& returnValues);
+    Json::Object& returnValues);
 
 void benchmark_Eigen(
-    const std::vector<std::string>& parameterNames,
-    const Json::Array& parameters,
-    const std::vector<std::string>& returnNames,
-    Json::Array& returnValues);
+    const std::string& pointsFile,
+	const std::string& settingsFile,
+	int numIterations,
+    Json::Object& returnValues);
 
 #endif
