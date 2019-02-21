@@ -8,6 +8,8 @@ if(COMMAND CUDA_SELECT_NVCC_ARCH_FLAGS)
 	CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Auto)
 	LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
 endif()
+# But Eigen does not work with CUDA, disable it globally
+add_definitions(-DEIGEN_NO_CUDA=1)
 
 # Add OpenMP if available. This is needed by cuSolver for optimal performance
 find_package(OpenMP)

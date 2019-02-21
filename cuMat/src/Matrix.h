@@ -652,7 +652,7 @@ public:
 	* \param batch the batch index
 	* \return a read-only reference to the entry
 	*/
-	__device__ CUMAT_STRONG_INLINE const _Scalar& coeff(Index row, Index col, Index batch, Index /*index*/) const
+	__device__ CUMAT_STRONG_INLINE _Scalar coeff(Index row, Index col, Index batch, Index /*index*/) const
 	{
 		Index idx = index(row, col, batch);
 		//printf("[Thread %06d] memread %p at %i\n", int(blockIdx.x * blockDim.x + threadIdx.x), data_.data(), int(idx));
@@ -682,7 +682,7 @@ public:
 	* \param index the linearized index of the entry.
 	* \return the entry at that index
 	*/
-	__device__ CUMAT_STRONG_INLINE const _Scalar& getRawCoeff(Index index) const
+	__device__ CUMAT_STRONG_INLINE _Scalar getRawCoeff(Index index) const
 	{
 		CUMAT_ASSERT_CUDA(index >= 0);
 		CUMAT_ASSERT_CUDA(index < size());
