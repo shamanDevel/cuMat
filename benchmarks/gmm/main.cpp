@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
 	std::string numpyFile, launchParams;
 
-	auto seed = std::random_device()();
+	auto seed = 128;//std::random_device()();
 
     //start test sets
     const Json::Array& sets = config["Settings"].AsArray();
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
         std::ofstream outStream(outputDir + "GMM.json");
         outStream << resultAssembled;
         outStream.close();
-        launchParams = "\"" + pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " GroundTruth.txt " + " \"" + outputDir + "GMM.json" + "\" " + std::string(CUMAT_STR(CONFIG_FILE)) + "\"";
+        launchParams = "\"" + pythonPath + " " + std::string(CUMAT_STR(PYTHON_FILES)) + "MakePlots.py" + " GroundTruth.txt Initial.txt " + " \"" + outputDir + "GMM.json" + "\" " + std::string(CUMAT_STR(CONFIG_FILE)) + "\"";
         std::cout << launchParams << std::endl;
         system(launchParams.c_str());
     }

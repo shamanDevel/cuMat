@@ -22,16 +22,16 @@ if __name__== "__main__":
     print("Output file name:",outName);
 
     #ground truth
-    np.random.seed(42)
+    np.random.seed(66)
     c_means = np.random.normal(size=[c, d]) * 10
-    c_covariances = np.abs(np.random.normal(size=[c, d, d])) * 1 + 5 * np.array([np.diag(np.abs(np.random.normal(size=[d]))) for i in range(c)])
-    c_covariances = np.matmul(c_covariances, np.transpose(c_covariances, (0,2,1)))
-    c_weights = np.abs(np.random.normal(size=[c])) + 0.3
+    c_covariances = np.abs(np.random.normal(size=[c, d, d])) * 1 + (1 if n>0 else 5) * np.array([(3+np.abs(np.random.normal()))*np.diag([1]*d) for i in range(c)])
+    c_weights = np.abs(np.random.normal(size=[c])) + 1
 
     #pertubate data
     np.random.seed(seed)
-    c_means += np.random.normal(size=[c, d]) * 0.1
-    c_covariances += np.random.normal(size=[c, 1, 1]) * np.eye(d).reshape((1, d, d))
+    c_means += np.random.normal(size=[c, d]) * 5
+    c_covariances += 1 * np.random.normal(size=[c, 1, 1]) * np.eye(d).reshape((1, d, d))
+    c_covariances = np.matmul(c_covariances, np.transpose(c_covariances, (0,2,1)))
     c_weights += (np.random.normal(size=[c]) * 0.01 + 0.01)
     c_weights /= np.sum(c_weights)
 

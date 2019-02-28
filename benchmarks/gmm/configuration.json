@@ -3,6 +3,6 @@
 "Parameters":["Dimension", "Num-True-Components","Num-Model-Components", "Num-Points", "Num-Iterations"],
 "Returns":["Time","Means", "Covariances"],
 "Settings":[
-    [2, 4, 4, 100, 10]
+    [2, 4, 4, 50, 2]
 ]
 }

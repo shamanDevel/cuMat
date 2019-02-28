@@ -153,7 +153,7 @@ void benchmark_Eigen(
 	double logLikeliehoodAccum;
 	for (int iter=0; iter < numIterations; ++iter)
 	{
-		std::cout << "    Iteration " << iter;
+		std::cout << "    Iteration " << iter << std::endl;
 
 		//Precomputation
 #pragma omp parallel for
@@ -175,19 +175,19 @@ void benchmark_Eigen(
 			logW.row(i) -= Eigen::RowVectorXd::Constant(components, lse);
 			logLikeliehoodAccum += lse;
 
-			//std::cout << "Point " << i << ":";
-			//for (int k = 0; k < components; ++k)
-			//	std::cout << " " << std::exp(logW(i, k));
-			//std::cout << std::endl;
+			std::cout << "Point " << i << ":";
+			for (int k = 0; k < components; ++k)
+				std::cout << " " << std::exp(logW(i, k));
+			std::cout << std::endl;
 		}
 
 		//M-Step
 #pragma omp parallel for
 		for (int k=0; k<components; ++k)
 		{
-			//std::cout << "\nComponent " << k << " pre-update:"
-			//	<< "\nWeight: " << std::exp(logWeights[k])
-			//	<< "\n" << gaussians[k] << std::endl;
+			std::cout << "\nComponent " << k << " pre-update:"
+				<< "\nWeight: " << std::exp(logWeights[k])
+				<< "\n" << gaussians[k] << std::endl;
 
 			double logNk = LSE(logW.col(k));
 			double divNk = 1.0f / std::exp(logNk);
@@ -195,6 +195,7 @@ void benchmark_Eigen(
 			//Eigen does not support batches, so I have to write it explicitly as a loop here
 			//(and broadcasting is very ugly)
 			gaussians[k].mean().setZero();
+			gaussians[k].cov().setZero();
 			for (int i = 0; i < numPoints; ++i)
 			{
 				gaussians[k].mean() += std::exp(logW(i, k)) * points.col(i);
@@ -202,11 +203,12 @@ void benchmark_Eigen(
 					(points.col(i) - gaussians[k].mean()) * (points.col(i) - gaussians[k].mean()).transpose();
 			}
 			gaussians[k].mean() *= divNk;
-			gaussians[k].cov() *= divNk;
+			gaussians[k].cov() = gaussians[k].cov()*divNk 
+			+ Eigen::MatrixXd::Identity(dimension, dimension) * 1e-1;
 
-			//std::cout << "Component " << k << " post-update:"
-			//	<< "\nWeight: " << std::exp(logWeights[k])
-			//	<< "\n" << gaussians[k] << std::endl;
+			std::cout << "Component " << k << " post-update:"
+				<< "\nWeight: " << std::exp(logWeights[k])
+				<< "\n" << gaussians[k] << std::endl;
 		}
 
 		std::cout << " -> log-likelihood: " << logLikeliehoodAccum << "\n";
