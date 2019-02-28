@@ -145,6 +145,13 @@ void benchmark_Eigen(
 		}
 	}
 
+	for (int k = 0; k < components; ++k)
+	{
+		std::cout << "\nComponent " << k
+			<< "\nWeight: " << std::exp(logWeights[k])
+			<< "\n" << gaussians[k] << std::endl;
+	}
+
 	//temporary memory
 	Eigen::MatrixXd logW(numPoints, components);
 
@@ -197,18 +204,18 @@ void benchmark_Eigen(
 			gaussians[k].mean().setZero();
 			gaussians[k].cov().setZero();
 			for (int i = 0; i < numPoints; ++i)
-			{
 				gaussians[k].mean() += std::exp(logW(i, k)) * points.col(i);
+			gaussians[k].mean() *= divNk;
+			for (int i = 0; i < numPoints; ++i)
 				gaussians[k].cov() += std::exp(logW(i, k)) *
 					(points.col(i) - gaussians[k].mean()) * (points.col(i) - gaussians[k].mean()).transpose();
-			}
-			gaussians[k].mean() *= divNk;
 			gaussians[k].cov() = gaussians[k].cov()*divNk 
 			+ Eigen::MatrixXd::Identity(dimension, dimension) * 1e-1;
 
 			std::cout << "Component " << k << " post-update:"
 				<< "\nWeight: " << std::exp(logWeights[k])
 				<< "\n" << gaussians[k] << std::endl;
+
 		}
 
 		std::cout << " -> log-likelihood: " << logLikeliehoodAccum << "\n";
