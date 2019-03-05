@@ -42,6 +42,7 @@ set(CUMAT_TEST_FILES
   TestLinAlgOps1.cu
   TestLinAlgOps2.cu
   TestLinAlgOps3.cu
+  TestLinAlgOps4.cu
   TestCompoundAssignment.cu
   TestSparseMatrix.cu
   TestConjugateGradient.cu

@@ -44,13 +44,32 @@ private:
 
 public:
     /**
+	 * \brief Uninitialized Cholesky decomposition, 
+	 * but with the specified matrix dimensions
+	 * Call \ref compute() before use.
+	 */
+	CholeskyDecomposition(Index size, Index batches = Batches)
+		: decompositedMatrix_(size, size, batches)
+		, singular_(batches)
+	{}
+
+    /**
      * \brief Performs the Cholesky decomposition of the specified matrix and stores the result for future use.
      * \param matrix the Hermetian, positive definite input matrix
      * \param inplace true to enforce inplace operation. The matrix contents will be destroyed
      */
     explicit CholeskyDecomposition(const MatrixBase<_MatrixType>& matrix, bool inplace=false)
-        : decompositedMatrix_(matrix.derived()) //this evaluates every matrix expression into a matrix
-        , singular_(matrix.batches())
+        : CholeskyDecomposition(matrix.rows(), matrix.batches())
+	{
+		compute(matrix, inplace);
+	}
+
+	/**
+	 * \brief Performs the Cholesky decomposition of the specified matrix and stores the result for future use.
+	 * \param matrix the Hermetian, positive definite input matrix
+	 * \param inplace true to enforce inplace operation. The matrix contents will be destroyed
+	 */
+	void compute(const MatrixBase<_MatrixType>& matrix, bool inplace = false)
     {
         //Check if the input is symmetric
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(Rows>0 && Columns>0, Rows==Columns), "Input Matrix must be symmetric");
@@ -58,8 +77,10 @@ public:
     
         //optionally, copy input
         //(copy is never needed if the input is not a matrix and is evaluated into the matrix during the initializer list)
-        if (!inplace && InputIsMatrix)
-            decompositedMatrix_ = decompositedMatrix_.deepClone();
+		if (!inplace && InputIsMatrix)
+			decompositedMatrix_ = matrix.deepClone();
+		else
+			decompositedMatrix_ = matrix;
         
         //perform  factorization
         const int n = decompositedMatrix_.rows();

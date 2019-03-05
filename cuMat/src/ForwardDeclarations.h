@@ -192,6 +192,8 @@ template<typename _MatrixType> class LUDecomposition;
 template<typename _MatrixType> class CholeskyDecomposition;
 template<typename _Solver, typename _RHS> class SolveOp;
 template<typename _Child> class DeterminantOp;
+template<typename _Child> class InverseOp;
+template<typename Derived, int Dims, typename InverseType, typename DetType> struct ComputeInverseWithDet;
 
 // SPARSE
 

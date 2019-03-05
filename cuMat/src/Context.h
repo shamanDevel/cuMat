@@ -9,6 +9,7 @@
 #include <typeinfo>
 
 #include "Macros.h"
+#include "ForwardDeclarations.h"
 #include "Errors.h"
 #include "Logging.h"
 #include "Profiling.h"
@@ -342,9 +343,11 @@ public:
 	 * \param func the device function
 	 */
 	template<class T>
-	KernelLaunchConfig createLaunchConfig1D(unsigned int size, T func) const
+	KernelLaunchConfig createLaunchConfig1D(Index size, T func) const
 	{
+		const unsigned int size_ = static_cast<unsigned int>(size);
 		CUMAT_ASSERT_ARGUMENT(size > 0);
+		CUMAT_ASSERT(Index(size_) == size && "size exceeds the range of unsigned int!");
 #if 0
 		//Very simplistic first version
 		unsigned int blockSize = 256u;
@@ -358,10 +361,10 @@ public:
 		//Improved version using cudaOccupancyMaxPotentialBlockSize
 		int minGridSize = 0, bestBlockSize = 0;
 		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
-		minGridSize = std::min(int(CUMAT_DIV_UP(size, bestBlockSize)), minGridSize);
+		minGridSize = std::min(int(CUMAT_DIV_UP(size_, bestBlockSize)), minGridSize);
 		CUMAT_LOG_DEBUG("Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 		KernelLaunchConfig cfg = {
-			dim3(size, 1, 1),
+			dim3(size_, 1, 1),
 			dim3(bestBlockSize, 1, 1),
 			dim3(minGridSize, 1, 1)
 		};
