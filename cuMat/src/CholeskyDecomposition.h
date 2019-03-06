@@ -48,7 +48,7 @@ public:
 	 * but with the specified matrix dimensions
 	 * Call \ref compute() before use.
 	 */
-	CholeskyDecomposition(Index size, Index batches = Batches)
+	explicit CholeskyDecomposition(Index size, Index batches = Batches)
 		: decompositedMatrix_(size, size, batches)
 		, singular_(batches)
 	{}
