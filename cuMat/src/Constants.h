@@ -91,7 +91,7 @@ enum AccessFlags
 /**
  * \brief The axis over which reductions are performed.
  */
-enum ReductionAxis
+enum Axis
 {
     Row = 1,
     Column = 2,

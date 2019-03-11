@@ -77,8 +77,10 @@ public:
     
         //optionally, copy input
         //(copy is never needed if the input is not a matrix and is evaluated into the matrix during the initializer list)
-		if (!inplace && InputIsMatrix)
-			decompositedMatrix_ = matrix.derived().deepClone();
+		if (!inplace && InputIsMatrix) {
+			decompositedMatrix_ = matrix; //shallow copy
+			decompositedMatrix_ = decompositedMatrix_.deepClone();
+		}
 		else
 			decompositedMatrix_ = matrix;
         
@@ -131,7 +133,7 @@ public:
         {
             return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(1));
         }
-		return decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>().cwiseAbs2(); //multiply diagonal elements
+		return decompositedMatrix_.diagonal().template prod<Axis::Row | Axis::Column>().cwiseAbs2(); //multiply diagonal elements
             //the product of the diagonal elements is the squareroot of the determinant
     }
 
@@ -145,7 +147,7 @@ public:
         {
             return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(0));
         }
-        return (decompositedMatrix_.diagonal().cwiseLog().template sum<ReductionAxis::Row | ReductionAxis::Column>()) * 2; //multiply diagonal elements;
+        return (decompositedMatrix_.diagonal().cwiseLog().template sum<Axis::Row | Axis::Column>()) * 2; //multiply diagonal elements;
     }
 
     template<typename _RHS, typename _Target>

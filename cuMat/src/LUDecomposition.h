@@ -91,8 +91,10 @@ public:
 	{
         //optionally, copy input
         //(copy is never needed if the input is not a matrix and is evaluated into the matrix during the initializer list)
-		if (!inplace && InputIsMatrix)
-			decompositedMatrix_ = matrix.derived().deepClone();
+		if (!inplace && InputIsMatrix) {
+			decompositedMatrix_ = matrix; //shallow copy
+			decompositedMatrix_ = decompositedMatrix_.deepClone();
+		} 
 		else
 			decompositedMatrix_ = matrix;
         
@@ -155,10 +157,10 @@ public:
         {
             return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(1));
         }
-        return decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>() //multiply diagonal elements
+        return decompositedMatrix_.diagonal().template prod<Axis::Row | Axis::Column>() //multiply diagonal elements
             .cwiseMul(
                 UnaryOp<PivotArray, PermutationSignFunctor>(pivots_, PermutationSignFunctor())
-                .template prod<ReductionAxis::Row | ReductionAxis::Column>().template cast<Scalar>() //compute sign of the permutation
+                .template prod<Axis::Row | Axis::Column>().template cast<Scalar>() //compute sign of the permutation
             );
     }
 
@@ -175,7 +177,7 @@ public:
         {
             return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(0));
         }
-        return decompositedMatrix_.diagonal().cwiseLog().template sum<ReductionAxis::Row | ReductionAxis::Column>(); //multiply diagonal elements;
+        return decompositedMatrix_.diagonal().cwiseLog().template sum<Axis::Row | Axis::Column>(); //multiply diagonal elements;
     }
 
     //Internal solve implementation
