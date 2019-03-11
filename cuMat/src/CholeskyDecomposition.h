@@ -78,7 +78,7 @@ public:
         //optionally, copy input
         //(copy is never needed if the input is not a matrix and is evaluated into the matrix during the initializer list)
 		if (!inplace && InputIsMatrix)
-			decompositedMatrix_ = matrix.deepClone();
+			decompositedMatrix_ = matrix.derived().deepClone();
 		else
 			decompositedMatrix_ = matrix;
         
