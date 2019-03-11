@@ -87,7 +87,7 @@ if __name__== "__main__":
     print('Read results from', resultFile)
     with open(resultFile, 'r') as f:
         results = json.load(f)
-    backends = ["Eigen"]
+    backends = ["Eigen", "CuMat"]
 
     #Create plot
     fig, axes = plt.subplots(2, max(2, len(backends)))

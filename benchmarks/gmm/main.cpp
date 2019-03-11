@@ -106,6 +106,12 @@ int main(int argc, char* argv[])
         benchmark_Eigen("GroundTruth.txt", "Initial.txt", numIterations, resultsEigen);
 		resultAssembled.Insert(std::make_pair("Eigen", resultsEigen));
 
+		//cuMat
+		std::cout << " Run cuMat" << std::endl;
+		Json::Object resultsCuMat;
+		benchmark_cuMat("GroundTruth.txt", "Initial.txt", numIterations, resultsCuMat);
+		resultAssembled.Insert(std::make_pair("CuMat", resultsCuMat));
+
         //numpy
         //std::cout << " Run Numpy" << std::endl;
         //std::string numpyFile = std::string(CUMAT_STR(PYTHON_FILES)) + "Implementation_numpy.py";

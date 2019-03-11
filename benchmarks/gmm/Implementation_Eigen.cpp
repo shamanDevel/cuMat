@@ -156,11 +156,14 @@ void benchmark_Eigen(
 	Eigen::MatrixXd logW(numPoints, components);
 
 	//run EM (fixed number of iterations)
+	std::cout << "Run EM algorithm" << std::endl;
 	auto start = std::chrono::steady_clock::now();
 	double logLikeliehoodAccum;
 	for (int iter=0; iter < numIterations; ++iter)
 	{
+#ifndef NDEBUG
 		std::cout << "    Iteration " << iter << std::endl;
+#endif
 
 		//Precomputation
 #pragma omp parallel for
@@ -169,7 +172,7 @@ void benchmark_Eigen(
 
 		//E-Step
 		logLikeliehoodAccum = 0;
-#pragma omp parallel for reduction(+:logLikeliehoodAccum)
+//#pragma omp parallel for reduction(+:logLikeliehoodAccum)
 		for (int i=0; i<numPoints; ++i)
 		{
 			//compute membership weight w_ik
@@ -182,19 +185,23 @@ void benchmark_Eigen(
 			logW.row(i) -= Eigen::RowVectorXd::Constant(components, lse);
 			logLikeliehoodAccum += lse;
 
+#ifndef NDEBUG
 			std::cout << "Point " << i << ":";
 			for (int k = 0; k < components; ++k)
 				std::cout << " " << std::exp(logW(i, k));
 			std::cout << std::endl;
+#endif
 		}
 
 		//M-Step
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int k=0; k<components; ++k)
 		{
+#ifndef NDEBUG
 			std::cout << "\nComponent " << k << " pre-update:"
 				<< "\nWeight: " << std::exp(logWeights[k])
 				<< "\n" << gaussians[k] << std::endl;
+#endif
 
 			double logNk = LSE(logW.col(k));
 			double divNk = 1.0f / std::exp(logNk);
@@ -212,14 +219,20 @@ void benchmark_Eigen(
 			gaussians[k].cov() = gaussians[k].cov()*divNk 
 			+ Eigen::MatrixXd::Identity(dimension, dimension) * 1e-1;
 
+#ifndef NDEBUG
 			std::cout << "Component " << k << " post-update:"
 				<< "\nWeight: " << std::exp(logWeights[k])
 				<< "\n" << gaussians[k] << std::endl;
-
+#endif
 		}
 
+#ifndef NDEBUG
 		std::cout << " -> log-likelihood: " << logLikeliehoodAccum << "\n";
+#endif
 	}
+#ifdef NDEBUG
+	std::cout << " -> log-likelihood: " << logLikeliehoodAccum << "\n";
+#endif
 
 	auto finish = std::chrono::steady_clock::now();
 	double elapsed = std::chrono::duration_cast<
