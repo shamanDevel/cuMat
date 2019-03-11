@@ -683,6 +683,107 @@ public:
 };
 
 
+// view-as
+namespace internal
+{
+	template<typename _Child, Axis _Row, Axis _Col, Axis _Batch>
+	struct traits<SwapAxisOp<_Child, _Row, _Col, _Batch> >
+	{
+		using Scalar = typename internal::traits<_Child>::Scalar;
+		enum
+		{
+			Flags = internal::traits<_Child>::Flags,
+			RowsAtCompileTime = 
+				_Row == Axis::Row ? internal::traits<_Child>::RowsAtCompileTime
+				: _Row == Axis::Column ? internal::traits<_Child>::ColsAtCompileTime
+				: _Row == Axis::Batch ? internal::traits<_Child>::BatchesAtCompileTime
+				: 1,
+			ColsAtCompileTime =
+				_Col == Axis::Row ? internal::traits<_Child>::RowsAtCompileTime
+				: _Col == Axis::Column ? internal::traits<_Child>::ColsAtCompileTime
+				: _Col == Axis::Batch ? internal::traits<_Child>::BatchesAtCompileTime
+				: 1,
+			BatchesAtCompileTime =
+				_Batch == Axis::Row ? internal::traits<_Child>::RowsAtCompileTime
+				: _Batch == Axis::Column ? internal::traits<_Child>::ColsAtCompileTime
+				: _Batch == Axis::Batch ? internal::traits<_Child>::BatchesAtCompileTime
+				: 1,
+			AccessFlags = ReadCwise
+		};
+		typedef CwiseSrcTag SrcTag;
+		typedef DeletedDstTag DstTag;
+	};
+}
+/**
+* \brief This operation allows to swap arbitrary axis.
+* \tparam _Child the child expression
+* \see MatrixBase::swapAxis()
+*/
+template<typename _Child, Axis _Row, Axis _Col, Axis _Batch>
+class SwapAxisOp : public CwiseOp<SwapAxisOp<_Child, _Row, _Col, _Batch> >
+{
+	CUMAT_STATIC_ASSERT(_Row == Axis::NoAxis || _Row == Axis::Row || _Row == Axis::Column || _Row == Axis::Batch,
+		"_Row parameter must be either NoAxis, Row, Column or Batch");
+	CUMAT_STATIC_ASSERT(_Col == Axis::NoAxis || _Col == Axis::Row || _Col == Axis::Column || _Col == Axis::Batch,
+		"_Col parameter must be either NoAxis, Row, Column or Batch");
+	CUMAT_STATIC_ASSERT(_Batch == Axis::NoAxis || _Batch == Axis::Row || _Batch == Axis::Column || _Batch == Axis::Batch,
+		"_Batch parameter must be either NoAxis, Row, Column or Batch");
+
+public:
+	typedef CwiseOp<SwapAxisOp<_Child, _Row, _Col, _Batch> > Base;
+	typedef SwapAxisOp<_Child, _Row, _Col, _Batch> Type;
+	CUMAT_PUBLIC_API
+
+protected:
+	typedef typename MatrixReadWrapper<_Child, AccessFlags::ReadCwise>::type child_wrapped_t;
+	const child_wrapped_t child_;
+
+public:
+	explicit SwapAxisOp(const MatrixBase<_Child>& child)
+		: child_(child.derived())
+	{}
+
+	__host__ __device__ CUMAT_STRONG_INLINE Index rows() const
+	{
+		return _Row == Axis::Row ? child_.rows()
+			: _Row == Axis::Column ? child_.cols()
+			: _Row == Axis::Batch ? child_.batches()
+			: 1;
+	}
+	__host__ __device__ CUMAT_STRONG_INLINE Index cols() const
+	{
+		return _Col == Axis::Row ? child_.rows()
+			: _Col == Axis::Column ? child_.cols()
+			: _Col == Axis::Batch ? child_.batches()
+			: 1;
+	}
+	__host__ __device__ CUMAT_STRONG_INLINE Index batches() const
+	{
+		return _Batch == Axis::Row ? child_.rows()
+			: _Batch == Axis::Column ? child_.cols()
+			: _Batch == Axis::Batch ? child_.batches()
+			: 1;
+	}
+
+	__device__ CUMAT_STRONG_INLINE Scalar coeff(Index row, Index col, Index batch, Index index) const
+	{
+		return child_.derived().coeff(
+			_Row == Axis::Row ? row
+			: _Col == Axis::Row ? col
+			: _Batch == Axis::Row ? batch
+			: 0,
+			_Row == Axis::Column ? row
+			: _Col == Axis::Column ? col
+			: _Batch == Axis::Column ? batch
+			: 0,
+			_Row == Axis::Batch ? row
+			: _Col == Axis::Batch ? col
+			: _Batch == Axis::Batch ? batch
+			: 0,
+			-1);
+	}
+};
+
 
 CUMAT_NAMESPACE_END
 

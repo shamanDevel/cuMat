@@ -275,3 +275,25 @@ ExtractComplexPartOp<_Derived, true, false> imag() const
     CUMAT_STATIC_ASSERT(internal::NumTraits<typename internal::traits<_Derived>::Scalar>::IsComplex, "Matrix must be complex");
     return ExtractComplexPartOp<_Derived, true, false>(derived());
 }
+
+/**
+ * \brief Swaps the axis of this matrix.
+ * 
+ * This operation is best explained on examples:
+ *  - <code>matrix.swapAxis<Column, Row, Batch>()</code> 
+ *    returns the component-wise transpose
+ *  - <code>batchedVector.swapAxis<Row, Batch, NoAxis>()</code>
+ *    pulls in the batch dimension into the columns of the matrix.
+ *    The batch dimension is removed.
+ *  - <code>vector.swapAxis<NoAxis, NoAxis, Row>()</code>
+ *    converts the vector to a batched scalar tensor.
+ * 
+ * \tparam _Row the axis which is used as the new row index
+ * \tparam _Col the axis which is used as the new column index
+ * \tparam _Batch the axis which is used as the new batch index
+ */
+template<Axis _Row, Axis _Col, Axis _Batch>
+SwapAxisOp<_Derived, _Row, _Col, _Batch> swapAxis() const
+{
+	return SwapAxisOp<_Derived, _Row, _Col, _Batch>(derived());
+}

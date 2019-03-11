@@ -104,6 +104,7 @@ template<typename _Left, typename _Right, internal::ProductArgOp _OpLeft, intern
 template<typename _Child> class AsDiagonalOp;
 template<typename _Child> class ExtractDiagonalOp;
 template <typename _Child, bool _Imag, bool _Lvalue> class ExtractComplexPartOp;
+template<typename _Child, Axis _Row, Axis _Col, Axis _Batch> class SwapAxisOp;
 
 namespace functor
 {

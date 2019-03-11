@@ -93,6 +93,7 @@ enum AccessFlags
  */
 enum Axis
 {
+	NoAxis = 0,
     Row = 1,
     Column = 2,
     Batch = 4,

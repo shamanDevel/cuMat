@@ -25,6 +25,7 @@ set(CUMAT_TEST_FILES
   TestCasting.cu
   TestDiagonal.cu
   TestTranspose.cu
+  TestSwapAxisOp.cu
   TestBinaryOps1.cu
   TestBinaryOps2.cu
   TestBinaryOps3.cu
