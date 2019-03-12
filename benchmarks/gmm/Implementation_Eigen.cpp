@@ -177,7 +177,6 @@ void benchmark_Eigen(
 
 		//E-Step
 		logLikeliehoodAccum = 0;
-//#pragma omp parallel for reduction(+:logLikeliehoodAccum)
 		for (int i=0; i<numPoints; ++i)
 		{
 			//compute membership weight w_ik
@@ -199,7 +198,6 @@ void benchmark_Eigen(
 		}
 
 		//M-Step
-//#pragma omp parallel for
 		for (int k=0; k<components; ++k)
 		{
 #ifndef NDEBUG
