@@ -817,7 +817,7 @@ public:
     }
 
 	/**
-	 * \brief Performs a sychronous copy from host data into the
+	 * \brief Performs a synchronous copy from host data into the
 	 * device memory of this matrix.
 	 * This copy is synchronized on the default stream,
 	 * hence synchronous to every computation but slow.
@@ -825,12 +825,19 @@ public:
 	 */
 	void copyFromHost(const _Scalar* data)
 	{
-		CUMAT_SAFE_CALL(cudaMemcpy(data_.data(), data, sizeof(_Scalar)*size(), cudaMemcpyHostToDevice));
+		//slower, conservative: full synchronization
+		//CUMAT_SAFE_CALL(cudaMemcpy(data_.data(), data, sizeof(_Scalar)*size(), cudaMemcpyHostToDevice));
+		//CUMAT_SAFE_CALL(cudaDeviceSynchronize());
+
+		//faster: only synchronize this stream
+		CUMAT_SAFE_CALL(cudaMemcpyAsync(data_.data(), data, sizeof(_Scalar)*size(), cudaMemcpyHostToDevice, Context::current().stream()));
+		CUMAT_SAFE_CALL(cudaStreamSynchronize(Context::current().stream()));
+
         CUMAT_PROFILING_INC(MemcpyHostToDevice);
 	}
 
 	/**
-	* \brief Performs a sychronous copy from the
+	* \brief Performs a synchronous copy from the
 	* device memory of this matrix into the
 	* specified host memory
 	* This copy is synchronized on the default stream,
@@ -839,9 +846,14 @@ public:
 	*/
 	void copyToHost(_Scalar* data) const
 	{
-	    //CUMAT_SAFE_CALL(cudaDeviceSynchronize()); //wait until everything is evaluated
+	    //slower, conservative: full synchronization
+		//CUMAT_SAFE_CALL(cudaStreamSynchronize(Context::current().stream()));
+		//CUMAT_SAFE_CALL(cudaMemcpy(data, data_.data(), sizeof(_Scalar)*size(), cudaMemcpyDeviceToHost));
+
+		//faster: only synchronize this stream
+		CUMAT_SAFE_CALL(cudaMemcpyAsync(data, data_.data(), sizeof(_Scalar)*size(), cudaMemcpyDeviceToHost, Context::current().stream()));
 		CUMAT_SAFE_CALL(cudaStreamSynchronize(Context::current().stream()));
-		CUMAT_SAFE_CALL(cudaMemcpy(data, data_.data(), sizeof(_Scalar)*size(), cudaMemcpyDeviceToHost));
+
         CUMAT_PROFILING_INC(MemcpyDeviceToHost);
 	}
 
@@ -856,7 +868,6 @@ public:
 	 */
 	typedef typename CUMAT_NAMESPACE eigen::MatrixCuMatToEigen<Type>::type EigenMatrix_t;
 
-#ifdef CUMAT_PARSED_BY_DOXYGEN
 	/**
 	 * \brief Converts this cuMat matrix to the corresponding Eigen matrix.
 	 * Note that Eigen does not support batched matrices. Hence, this 
@@ -877,7 +888,14 @@ public:
 	 * data in and out before and after the computation.
 	 * \return the Eigen matrix with the contents of this matrix.
 	 */
-	EigenMatrix_t toEigen() const;
+	EigenMatrix_t toEigen() const
+	{
+		CUMAT_STATIC_ASSERT(_Batches == 1 || _Batches == Dynamic, "Compile-time batches>1 not allowed. Eigen does not support batches");
+		if (_Batches == Dynamic) CUMAT_ASSERT_ARGUMENT(batches() == 1);
+		EigenMatrix_t mat(rows(), cols());
+		copyToHost(mat.data());
+		return mat;
+	}
 
 	/**
 	* \brief Converts the specified Eigen matrix into the
@@ -887,7 +905,6 @@ public:
 	* a) the target matrix has a compile-time batch size of 1, or<br>
 	* b) the target matrix has a dynamic batch size and the batch size is 1 during runtime.<br>
 	* A new cuMat matrix is returned.
-	* TODO: implement this as an expression template
 	*
 	* <p>
 	* Design decision:<br>
@@ -902,32 +919,14 @@ public:
 	* data in and out before and after the computation.
 	* \return the Eigen matrix with the contents of this matrix.
 	*/
-	static Type fromEigen(const EigenMatrix_t& mat);
-#else
-
-	//TODO: once expression templates are implemented,
-	// move them upward to work on the expression templates directly
-	// (issue an evaluation in between)
-	template<typename T = std::enable_if<(_Batches == 1 || _Batches == Dynamic), EigenMatrix_t>>
-	typename T::type toEigen() const
+	static Type fromEigen(const EigenMatrix_t& mat)
 	{
-		if (_Batches == Dynamic) CUMAT_ASSERT_ARGUMENT(batches() == 1);
-		EigenMatrix_t mat(rows(), cols());
-		copyToHost(mat.data());
-		return mat;
-	}
-
-	//TODO: once expression templates are implemented,
-	// return an expression template that can then be assigned
-	// to a matrix. By that, the matrix can also be reshaped.
-	template<typename T = std::enable_if<_Batches == 1 || _Batches == Dynamic, Type>>
-	static typename T::type fromEigen(const EigenMatrix_t& mat)
-	{
+		CUMAT_STATIC_ASSERT(_Batches == 1 || _Batches == Dynamic, "Compile-time batches>1 not allowed. Eigen does not support batches");
 		Type m(mat.rows(), mat.cols());
 		m.copyFromHost(reinterpret_cast<const _Scalar*>(mat.data()));
 		return m;
 	}
-#endif
+
 #endif
 
 	// ASSIGNMENT
@@ -1183,7 +1182,8 @@ private:
     {
         //cuBLAS is not available for that type
         //default: cwise evaluation
-	    Base::template evalTo<Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags>, AssignmentMode::ASSIGN>(mat);
+		typedef Matrix<_Scalar, _OtherRows, _OtherColumns, _OtherBatches, TransposedFlags> TargetType;
+		internal::Assignment<TargetType, Type, AssignmentMode::ASSIGN, internal::DenseDstTag, internal::CwiseSrcTag>::assign(mat, *this);
     }
 
     template<int _OtherRows, int _OtherColumns, int _OtherBatches>
@@ -1192,12 +1192,12 @@ private:
         deepCloneImpl_directTranspose(mat, std::integral_constant<bool, internal::NumTraits<_Scalar>::IsCudaNumeric>());
     }
 
-    template<typename Derived>
-    void deepCloneImpl(MatrixBase<Derived>& m) const
-    {
-        //default: cwise evaluation
-        internal::Assignment<Derived, Type, AssignmentMode::ASSIGN, internal::DenseDstTag, internal::CwiseSrcTag>::assign(m.derived(), *this);
-    }
+    //template<typename Derived>
+    //void deepCloneImpl(MatrixBase<Derived>& m) const
+    //{
+    //    //default: cwise evaluation
+    //    internal::Assignment<Derived, Type, AssignmentMode::ASSIGN, internal::DenseDstTag, internal::CwiseSrcTag>::assign(m.derived(), *this);
+    //}
 
 public:
 
@@ -1219,7 +1219,7 @@ public:
     CUMAT_STRONG_INLINE Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> deepClone() const
 	{
         Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> mat(rows(), cols(), batches());
-        deepCloneImpl<Matrix<_Scalar, _Rows, _Columns, _Batches, _TargetFlags> >(mat);
+        deepCloneImpl(mat);
         return mat;
 	}
 

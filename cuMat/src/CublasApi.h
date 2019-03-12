@@ -81,6 +81,7 @@ namespace internal
         {
             CUBLAS_SAFE_CALL(cublasCreate_v2(&handle_));
             CUBLAS_SAFE_CALL(cublasSetPointerMode(handle_, CUBLAS_POINTER_MODE_HOST));
+            CUBLAS_SAFE_CALL(cublasSetStream(handle_, stream_));
         }
     public:
         ~CublasApi()

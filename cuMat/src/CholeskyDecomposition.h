@@ -174,19 +174,23 @@ public:
         Index strideB = n * nrhs;
 
         //3. perform solving
-        Matrix<int, 1, 1, Batches, RowMajor> devInfo(1, 1, batches);
+		DevicePointer<int> devInfo(batches);
+        //Matrix<int, 1, 1, -1, RowMajor> devInfo(1, 1, batches);
         for (Index batch = 0; batch < batches; ++batch) {
-            internal::CusolverApi::current().cusolverPotrs(
-                CUBLAS_FILL_MODE_UPPER,
-                n, nrhs,
-                internal::CusolverApi::cast(A + batch*strideA), lda,
-                internal::CusolverApi::cast(B + batch*strideB), ldb,
-                devInfo.data() + batch);
+			internal::CusolverApi::current().cusolverPotrs(
+				CUBLAS_FILL_MODE_UPPER,
+				n, nrhs,
+				internal::CusolverApi::cast(A + batch * strideA), lda,
+				internal::CusolverApi::cast(B + batch * strideB), ldb,
+				devInfo.pointer() + batch);
+                //devInfo.data() + batch);
         }
 
         //4. check if it was successfull
         std::vector<int> hostInfo(batches);
-        devInfo.copyToHost(&hostInfo[0]);
+        //devInfo.copyToHost(&hostInfo[0]);
+		CUMAT_SAFE_CALL(cudaMemcpyAsync(&hostInfo[0], devInfo.pointer(), sizeof(int)*batches, cudaMemcpyDeviceToHost, Context::current().stream()));
+		CUMAT_SAFE_CALL(cudaStreamSynchronize(Context::current().stream()));
         for (Index i = 0; i<batches; ++i)
         {
             if (hostInfo[i]<0)
