@@ -1,5 +1,6 @@
 import sys
 import os
+import os.path
 import json
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -107,9 +108,6 @@ if __name__== "__main__":
         draw_ellipse(initialMeans[cluster,:], initialCovariance[cluster,:,:], color=color, zorder=-1, alpha=initialWeights[cluster], ax=axes[0,1]);
     axes[0,1].set_title('Initial components')
 
-    #Display timings
-    # TODO
-
     # display results
     for i,backend in enumerate(backends):
         axes[1,i].plot(gPoints[:, 0], gPoints[:, 1], ".", color='black', zorder=0)
@@ -123,6 +121,7 @@ if __name__== "__main__":
         axes[1,i].set_title(backend)
 
 
-    plt.show()
+    #plt.show()
+    plt.savefig(os.path.splitext(resultFile)[0]+'.png', bbox_inches='tight', dpi=300)
 
 #plt.savefig(setPath+'.png', bbox_inches='tight', dpi=300)

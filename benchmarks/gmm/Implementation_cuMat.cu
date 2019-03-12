@@ -35,7 +35,6 @@ namespace
 		}
 		void computeDetInv()
 		{
-			bool invertible = true;
 			cuMat::Scalard det;
 			if (n_ == 1) {
 				covariance_.block<1, 1, 1>(0, 0, 0).computeInverseAndDet(invCovariance_, det);
@@ -70,11 +69,21 @@ namespace
 		{
 			tmp_ = x - mean_;
 			if (n_ <= 4) {
-				auto alpha = tmp_.dot(invCovariance_*tmp_);
+				//auto alpha = tmp_.dot(invCovariance_*tmp_) //slower
+				//this version is faster with cuBLAS by a factor of 4
+				//I think, the batched GEMM reads the matrix multiple times for all batches of right hand sides,
+				//while if I reinterpret the batches as columns of a RHS matrix,
+				//the LHS matrix invCovariance_ is only read once.
+				auto alpha = tmp_.dot(
+					(invCovariance_*tmp_.swapAxis<cuMat::Row, cuMat::Batch, cuMat::NoAxis>())
+					.swapAxis<cuMat::Row, cuMat::NoAxis, cuMat::Column>());
 				return -0.5 * (alpha + (n_ * log2pi + logdet_));
 			} 
 			else {
-				auto alpha = tmp_.dot(cholesky_.solve(tmp_));
+				auto alpha = tmp_.dot(
+					cholesky_.solve(
+						tmp_.swapAxis<cuMat::Row, cuMat::Batch, cuMat::NoAxis>())
+					.swapAxis<cuMat::Row, cuMat::NoAxis, cuMat::Column>());
 				return -0.5 * (alpha + (n_ * log2pi + logdet_));
 			}
 		}
@@ -166,22 +175,27 @@ void benchmark_cuMat(
 		logWeights.copyFromHost(logWeightsHost.data());
 	}
 
+#ifndef NDEBUG
 	for (int k = 0; k < components; ++k)
 	{
 		std::cout << "\nComponent " << k
 			<< "\nWeight: " << std::exp(static_cast<double>(logWeights.slice(k)))
 			<< "\n" << gaussians[k] << std::endl;
 	}
+#endif
 
 	//temporary memory
 	cuMat::MatrixXd logW(numPoints, components);
 
 	//run EM (fixed number of iterations)
 	std::cout << "Run EM algorithm" << std::endl;
-	auto start = std::chrono::steady_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> start;
 	double logLikeliehoodAccum;
 	for (int iter = 0; iter < numIterations; ++iter)
 	{
+		//half of the iterations for warm up
+		if (iter == numIterations / 2) start = std::chrono::steady_clock::now();
+
 #ifndef NDEBUG
 		std::cout << "    Iteration " << iter << std::endl;
 #endif
@@ -209,8 +223,8 @@ void benchmark_cuMat(
 			for (int k = 0; k < components; ++k)
 				std::cout << " " << std::exp(logWHost(i, k));
 			std::cout << std::endl;
-#endif
 		}
+#endif
 
 		//M-Step
 		auto lseC = LSE_col(logW);
@@ -262,7 +276,7 @@ void benchmark_cuMat(
 
 	auto finish = std::chrono::steady_clock::now();
 	double elapsed = std::chrono::duration_cast<
-		std::chrono::duration<double>>(finish - start).count() * 1000;
+		std::chrono::duration<double>>(finish - start).count() * 1000 * 2; //*2 for warm up
 	std::cout << "    Done in " << elapsed << "ms" << std::endl;
 
 	//save results

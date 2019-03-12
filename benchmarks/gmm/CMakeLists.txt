@@ -10,7 +10,8 @@ set(CUMAT_BENCHMARK_GMM
   Implementation_cuMat.cu
   Implementation_Eigen.cpp
   Implementation_tensorflow.py
-  MakePlots.py
+  MakePlots1.py
+  MakePlots2.py
   GenerateData.py
   configuration.json
   )

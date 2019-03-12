@@ -145,22 +145,27 @@ void benchmark_Eigen(
 		}
 	}
 
+#ifndef NDEBUG
 	for (int k = 0; k < components; ++k)
 	{
 		std::cout << "\nComponent " << k
 			<< "\nWeight: " << std::exp(logWeights[k])
 			<< "\n" << gaussians[k] << std::endl;
 	}
+#endif
 
 	//temporary memory
 	Eigen::MatrixXd logW(numPoints, components);
 
 	//run EM (fixed number of iterations)
 	std::cout << "Run EM algorithm" << std::endl;
-	auto start = std::chrono::steady_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> start;
 	double logLikeliehoodAccum;
 	for (int iter=0; iter < numIterations; ++iter)
 	{
+		//half of the iterations for warm up
+		if (iter==numIterations/2) start = std::chrono::steady_clock::now();
+
 #ifndef NDEBUG
 		std::cout << "    Iteration " << iter << std::endl;
 #endif
@@ -236,7 +241,7 @@ void benchmark_Eigen(
 
 	auto finish = std::chrono::steady_clock::now();
 	double elapsed = std::chrono::duration_cast<
-		std::chrono::duration<double>>(finish - start).count() * 1000 ;
+		std::chrono::duration<double>>(finish - start).count() * 1000 * 2; //*2 for warm up
 	std::cout << "    Done in " << elapsed << "ms" << std::endl;
 
 	//save results
