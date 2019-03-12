@@ -33,10 +33,10 @@ TEST_CASE("reduce_sum", "[reduce]")
     int expected[1][1][1] = { {{37}} };
     assertMatrixEquality(expected, m1.sum());
     REQUIRE(37 == (int)m1.sum());
-    assertMatrixEquality(expected, m1.sum(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+    assertMatrixEquality(expected, m1.sum(Axis::Row | Axis::Column | Axis::Batch));
     assertMatrixEquality(expected, m2.sum());
     REQUIRE(37 == (int)m2.sum());
-    assertMatrixEquality(expected, m2.sum(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+    assertMatrixEquality(expected, m2.sum(Axis::Row | Axis::Column | Axis::Batch));
 }
 
 TEST_CASE("reduce_prod", "[reduce]")
@@ -61,10 +61,10 @@ TEST_CASE("reduce_prod", "[reduce]")
     int expected[1][1][1] = { { { -240 } } };
     assertMatrixEquality(expected, m1.prod());
     REQUIRE(-240 == (int)m1.prod());
-    assertMatrixEquality(expected, m1.prod(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+    assertMatrixEquality(expected, m1.prod(Axis::Row | Axis::Column | Axis::Batch));
     assertMatrixEquality(expected, m2.prod());
     REQUIRE(-240 == (int)m2.prod());
-    assertMatrixEquality(expected, m2.prod(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+    assertMatrixEquality(expected, m2.prod(Axis::Row | Axis::Column | Axis::Batch));
 }
 
 TEST_CASE("reduce_min", "[reduce]")
@@ -89,10 +89,10 @@ TEST_CASE("reduce_min", "[reduce]")
     int expected[1][1][1] = { { { -9 } } };
     assertMatrixEquality(expected, m1.minCoeff());
     REQUIRE(-9 == (int)m1.minCoeff());
-    assertMatrixEquality(expected, m1.minCoeff(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+    assertMatrixEquality(expected, m1.minCoeff(Axis::Row | Axis::Column | Axis::Batch));
     assertMatrixEquality(expected, m2.minCoeff());
     REQUIRE(-9 == (int)m2.minCoeff());
-    assertMatrixEquality(expected, m2.minCoeff(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+    assertMatrixEquality(expected, m2.minCoeff(Axis::Row | Axis::Column | Axis::Batch));
 }
 
 TEST_CASE("reduce_max", "[reduce]")
@@ -117,10 +117,10 @@ TEST_CASE("reduce_max", "[reduce]")
     int expected[1][1][1] = { { { 11 } } };
     assertMatrixEquality(expected, m1.maxCoeff());
     REQUIRE(11 == (int)m1.maxCoeff());
-    assertMatrixEquality(expected, m1.maxCoeff(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+    assertMatrixEquality(expected, m1.maxCoeff(Axis::Row | Axis::Column | Axis::Batch));
     assertMatrixEquality(expected, m2.maxCoeff());
     REQUIRE(11 == (int)m2.maxCoeff());
-    assertMatrixEquality(expected, m2.maxCoeff(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+    assertMatrixEquality(expected, m2.maxCoeff(Axis::Row | Axis::Column | Axis::Batch));
 }
 
 TEST_CASE("reduce_all", "[reduce]")
@@ -143,10 +143,10 @@ TEST_CASE("reduce_all", "[reduce]")
 
     INFO("reduce: row+col");
     bool expected[2][1][1] = { { { true } }, {{false}} };
-    assertMatrixEquality(expected, m1.all<ReductionAxis::Row | ReductionAxis::Column>());
-    assertMatrixEquality(expected, m1.all(ReductionAxis::Row | ReductionAxis::Column));
-    assertMatrixEquality(expected, m2.all<ReductionAxis::Row | ReductionAxis::Column>());
-    assertMatrixEquality(expected, m2.all(ReductionAxis::Row | ReductionAxis::Column));
+    assertMatrixEquality(expected, m1.all<Axis::Row | Axis::Column>());
+    assertMatrixEquality(expected, m1.all(Axis::Row | Axis::Column));
+    assertMatrixEquality(expected, m2.all<Axis::Row | Axis::Column>());
+    assertMatrixEquality(expected, m2.all(Axis::Row | Axis::Column));
 }
 
 TEST_CASE("reduce_any", "[reduce]")
@@ -169,8 +169,8 @@ TEST_CASE("reduce_any", "[reduce]")
 
     INFO("reduce: row+col");
     bool expected[2][1][1] = { { { false } },{ { true} } };
-    assertMatrixEquality(expected, m1.any<ReductionAxis::Row | ReductionAxis::Column>());
-    assertMatrixEquality(expected, m1.any(ReductionAxis::Row | ReductionAxis::Column));
-    assertMatrixEquality(expected, m2.any<ReductionAxis::Row | ReductionAxis::Column>());
-    assertMatrixEquality(expected, m2.any(ReductionAxis::Row | ReductionAxis::Column));
+    assertMatrixEquality(expected, m1.any<Axis::Row | Axis::Column>());
+    assertMatrixEquality(expected, m1.any(Axis::Row | Axis::Column));
+    assertMatrixEquality(expected, m2.any<Axis::Row | Axis::Column>());
+    assertMatrixEquality(expected, m2.any(Axis::Row | Axis::Column));
 }

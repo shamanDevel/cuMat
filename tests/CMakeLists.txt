@@ -25,6 +25,7 @@ set(CUMAT_TEST_FILES
   TestCasting.cu
   TestDiagonal.cu
   TestTranspose.cu
+  TestSwapAxisOp.cu
   TestBinaryOps1.cu
   TestBinaryOps2.cu
   TestBinaryOps3.cu
@@ -41,6 +42,8 @@ set(CUMAT_TEST_FILES
   TestCholeskyDecomposition.cu
   TestLinAlgOps1.cu
   TestLinAlgOps2.cu
+  TestLinAlgOps3.cu
+  TestLinAlgOps4.cu
   TestCompoundAssignment.cu
   TestSparseMatrix.cu
   TestConjugateGradient.cu

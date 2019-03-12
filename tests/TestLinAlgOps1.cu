@@ -9,8 +9,4 @@ TEST_CASE("dense lin-alg 1", "[Dense]")
     {
         testlinAlgOps2<2>();
     }
-    SECTION("3x3")
-    {
-        testlinAlgOps2<3>();
-    }
 }

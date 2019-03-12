@@ -60,21 +60,43 @@ private:
     std::vector<int> singular_;
 
 public:
+	/**
+	 * \brief Uninitialized LU decomposition,
+	 * but with the specified matrix dimensions.
+	 * Since LU decompositions also allow non-symmetric matrices, 
+	 * you have to specify both row and column count.
+	 * Call \ref compute() before use.
+	 */
+	LUDecomposition(Index rows, Index cols, Index batches = Batches)
+		: decompositedMatrix_(rows, cols, batches)
+		, pivots_(std::min(rows, cols), 1, batches)
+		, singular_(batches)
+	{}
     /**
      * \brief Performs an LU-decomposition of the specified matrix and stores the result for future use.
      * \param matrix the matrix
      * \param inplace true to enforce inplace operation. The matrix contents will be destroyed
      */
-    explicit LUDecomposition(const MatrixBase<_MatrixType>& matrix, bool inplace=false)
-        : decompositedMatrix_(matrix.derived()) //this evaluates every matrix expression into a matrix
-        //allocate memory for the pivots
-        , pivots_(std::min(matrix.rows(), matrix.cols()), 1, matrix.batches())
-        , singular_(matrix.batches())
-    {
+	explicit LUDecomposition(const MatrixBase<_MatrixType>& matrix, bool inplace = false)
+		: LUDecomposition(matrix.rows(), matrix.cols(), matrix.batches())
+	{
+		compute(matrix, inplace);
+	}
+	/**
+	 * \brief Performs an LU-decomposition of the specified matrix and stores the result for future use.
+	 * \param matrix the matrix
+	 * \param inplace true to enforce inplace operation. The matrix contents will be destroyed
+	 */
+	void compute(const MatrixBase<_MatrixType>& matrix, bool inplace = false)
+	{
         //optionally, copy input
         //(copy is never needed if the input is not a matrix and is evaluated into the matrix during the initializer list)
-        if (!inplace && InputIsMatrix)
-            decompositedMatrix_ = decompositedMatrix_.deepClone();
+		if (!inplace && InputIsMatrix) {
+			decompositedMatrix_ = matrix; //shallow copy
+			decompositedMatrix_ = decompositedMatrix_.deepClone();
+		} 
+		else
+			decompositedMatrix_ = matrix;
         
         //perform LU factorization
         const int m = Transposed ? decompositedMatrix_.cols() : decompositedMatrix_.rows();
@@ -135,10 +157,10 @@ public:
         {
             return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(1));
         }
-        return decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>() //multiply diagonal elements
+        return decompositedMatrix_.diagonal().template prod<Axis::Row | Axis::Column>() //multiply diagonal elements
             .cwiseMul(
                 UnaryOp<PivotArray, PermutationSignFunctor>(pivots_, PermutationSignFunctor())
-                .template prod<ReductionAxis::Row | ReductionAxis::Column>().template cast<Scalar>() //compute sign of the permutation
+                .template prod<Axis::Row | Axis::Column>().template cast<Scalar>() //compute sign of the permutation
             );
     }
 
@@ -155,7 +177,7 @@ public:
         {
             return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(0));
         }
-        return decompositedMatrix_.diagonal().cwiseLog().template sum<ReductionAxis::Row | ReductionAxis::Column>(); //multiply diagonal elements;
+        return decompositedMatrix_.diagonal().cwiseLog().template sum<Axis::Row | Axis::Column>(); //multiply diagonal elements;
     }
 
     //Internal solve implementation

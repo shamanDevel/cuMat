@@ -40,7 +40,7 @@ TEST_CASE("raw_reduce_R", "[reduce]")
 {
     auto m = createTestMatrix();
     BMatrixXiR out(1, 3, 2);
-    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, ReductionAxis::Row, cub::Sum, int>
+    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, Axis::Row, cub::Sum, int>
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(6);
     out.copyToHost(&result[0]);
@@ -56,7 +56,7 @@ TEST_CASE("raw_reduce_C", "[reduce]")
 {
     auto m = createTestMatrix();
     BMatrixXiR out(4, 1, 2);
-    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, ReductionAxis::Column, cub::Sum, int>
+    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, Axis::Column, cub::Sum, int>
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(8);
     out.copyToHost(&result[0]);
@@ -74,7 +74,7 @@ TEST_CASE("raw_reduce_B", "[reduce]")
 {
     auto m = createTestMatrix();
     BMatrixXiR out(4, 3, 1);
-    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, ReductionAxis::Batch, cub::Sum, int>
+    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, Axis::Batch, cub::Sum, int>
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(12);
     out.copyToHost(&result[0]);
@@ -96,7 +96,7 @@ TEST_CASE("raw_reduce_RC", "[reduce]")
 {
     auto m = createTestMatrix();
     BMatrixXiR out(1, 1, 2);
-    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, ReductionAxis::Row | ReductionAxis::Column, cub::Sum, int>
+    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, Axis::Row | Axis::Column, cub::Sum, int>
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(2);
     out.copyToHost(&result[0]);
@@ -108,7 +108,7 @@ TEST_CASE("raw_reduce_RB", "[reduce]")
 {
     auto m = createTestMatrix();
     BMatrixXiR out(1, 3, 1);
-    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, ReductionAxis::Row | ReductionAxis::Batch, cub::Sum, int>
+    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, Axis::Row | Axis::Batch, cub::Sum, int>
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(3);
     out.copyToHost(&result[0]);
@@ -121,7 +121,7 @@ TEST_CASE("raw_reduce_CB", "[reduce]")
 {
     auto m = createTestMatrix();
     BMatrixXiR out(4, 1, 1);
-    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, ReductionAxis::Column | ReductionAxis::Batch, cub::Sum, int>
+    internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, Axis::Column | Axis::Batch, cub::Sum, int>
         ::eval(m, out, cub::Sum(), 0);
     std::vector<int> result(4);
     out.copyToHost(&result[0]);
@@ -135,7 +135,7 @@ TEST_CASE("raw_reduce_RCB", "[reduce]")
 {
     auto m = createTestMatrix();
     Scalari out;
-    internal::ReductionEvaluator<BMatrixXiR, Scalari, ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch, cub::Sum, int>
+    internal::ReductionEvaluator<BMatrixXiR, Scalari, Axis::Row | Axis::Column | Axis::Batch, cub::Sum, int>
         ::eval(m, out, cub::Sum(), 0);
     int result;
     out.copyToHost(&result);

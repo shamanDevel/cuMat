@@ -44,13 +44,32 @@ private:
 
 public:
     /**
+	 * \brief Uninitialized Cholesky decomposition, 
+	 * but with the specified matrix dimensions
+	 * Call \ref compute() before use.
+	 */
+	explicit CholeskyDecomposition(Index size, Index batches = Batches)
+		: decompositedMatrix_(size, size, batches)
+		, singular_(batches)
+	{}
+
+    /**
      * \brief Performs the Cholesky decomposition of the specified matrix and stores the result for future use.
      * \param matrix the Hermetian, positive definite input matrix
      * \param inplace true to enforce inplace operation. The matrix contents will be destroyed
      */
     explicit CholeskyDecomposition(const MatrixBase<_MatrixType>& matrix, bool inplace=false)
-        : decompositedMatrix_(matrix.derived()) //this evaluates every matrix expression into a matrix
-        , singular_(matrix.batches())
+        : CholeskyDecomposition(matrix.rows(), matrix.batches())
+	{
+		compute(matrix, inplace);
+	}
+
+	/**
+	 * \brief Performs the Cholesky decomposition of the specified matrix and stores the result for future use.
+	 * \param matrix the Hermetian, positive definite input matrix
+	 * \param inplace true to enforce inplace operation. The matrix contents will be destroyed
+	 */
+	void compute(const MatrixBase<_MatrixType>& matrix, bool inplace = false)
     {
         //Check if the input is symmetric
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(Rows>0 && Columns>0, Rows==Columns), "Input Matrix must be symmetric");
@@ -58,8 +77,12 @@ public:
     
         //optionally, copy input
         //(copy is never needed if the input is not a matrix and is evaluated into the matrix during the initializer list)
-        if (!inplace && InputIsMatrix)
-            decompositedMatrix_ = decompositedMatrix_.deepClone();
+		if (!inplace && InputIsMatrix) {
+			decompositedMatrix_ = matrix; //shallow copy
+			decompositedMatrix_ = decompositedMatrix_.deepClone();
+		}
+		else
+			decompositedMatrix_ = matrix;
         
         //perform  factorization
         const int n = decompositedMatrix_.rows();
@@ -110,7 +133,7 @@ public:
         {
             return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(1));
         }
-		return decompositedMatrix_.diagonal().template prod<ReductionAxis::Row | ReductionAxis::Column>().cwiseAbs2(); //multiply diagonal elements
+		return decompositedMatrix_.diagonal().template prod<Axis::Row | Axis::Column>().cwiseAbs2(); //multiply diagonal elements
             //the product of the diagonal elements is the squareroot of the determinant
     }
 
@@ -124,7 +147,7 @@ public:
         {
             return Matrix<Scalar, 1, 1, Batches, Flags>::Constant(1, 1, batches(), Scalar(0));
         }
-        return (decompositedMatrix_.diagonal().cwiseLog().template sum<ReductionAxis::Row | ReductionAxis::Column>()) * 2; //multiply diagonal elements;
+        return (decompositedMatrix_.diagonal().cwiseLog().template sum<Axis::Row | Axis::Column>()) * 2; //multiply diagonal elements;
     }
 
     template<typename _RHS, typename _Target>
@@ -151,19 +174,23 @@ public:
         Index strideB = n * nrhs;
 
         //3. perform solving
-        Matrix<int, 1, 1, Batches, RowMajor> devInfo(1, 1, batches);
+		DevicePointer<int> devInfo(batches);
+        //Matrix<int, 1, 1, -1, RowMajor> devInfo(1, 1, batches);
         for (Index batch = 0; batch < batches; ++batch) {
-            internal::CusolverApi::current().cusolverPotrs(
-                CUBLAS_FILL_MODE_UPPER,
-                n, nrhs,
-                internal::CusolverApi::cast(A + batch*strideA), lda,
-                internal::CusolverApi::cast(B + batch*strideB), ldb,
-                devInfo.data() + batch);
+			internal::CusolverApi::current().cusolverPotrs(
+				CUBLAS_FILL_MODE_UPPER,
+				n, nrhs,
+				internal::CusolverApi::cast(A + batch * strideA), lda,
+				internal::CusolverApi::cast(B + batch * strideB), ldb,
+				devInfo.pointer() + batch);
+                //devInfo.data() + batch);
         }
 
         //4. check if it was successfull
         std::vector<int> hostInfo(batches);
-        devInfo.copyToHost(&hostInfo[0]);
+        //devInfo.copyToHost(&hostInfo[0]);
+		CUMAT_SAFE_CALL(cudaMemcpyAsync(&hostInfo[0], devInfo.pointer(), sizeof(int)*batches, cudaMemcpyDeviceToHost, Context::current().stream()));
+		CUMAT_SAFE_CALL(cudaStreamSynchronize(Context::current().stream()));
         for (Index i = 0; i<batches; ++i)
         {
             if (hostInfo[i]<0)

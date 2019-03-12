@@ -18,12 +18,12 @@ int main()
     };
     BMatrixXdR mat = BMatrixXdR::fromArray(data);
     cout << "Input matrix: " << mat << endl;
-    cout << "Full reduction: " << mat.sum<ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch>().eval() << endl;
-    cout << " dynamic version: " << mat.sum(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch).eval() << endl;
-    cout << "Along rows: " << mat.sum<ReductionAxis::Row>().eval() << endl;
-    cout << "Along columns: " << mat.sum<ReductionAxis::Column>().eval() << endl;
-    cout << "Along batches: " << mat.sum<ReductionAxis::Batch>().eval() << endl;
-    cout << "Along rows and columns: " << mat.sum<ReductionAxis::Row | ReductionAxis::Column>().eval() << endl;
+    cout << "Full reduction: " << mat.sum<Axis::Row | Axis::Column | Axis::Batch>().eval() << endl;
+    cout << " dynamic version: " << mat.sum(Axis::Row | Axis::Column | Axis::Batch).eval() << endl;
+    cout << "Along rows: " << mat.sum<Axis::Row>().eval() << endl;
+    cout << "Along columns: " << mat.sum<Axis::Column>().eval() << endl;
+    cout << "Along batches: " << mat.sum<Axis::Batch>().eval() << endl;
+    cout << "Along rows and columns: " << mat.sum<Axis::Row | Axis::Column>().eval() << endl;
 
     /*
     //create a 2x4 matrix

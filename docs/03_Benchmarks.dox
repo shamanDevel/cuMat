@@ -4,6 +4,8 @@ namespace cuMat {
 
 To elaborate the execution time of the cuMat operations, we compare the implementations of the same algorithm in cuMat, cuBLAS, Eigen, numpy and tensorflow.
 
+The source code can be found under the "benchmarks" folder in the cuMat root directory. This folder also contains the tables with the raw timings in json format.
+
 \section System System setup
 
 The operation system used to execute the benchmarks:
@@ -69,7 +71,7 @@ Our implementation achieves even a slightly better performance than the optimize
 
 \section Benchmark_CG Benchmark 4: Conjugate Gradient Solver
 
-In a last benchmark we compare our implementation of the Conjugate Gradient Solver with the implementation shipped with Eigen.
+In this benchmark we compare our implementation of the Conjugate Gradient Solver with the implementation shipped with Eigen.
 As a model problem, a 2D diffusion process with random Dirichlet and Neumann boundaries is solved.
 For large enough problems, our GPU implementation is more than 20x as fast as the Eigen implementation.
 This is because the sparse matrix-vector multiplication and reductions are much faster on the GPU than on the CPU as shown before, and for large problems the memory transfer from device to host to query the current error is not the bottleneck.
@@ -77,6 +79,28 @@ This is because the sparse matrix-vector multiplication and reductions are much 
 \image html "Conjugate Gradient - 2D-Poisson Matrix.png"
 \image latex "Conjugate Gradient - 2D-Poisson Matrix" width=10cm
 
+\section Benchmark_GMM Benchmark 5: Gaussian Mixture Model
+
+This last benchmarks can also be seen as a demonstration of how a larger application can be build with cuMat.
+
+The starting point was an implementation of a Gaussian Mixture Model with the EM algorithm. This implementation was then ported to cuMat by changing all instances <code>Eigen::Matrix</code> to <code>cuMat::Matrix</code>.
+Followed by converting all explicit loops in the Eigen version into single expressions with the powerful broadcasting and batch evaluation semantic of cuMat.
+
+As a validation, here is a 2D test case with 4 components, 50 components and 20 EM iterations. One can see that the Eigen and cuMat implementation produce exactly the same results, given the same starting values.
+\htmlonly <style>div.image img[src="GMM_Test.png"]{width:500px;}</style> \endhtmlonly
+\image html "GMM_Test.png"
+\image latex "GMM_Test" width=10cm
+
+For the benchmarks, the performance is evaluated if one of the parameters (number of dimensions, number of components, number of points) is varied. One can see that the GPU implementation with cuMat always outperforms the CPU implementation with Eigen, except for very small number of points.
+\htmlonly <style>div.image img[src="GMM_Scale-Dimensions.png"]{width:500px;}</style> \endhtmlonly
+\image html "GMM_Scale-Dimensions.png"
+\image latex "GMM_Scale-Dimensions" width=10cm
+\htmlonly <style>div.image img[src="GMM_Scale-Num-Components.png"]{width:500px;}</style> \endhtmlonly
+\image html "GMM_Scale-Num-Components.png"
+\image latex "GMM_Scale-Num-Components" width=10cm
+\htmlonly <style>div.image img[src="GMM_Scale-Points.png"]{width:500px;}</style> \endhtmlonly
+\image html "GMM_Scale-Points.png"
+\image latex "GMM_Scale-Points" width=10cm
 */
 
 }

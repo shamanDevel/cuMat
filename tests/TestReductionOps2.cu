@@ -62,10 +62,10 @@ TEST_CASE("axis", "[reduce]")
                 { 13 }
             }
         };
-        assertMatrixEquality(expected, m1.sum<ReductionAxis::Column>());
-        assertMatrixEquality(expected, m1.sum(ReductionAxis::Column));
-        assertMatrixEquality(expected, m2.sum<ReductionAxis::Column>());
-        assertMatrixEquality(expected, m2.sum(ReductionAxis::Column));
+        assertMatrixEquality(expected, m1.sum<Axis::Column>());
+        assertMatrixEquality(expected, m1.sum(Axis::Column));
+        assertMatrixEquality(expected, m2.sum<Axis::Column>());
+        assertMatrixEquality(expected, m2.sum(Axis::Column));
     }
 
     {//row
@@ -78,10 +78,10 @@ TEST_CASE("axis", "[reduce]")
                 { 13, 2, 3, -3 }
             }
         };
-        assertMatrixEquality(expected, m1.sum<ReductionAxis::Row>());
-        assertMatrixEquality(expected, m1.sum(ReductionAxis::Row));
-        assertMatrixEquality(expected, m2.sum<ReductionAxis::Row>());
-        assertMatrixEquality(expected, m2.sum(ReductionAxis::Row));
+        assertMatrixEquality(expected, m1.sum<Axis::Row>());
+        assertMatrixEquality(expected, m1.sum(Axis::Row));
+        assertMatrixEquality(expected, m2.sum<Axis::Row>());
+        assertMatrixEquality(expected, m2.sum(Axis::Row));
     }
 
     {//batch
@@ -93,10 +93,10 @@ TEST_CASE("axis", "[reduce]")
                 { 4,4, 10,-16 }
             }
         };
-        assertMatrixEquality(expected, m1.sum<ReductionAxis::Batch>());
-        assertMatrixEquality(expected, m1.sum(ReductionAxis::Batch));
-        assertMatrixEquality(expected, m2.sum<ReductionAxis::Batch>());
-        assertMatrixEquality(expected, m2.sum(ReductionAxis::Batch));
+        assertMatrixEquality(expected, m1.sum<Axis::Batch>());
+        assertMatrixEquality(expected, m1.sum(Axis::Batch));
+        assertMatrixEquality(expected, m2.sum<Axis::Batch>());
+        assertMatrixEquality(expected, m2.sum(Axis::Batch));
     }
 
     {//row+column
@@ -109,10 +109,10 @@ TEST_CASE("axis", "[reduce]")
                 { 15 }
             }
         };
-        assertMatrixEquality(expected, m1.sum<ReductionAxis::Row | ReductionAxis::Column>());
-        assertMatrixEquality(expected, m1.sum(ReductionAxis::Row | ReductionAxis::Column));
-        assertMatrixEquality(expected, m2.sum<ReductionAxis::Row | ReductionAxis::Column>());
-        assertMatrixEquality(expected, m2.sum(ReductionAxis::Row | ReductionAxis::Column));
+        assertMatrixEquality(expected, m1.sum<Axis::Row | Axis::Column>());
+        assertMatrixEquality(expected, m1.sum(Axis::Row | Axis::Column));
+        assertMatrixEquality(expected, m2.sum<Axis::Row | Axis::Column>());
+        assertMatrixEquality(expected, m2.sum(Axis::Row | Axis::Column));
     }
 
     {//column+batch
@@ -124,10 +124,10 @@ TEST_CASE("axis", "[reduce]")
                 { 2 }
             }
         };
-        assertMatrixEquality(expected, m1.sum<ReductionAxis::Column | ReductionAxis::Batch>());
-        assertMatrixEquality(expected, m1.sum(ReductionAxis::Column | ReductionAxis::Batch));
-        assertMatrixEquality(expected, m2.sum<ReductionAxis::Column | ReductionAxis::Batch>());
-        assertMatrixEquality(expected, m2.sum(ReductionAxis::Column | ReductionAxis::Batch));
+        assertMatrixEquality(expected, m1.sum<Axis::Column | Axis::Batch>());
+        assertMatrixEquality(expected, m1.sum(Axis::Column | Axis::Batch));
+        assertMatrixEquality(expected, m2.sum<Axis::Column | Axis::Batch>());
+        assertMatrixEquality(expected, m2.sum(Axis::Column | Axis::Batch));
     }
 
     {//row
@@ -137,18 +137,18 @@ TEST_CASE("axis", "[reduce]")
                 { 21, 9, 16, -9 }
             }
         };
-        assertMatrixEquality(expected, m1.sum<ReductionAxis::Row | ReductionAxis::Batch>());
-        assertMatrixEquality(expected, m1.sum(ReductionAxis::Row | ReductionAxis::Batch));
-        assertMatrixEquality(expected, m2.sum<ReductionAxis::Row | ReductionAxis::Batch>());
-        assertMatrixEquality(expected, m2.sum(ReductionAxis::Row | ReductionAxis::Batch));
+        assertMatrixEquality(expected, m1.sum<Axis::Row | Axis::Batch>());
+        assertMatrixEquality(expected, m1.sum(Axis::Row | Axis::Batch));
+        assertMatrixEquality(expected, m2.sum<Axis::Row | Axis::Batch>());
+        assertMatrixEquality(expected, m2.sum(Axis::Row | Axis::Batch));
     }
 
     {//row+column+batch
         INFO("reduce: all")
         int expected[1][1][1] = { {{37}} };
         assertMatrixEquality(expected, m1.sum());
-        assertMatrixEquality(expected, m1.sum(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+        assertMatrixEquality(expected, m1.sum(Axis::Row | Axis::Column | Axis::Batch));
         assertMatrixEquality(expected, m2.sum());
-        assertMatrixEquality(expected, m2.sum(ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch));
+        assertMatrixEquality(expected, m2.sum(Axis::Row | Axis::Column | Axis::Batch));
     }
 }

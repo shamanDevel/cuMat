@@ -212,8 +212,7 @@ public:
 
   enum {
     CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
-    // Expose storage order of the sparse expression
-    Flags = (XprType::Flags & ~RowMajorBit) | (int(Rhs::Flags)&RowMajorBit)
+    Flags = XprType::Flags
   };
 
   explicit binary_evaluator(const XprType& xpr)
@@ -300,8 +299,7 @@ public:
 
   enum {
     CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
-    // Expose storage order of the sparse expression
-    Flags = (XprType::Flags & ~RowMajorBit) | (int(Lhs::Flags)&RowMajorBit)
+    Flags = XprType::Flags
   };
 
   explicit binary_evaluator(const XprType& xpr)
@@ -355,6 +353,16 @@ struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, Itera
   : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
 {
   typedef CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+
+// "sparse ./ dense"
+template<typename T1, typename T2, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs>, IteratorBased, IndexBased>
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs> XprType;
   typedef sparse_conjunction_evaluator<XprType> Base;
   explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
 };
@@ -523,8 +531,7 @@ public:
   
   enum {
     CoeffReadCost = evaluator<LhsArg>::CoeffReadCost + evaluator<RhsArg>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
-    // Expose storage order of the sparse expression
-    Flags = (XprType::Flags & ~RowMajorBit) | (int(RhsArg::Flags)&RowMajorBit)
+    Flags = XprType::Flags
   };
   
   explicit sparse_conjunction_evaluator(const XprType& xpr)
@@ -598,8 +605,7 @@ public:
   
   enum {
     CoeffReadCost = evaluator<LhsArg>::CoeffReadCost + evaluator<RhsArg>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
-    // Expose storage order of the sparse expression
-    Flags = (XprType::Flags & ~RowMajorBit) | (int(LhsArg::Flags)&RowMajorBit)
+    Flags = XprType::Flags
   };
   
   explicit sparse_conjunction_evaluator(const XprType& xpr)

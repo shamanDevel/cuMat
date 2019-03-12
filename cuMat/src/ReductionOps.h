@@ -38,7 +38,7 @@ namespace internal
 
     //row reduction
     template<typename _Input, typename _Output, typename _Op, typename _Scalar>
-    struct ReductionEvaluator<_Input, _Output, ReductionAxis::Row, _Op, _Scalar>
+    struct ReductionEvaluator<_Input, _Output, Axis::Row, _Op, _Scalar>
     {
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
@@ -58,7 +58,7 @@ namespace internal
 
     //column reduction
     template<typename _Input, typename _Output, typename _Op, typename _Scalar>
-    struct ReductionEvaluator<_Input, _Output, ReductionAxis::Column, _Op, _Scalar>
+    struct ReductionEvaluator<_Input, _Output, Axis::Column, _Op, _Scalar>
     {
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
@@ -78,7 +78,7 @@ namespace internal
 
     //reduction over batches
     template<typename _Input, typename _Output, typename _Op, typename _Scalar>
-    struct ReductionEvaluator<_Input, _Output, ReductionAxis::Batch, _Op, _Scalar>
+    struct ReductionEvaluator<_Input, _Output, Axis::Batch, _Op, _Scalar>
     {
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
@@ -103,7 +103,7 @@ namespace internal
 
     //reduction over rows and columns
     template<typename _Input, typename _Output, typename _Op, typename _Scalar>
-    struct ReductionEvaluator<_Input, _Output, ReductionAxis::Row | ReductionAxis::Column, _Op, _Scalar>
+    struct ReductionEvaluator<_Input, _Output, Axis::Row | Axis::Column, _Op, _Scalar>
     {
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
@@ -126,7 +126,7 @@ namespace internal
 
     //reduction over rows and batches
     template<typename _Input, typename _Output, typename _Op, typename _Scalar>
-    struct ReductionEvaluator<_Input, _Output, ReductionAxis::Row | ReductionAxis::Batch, _Op, _Scalar>
+    struct ReductionEvaluator<_Input, _Output, Axis::Row | Axis::Batch, _Op, _Scalar>
     {
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
@@ -146,7 +146,7 @@ namespace internal
 
     //reduction over colums and batches
     template<typename _Input, typename _Output, typename _Op, typename _Scalar>
-    struct ReductionEvaluator<_Input, _Output, ReductionAxis::Column | ReductionAxis::Batch, _Op, _Scalar>
+    struct ReductionEvaluator<_Input, _Output, Axis::Column | Axis::Batch, _Op, _Scalar>
     {
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
@@ -166,7 +166,7 @@ namespace internal
 
     //full reduction
     template<typename _Input, typename _Output, typename _Op, typename _Scalar>
-    struct ReductionEvaluator<_Input, _Output, ReductionAxis::Row | ReductionAxis::Column | ReductionAxis::Batch, _Op, _Scalar>
+    struct ReductionEvaluator<_Input, _Output, Axis::Row | Axis::Column | Axis::Batch, _Op, _Scalar>
     {
         static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
         {
@@ -244,15 +244,15 @@ public:
 
     __host__ __device__ CUMAT_STRONG_INLINE Index rows() const
     {
-        return (axis_ & ReductionAxis::Row) ? 1 : child_.rows();
+        return (axis_ & Axis::Row) ? 1 : child_.rows();
     }
     __host__ __device__ CUMAT_STRONG_INLINE Index cols() const
     {
-        return (axis_ & ReductionAxis::Column) ? 1 : child_.cols();
+        return (axis_ & Axis::Column) ? 1 : child_.cols();
     }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const
     {
-        return (axis_ & ReductionAxis::Batch) ? 1 : child_.batches();
+        return (axis_ & Axis::Batch) ? 1 : child_.batches();
     }
 
     template<typename Derived, AssignmentMode Mode>
@@ -270,14 +270,14 @@ public:
 
         CUMAT_LOG_DEBUG("Evaluate reduction expression " << typeid(derived()).name()
 			<< "\n rows=" << m.rows() << ", cols=" << m.cols() << ", batches=" << m.batches()
-            << ", axis=" << ((axis_ & ReductionAxis::Row) ? "R" : "") << ((axis_ & ReductionAxis::Column) ? "C" : "") << ((axis_ & ReductionAxis::Batch) ? "B" : ""));
+            << ", axis=" << ((axis_ & Axis::Row) ? "R" : "") << ((axis_ & Axis::Column) ? "C" : "") << ((axis_ & Axis::Batch) ? "B" : ""));
 
 		//simplify axis, less segments are better
 		const int axisSimplified =
 			axis_ == 0 ? 0 : (
-				axis_ | (internal::traits<_Child>::RowsAtCompileTime==1 ? ReductionAxis::Row : 0)
-				      | (internal::traits<_Child>::ColsAtCompileTime==1 ? ReductionAxis::Column : 0)
-				      | (internal::traits<_Child>::BatchesAtCompileTime==1 ? ReductionAxis::Batch : 0)
+				axis_ | (internal::traits<_Child>::RowsAtCompileTime==1 ? Axis::Row : 0)
+				      | (internal::traits<_Child>::ColsAtCompileTime==1 ? Axis::Column : 0)
+				      | (internal::traits<_Child>::BatchesAtCompileTime==1 ? Axis::Batch : 0)
 			);
 
         //runtime switch to the implementations
@@ -306,9 +306,9 @@ namespace internal {
         enum
         {
             Flags = internal::traits<_Child>::Flags,
-            RowsAtCompileTime = ((_Axis & ReductionAxis::Row) ? 1 : internal::traits<_Child>::RowsAtCompileTime),
-            ColsAtCompileTime = ((_Axis & ReductionAxis::Column) ? 1 : internal::traits<_Child>::ColsAtCompileTime),
-            BatchesAtCompileTime = ((_Axis & ReductionAxis::Batch) ? 1 : internal::traits<_Child>::BatchesAtCompileTime),
+            RowsAtCompileTime = ((_Axis & Axis::Row) ? 1 : internal::traits<_Child>::RowsAtCompileTime),
+            ColsAtCompileTime = ((_Axis & Axis::Column) ? 1 : internal::traits<_Child>::ColsAtCompileTime),
+            BatchesAtCompileTime = ((_Axis & Axis::Batch) ? 1 : internal::traits<_Child>::BatchesAtCompileTime),
             AccessFlags = 0
         };
         typedef ReductionSrcTag SrcTag;
@@ -341,15 +341,15 @@ public:
 
     __host__ __device__ CUMAT_STRONG_INLINE Index rows() const
     {
-        return (_Axis & ReductionAxis::Row) ? 1 : child_.rows();
+        return (_Axis & Axis::Row) ? 1 : child_.rows();
     }
     __host__ __device__ CUMAT_STRONG_INLINE Index cols() const
     {
-        return (_Axis & ReductionAxis::Column) ? 1 : child_.cols();
+        return (_Axis & Axis::Column) ? 1 : child_.cols();
     }
     __host__ __device__ CUMAT_STRONG_INLINE Index batches() const
     {
-        return (_Axis & ReductionAxis::Batch) ? 1 : child_.batches();
+        return (_Axis & Axis::Batch) ? 1 : child_.batches();
     }
 
     template<typename Derived, AssignmentMode Mode>
@@ -368,16 +368,16 @@ public:
 		//simplify axis, less segments are better
 		constexpr int AxisSimplified =
 			_Axis == 0 ? 0 : (
-				_Axis | (internal::traits<_Child>::RowsAtCompileTime==1 ? ReductionAxis::Row : 0)
-				      | (internal::traits<_Child>::ColsAtCompileTime==1 ? ReductionAxis::Column : 0)
-				      | (internal::traits<_Child>::BatchesAtCompileTime==1 ? ReductionAxis::Batch : 0)
+				_Axis | (internal::traits<_Child>::RowsAtCompileTime==1 ? Axis::Row : 0)
+				      | (internal::traits<_Child>::ColsAtCompileTime==1 ? Axis::Column : 0)
+				      | (internal::traits<_Child>::BatchesAtCompileTime==1 ? Axis::Batch : 0)
 			);
 
 		CUMAT_LOG_DEBUG("Evaluate reduction expression " << typeid(derived()).name()
 			<< "\n rows=" << m.rows() << "(" << internal::traits<_Child>::RowsAtCompileTime << ")"
     		<< ", cols=" << m.cols() << "(" << internal::traits<_Child>::ColsAtCompileTime  << ")" 
     		<< ", batches=" << m.batches() << "(" << internal::traits<_Child>::BatchesAtCompileTime << ")"
-            << ", axis=" << ((AxisSimplified & ReductionAxis::Row) ? "R" : "") << ((AxisSimplified & ReductionAxis::Column) ? "C" : "") << ((AxisSimplified & ReductionAxis::Batch) ? "B" : ""));
+            << ", axis=" << ((AxisSimplified & Axis::Row) ? "R" : "") << ((AxisSimplified & Axis::Column) ? "C" : "") << ((AxisSimplified & Axis::Batch) ? "B" : ""));
 
         //compile-time switch to the implementations
         internal::ReductionEvaluator<_Child, Derived, AxisSimplified, _ReductionOp, Scalar>::eval(child_, m.derived(), op_, initialValue_);
