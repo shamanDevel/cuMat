@@ -425,6 +425,111 @@ public:
 	}
 };
 
+/**
+ * \brief A simple reference-counted wrapper around cuda events.
+ * This class is not synchronized
+ */
+class Event
+{
+	cudaEvent_t event_;
+	size_t* counter_;
+
+		void release()
+	{
+		if ((counter_) && (--(*counter_) == 0))
+		{
+			delete counter_;
+			CUMAT_SAFE_CALL(cudaEventDestroy(event_));
+		}
+	}
+
+public:
+	Event()
+		: event_(nullptr)
+		, counter_(new size_t(1))
+	{
+		CUMAT_SAFE_CALL(cudaEventCreate(&event_));
+	}
+
+	Event(const Event& rhs)
+		: event_(rhs.event_)
+		, counter_(rhs.counter_)
+	{
+		assert(counter_);
+		++(*counter_);
+	}
+
+	Event(Event&& rhs) noexcept
+		: event_(std::move(rhs.event_))
+		, counter_(std::move(rhs.counter_))
+	{
+		rhs.event_ = nullptr;
+		rhs.counter_ = nullptr;
+	}
+
+	Event& operator=(const Event& rhs)
+	{
+		release();
+		event_ = rhs.event_;
+		counter_ = rhs.counter_;
+		assert(counter_);
+		++(*counter_);
+		return *this;
+	}
+
+	Event& operator=(Event&& rhs) noexcept
+	{
+		release();
+		event_ = std::move(rhs.event_);
+		counter_ = std::move(rhs.counter_);
+		assert(counter_);
+		rhs.event_ = nullptr;
+		rhs.counter_ = nullptr;
+		return *this;
+	}
+
+	void swap(Event& rhs) throw()
+	{
+		std::swap(event_, rhs.event_);
+		std::swap(counter_, rhs.counter_);
+	}
+
+	~Event()
+	{
+		release();
+	}
+
+	cudaEvent_t event() const { return event_; }
+
+	/**
+	 * Records an event into this instance after all preceding operations in <code>stream</code> have been completed.
+	 */
+	void record(cudaStream_t stream) const
+	{
+		CUMAT_SAFE_CALL(cudaEventRecord(event_, stream));
+	}
+
+	/**
+	 * Synchronizes the given stream with this event.
+	 * The given stream will wait until the event recorded with \ref record(cudaStream_t) has completed.
+	 */
+	void streamWait(cudaStream_t stream) const
+	{
+		CUMAT_SAFE_CALL(cudaStreamWaitEvent(stream, event_, 0));
+	}
+
+	/**
+	 * Returns the elapsed time in milliseconds between the two recorded events.
+	 */
+	static float elapsedTime(const Event& start, const Event& end)
+	{
+		float ms;
+		CUMAT_SAFE_CALL(cudaEventSynchronize(start.event()));
+		CUMAT_SAFE_CALL(cudaEventSynchronize(end.event()));
+		CUMAT_SAFE_CALL(cudaEventElapsedTime(&ms, start.event(), end.event()));
+		return ms;
+	}
+};
 
 CUMAT_NAMESPACE_END
 

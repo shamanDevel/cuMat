@@ -17,6 +17,8 @@ CUMAT_NAMESPACE_BEGIN
 
 namespace internal
 {
+	//TODO: use the various reduction algorithms from the benchmark.
+	//Switch between the algorithms based on the timings in the benchmarks.
 
     template<typename _Input, typename _Output, int axis, typename _Op, typename _Scalar>
     struct ReductionEvaluator
