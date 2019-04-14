@@ -114,10 +114,46 @@ Timings benchmark(Index rows, Index cols, Index batches, bool compare)
 	}
 	timings.block1024 = Event::elapsedTime(start, end);
 
+	//device-1
+	target2.setZero();
+	start.record(stream);
+	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 1>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+	end.record(stream);
+	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+		std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
+		std::cerr << "Expected: " << target1 << std::endl;
+		std::cerr << "Actual: " << target2 << std::endl;
+	}
+	timings.device1 = Event::elapsedTime(start, end);
+
+	//device-2
+	target2.setZero();
+	start.record(stream);
+	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 2>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+	end.record(stream);
+	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+		std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
+		std::cerr << "Expected: " << target1 << std::endl;
+		std::cerr << "Actual: " << target2 << std::endl;
+	}
+	timings.device2 = Event::elapsedTime(start, end);
+
+	//device-4
+	target2.setZero();
+	start.record(stream);
+	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 4>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+	end.record(stream);
+	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+		std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
+		std::cerr << "Expected: " << target1 << std::endl;
+		std::cerr << "Actual: " << target2 << std::endl;
+	}
+	timings.device4 = Event::elapsedTime(start, end);
+
 	//device-8
 	target2.setZero();
 	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 8>(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 8>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
 	end.record(stream);
 	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
 		std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
@@ -129,7 +165,7 @@ Timings benchmark(Index rows, Index cols, Index batches, bool compare)
 	//device-16
 	target2.setZero();
 	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 16>(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 16>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
 	end.record(stream);
 	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
 		std::cerr << "ReduceDevice-16 produced a wrong result!" << std::endl;
@@ -141,7 +177,7 @@ Timings benchmark(Index rows, Index cols, Index batches, bool compare)
 	//device-32
 	target2.setZero();
 	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 32>(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 32>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
 	end.record(stream);
 	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
 		std::cerr << "ReduceDevice-32 produced a wrong result!" << std::endl;

@@ -9,7 +9,8 @@ set(CUMAT_BENCHMARK_BATCHED_REDUCTIONS
   reductions.cuh
   reductions.h
   reductions.cu
-  MakePlots.py
+  MakePlotsLinear.py
+  MakePlotsFull.py
   configuration.json
   )
   

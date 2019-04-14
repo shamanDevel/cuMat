@@ -18,6 +18,9 @@ struct Timings
 	float block256;
 	float block512;
 	float block1024;
+	float device1;
+	float device2;
+	float device4;
 	float device8;
 	float device16;
 	float device32;
@@ -37,6 +40,9 @@ struct Timings
 		block256 += t.block256;
 		block512 += t.block512;
 		block1024 += t.block1024;
+		device1 += t.device1;
+		device2 += t.device2;
+		device4 += t.device4;
 		device8 += t.device8;
 		device16 += t.device16;
 		device32 += t.device32;
@@ -53,6 +59,9 @@ struct Timings
 		block256 /= n;
 		block512 /= n;
 		block1024 /= n;
+		device1 /= n;
+		device2 /= n;
+		device4 /= n;
 		device8 /= n;
 		device16 /= n;
 		device32 /= n;
@@ -69,6 +78,9 @@ struct Timings
 			<< "\n\tBlock256: " << t.block256 << "ms"
 			<< "\n\tBlock512: " << t.block512 << "ms"
 			<< "\n\tBlock1024: " << t.block1024 << "ms"
+			<< "\n\tDevice1: " << t.device1 << "ms"
+			<< "\n\tDevice2: " << t.device2 << "ms"
+			<< "\n\tDevice4: " << t.device4 << "ms"
 			<< "\n\tDevice8: " << t.device8 << "ms"
 			<< "\n\tDevice16: " << t.device16 << "ms"
 			<< "\n\tDevice32: " << t.device32 << "ms";
