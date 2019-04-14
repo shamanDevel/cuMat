@@ -21,7 +21,7 @@
 #include "../Json.h"
 
 #include "reductions.h"
-
+#include <set>
 
 
 //https://stackoverflow.com/a/478960/4053176
@@ -52,6 +52,9 @@ Json::Array timingsToArray(int N, const Timings& timings)
 	a.PushBack(timings.block128);
 	a.PushBack(timings.block256);
 	a.PushBack(timings.block512);
+	a.PushBack(timings.device1);
+	a.PushBack(timings.device2);
+	a.PushBack(timings.device4);
 	a.PushBack(timings.device8);
 	a.PushBack(timings.device16);
 	a.PushBack(timings.device32);
@@ -104,6 +107,9 @@ void runLinearBenchmark()
 	resultsInfo.PushBack("Block128");
 	resultsInfo.PushBack("Block256");
 	resultsInfo.PushBack("Block512");
+	resultsInfo.PushBack("Device1");
+	resultsInfo.PushBack("Device2");
+	resultsInfo.PushBack("Device4");
 	resultsInfo.PushBack("Device8");
 	resultsInfo.PushBack("Device16");
 	resultsInfo.PushBack("Device32");
@@ -159,38 +165,45 @@ void runLinearBenchmark()
 //FULL 2D Benchmark
 void runFullBenchmark()
 {
-	int minNumBatches = 2;
-	int maxNumBatches = 1 << 15;
-	int minBatchSize = 2;
-	int maxBatchSize = 1 << 10;//1 << 15;
-	int maxTotalSize = 1 << 15;//1 << 22;
-	int minTotalSize = 256;
+	long minNumBatches = 1;
+	long maxNumBatches = 1 << 22;
+	long minBatchSize = 1;
+	long maxBatchSize = 1 << 22;//1 << 15;
+	long maxTotalSize = 1 << 22;//1 << 22;
+	long minTotalSize = 256;
 	double step = 0.25;
-	int runs = 2;
+	int runs = 5;
 
 	std::ofstream outStreamRow(outputDir + "batched_reductions_full_row.txt");
 	std::ofstream outStreamCol(outputDir + "batched_reductions_full_col.txt");
 	std::ofstream outStreamBatch(outputDir + "batched_reductions_full_batch.txt");
-	outStreamRow << "NumBatches\tBatchSize\tBaseline\tThread\tWarp"
+	outStreamRow << "NumBatches\tBatchSize\tCUB\tThread\tWarp"
 		<< "\tBlock64\tBlock128\tBlock256\tBlock512\tBlock1024"
 		<< "\tDevice1\tDevice2\tDevice4\tDevice8\tDevice16\tDevice32"
 		<< std::endl;
-	outStreamCol << "NumBatches\tBatchSize\tBaseline\tThread\tWarp"
+	outStreamCol << "NumBatches\tBatchSize\tCUB\tThread\tWarp"
 		<< "\tBlock64\tBlock128\tBlock256\tBlock512\tBlock1024"
 		<< "\tDevice1\tDevice2\tDevice4\tDevice8\tDevice16\tDevice32"
 		<< std::endl;
-	outStreamBatch << "NumBatches\tBatchSize\tBaseline\tThread\tWarp"
+	outStreamBatch << "NumBatches\tBatchSize\tCUB\tThread\tWarp"
 		<< "\tBlock64\tBlock128\tBlock256\tBlock512\tBlock1024"
 		<< "\tDevice1\tDevice2\tDevice4\tDevice8\tDevice16\tDevice32"
 		<< std::endl;
 
+	std::set<std::tuple<cuMat::Index, cuMat::Index, cuMat::Index>> set;
 	for (double i=std::log2(double(minNumBatches)); i<=std::log2(double(maxNumBatches)); i+=step)
 	{
 		int numBatches = static_cast<int>(std::round(std::pow(2, i)));
 		for (double j=std::log2(double(minBatchSize)); j<=std::log2(double(maxBatchSize)); j+=step)
 		{
-			int batchSize = static_cast<int>(std::round(std::pow(2, j)));
-			int totalSize = numBatches * batchSize;
+			cuMat::Index batchSize = static_cast<cuMat::Index>(std::round(std::pow(2, j)));
+			cuMat::Index totalSize = numBatches * batchSize;
+			cuMat::Index outerDim1 = cuMat::Index(std::sqrt(double(numBatches)));
+			cuMat::Index outerDim2 = totalSize / (batchSize * outerDim1);
+			totalSize = batchSize * outerDim1 * outerDim2;
+			auto tuple = std::make_tuple(batchSize, outerDim1, outerDim2);
+			if (set.count(tuple) > 0) continue; //already processed
+			set.insert(tuple);
 			if (totalSize > maxTotalSize)
 			{
 				std::cout << "Run numBatches=" << numBatches << ", batchSize=" << batchSize << " -> too large, skip" << std::endl;
@@ -202,16 +215,14 @@ void runFullBenchmark()
 				continue;
 			}
 
-			int outerDim1 = int(std::sqrt(double(batchSize)));
-			int outerDim2 = totalSize / (numBatches * outerDim1);
 			std::cout << "Run numBatches=" << numBatches << ", batchSize=" << outerDim1 << "*" << outerDim2 << " (=" << totalSize << ")" << std::endl;
 
 			Timings t = { 0 };
 
 			t.reset();
-			benchmark(numBatches, outerDim1, outerDim2, "float", "row", false); //dry run
+			benchmark(batchSize, outerDim1, outerDim2, "float", "row", false, true); //dry run
 			for (int i = 0; i < runs; ++i)
-				t += benchmark(numBatches, outerDim1, outerDim2, "float", "row", false);
+				t += benchmark(batchSize, outerDim1, outerDim2, "float", "row", false, true);
 			t /= runs;
 			outStreamRow << numBatches << "\t" << batchSize
 				<< "\t" << t.baseline << "\t" << t.thread << "\t" << t.warp
@@ -220,9 +231,9 @@ void runFullBenchmark()
 				<< std::endl;
 
 			t.reset();
-			benchmark(outerDim1, numBatches, outerDim2, "float", "col", false);
+			benchmark(outerDim1, batchSize, outerDim2, "float", "col", false, true);
 			for (int i = 0; i < runs; ++i)
-				t += benchmark(outerDim1, numBatches, outerDim2, "float", "col", false);
+				t += benchmark(outerDim1, batchSize, outerDim2, "float", "col", false, true);
 			t /= runs;
 			outStreamCol << numBatches << "\t" << batchSize
 				<< "\t" << t.baseline << "\t" << t.thread << "\t" << t.warp
@@ -231,9 +242,9 @@ void runFullBenchmark()
 				<< std::endl;
 
 			t.reset();
-			benchmark(outerDim1, outerDim2, numBatches, "float", "batch", false);
+			benchmark(outerDim1, outerDim2, batchSize, "float", "batch", false, true);
 			for (int i = 0; i < runs; ++i)
-				t += benchmark(outerDim1, outerDim2, numBatches, "float", "batch", false);
+				t += benchmark(outerDim1, outerDim2, batchSize, "float", "batch", false, true);
 			t /= runs;
 			outStreamBatch << numBatches << "\t" << batchSize
 				<< "\t" << t.baseline << "\t" << t.thread << "\t" << t.warp
@@ -273,15 +284,15 @@ void runFullBenchmark()
 
 int main(int argc, char* argv[])
 {
-	//std::cout << "==============================" << std::endl;
-	//std::cout << " VALIDATION" << std::endl;
-	//std::cout << "==============================" << std::endl;
-	//runValidation();
+	std::cout << "==============================" << std::endl;
+	std::cout << " VALIDATION" << std::endl;
+	std::cout << "==============================" << std::endl;
+	runValidation();
 
-	//std::cout << "==============================" << std::endl;
-	//std::cout << " VALIDATION" << std::endl;
-	//std::cout << "==============================" << std::endl;
-	//runLinearBenchmark();
+	std::cout << "==============================" << std::endl;
+	std::cout << " LINEAR BENCHMARK" << std::endl;
+	std::cout << "==============================" << std::endl;
+	runLinearBenchmark();
 
 	std::cout << "==============================" << std::endl;
 	std::cout << " FULL BENCHMARK" << std::endl;

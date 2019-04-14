@@ -7,9 +7,13 @@ import math
 import numpy as np
 import seaborn as sns
 
-setPath = "../batched_reductions_full_batch" #sys.argv[1]
+if len(sys.argv)>2:
+    setPath = sys.argv[1]
+    title = sys.argv[2]
+else:
+    setPath = "../batched_reductions_full_col"
+    title = "Column" 
 setName = setPath[setPath.rfind('/')+1:]
-title = "Row" #sys.argv[2]
 
 # load result file
 resultFile = setPath + ".txt"
@@ -46,11 +50,13 @@ bounds=[v-1.5 for v in range(len(fieldNames))]
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 
 # create figure
-fig = plt.figure(figsize=plt.figaspect(0.5))
-fig.suptitle("Reduction axis: "+title)
+#fig = plt.figure(figsize=plt.figaspect(0.5))
+#fig.suptitle("Reduction axis: "+title)
+plt.title("Reduction axis: "+title)
 
 # create 3d plot
-ax = fig.add_subplot(1, 2, 1)
+#ax = fig.add_subplot(1, 2, 1)
+ax = plt.gca()
 img = ax.imshow(Z,interpolation='nearest',
                 cmap = cmap, norm=norm,
                 origin='lower')
@@ -69,9 +75,10 @@ cbar = plt.colorbar(img, cmap=cmap, norm=norm, boundaries=bounds, ticks=range(-1
 cbar.ax.set_yticklabels(['N/A'] + list(fieldNames[2:]))
 
 # create cross section
-ax = fig.add_subplot(1, 2, 2)
+#ax = fig.add_subplot(1, 2, 2)
 
-plt.show()
+#plt.show()
 
 # output
 outputFile = setPath + ".png"
+plt.savefig(outputFile, bbox_inches='tight', dpi=500)

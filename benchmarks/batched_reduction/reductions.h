@@ -91,8 +91,10 @@ struct Timings
  * Launch benchmarks with template-parameters passed as strings.
  * scalar: "int", "float"
  * axis: "row", "col", "batch"
+ * 
+ * optimize: skip evaluations when I know that they will be way too slow.
  */
 Timings benchmark(cuMat::Index rows, cuMat::Index cols, cuMat::Index batches,
-	const std::string& scalar, const std::string& axis, bool compare);
+	const std::string& scalar, const std::string& axis, bool compare, bool optimize=false);
 
 #endif

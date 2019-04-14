@@ -6,7 +6,7 @@
 using namespace cuMat;
 
 template<typename _Scalar, int _Axis>
-Timings benchmark(Index rows, Index cols, Index batches, bool compare)
+Timings benchmark(Index rows, Index cols, Index batches, bool compare, bool optimize)
 {
 	//timing events
 	Event start, end;
@@ -114,77 +114,91 @@ Timings benchmark(Index rows, Index cols, Index batches, bool compare)
 	}
 	timings.block1024 = Event::elapsedTime(start, end);
 
-	//device-1
-	target2.setZero();
-	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 1>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
-	end.record(stream);
-	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
-		std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
-		std::cerr << "Expected: " << target1 << std::endl;
-		std::cerr << "Actual: " << target2 << std::endl;
-	}
-	timings.device1 = Event::elapsedTime(start, end);
+	int numBatches = _Axis == Axis::Row ? cols*batches 
+		: _Axis == Axis::Column ? rows*batches
+		: rows*cols;
+	if (numBatches > 256 && optimize) {
+		//with more than 256 batches, ReduceDevice just becomes crazily slow.
+		//Set the timings to infinity, otherwise the benchmarks will never finish.
+		timings.device1 = 1e20;
+		timings.device2 = 1e20;
+		timings.device4 = 1e20;
+		timings.device8 = 1e20;
+		timings.device16 = 1e20;
+		timings.device32 = 1e20;
+	} else {
+		//device-1
+		target2.setZero();
+		start.record(stream);
+		ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 1>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+		end.record(stream);
+		if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+			std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
+			std::cerr << "Expected: " << target1 << std::endl;
+			std::cerr << "Actual: " << target2 << std::endl;
+		}
+		timings.device1 = Event::elapsedTime(start, end);
 
-	//device-2
-	target2.setZero();
-	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 2>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
-	end.record(stream);
-	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
-		std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
-		std::cerr << "Expected: " << target1 << std::endl;
-		std::cerr << "Actual: " << target2 << std::endl;
-	}
-	timings.device2 = Event::elapsedTime(start, end);
+		//device-2
+		target2.setZero();
+		start.record(stream);
+		ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 2>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+		end.record(stream);
+		if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+			std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
+			std::cerr << "Expected: " << target1 << std::endl;
+			std::cerr << "Actual: " << target2 << std::endl;
+		}
+		timings.device2 = Event::elapsedTime(start, end);
 
-	//device-4
-	target2.setZero();
-	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 4>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
-	end.record(stream);
-	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
-		std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
-		std::cerr << "Expected: " << target1 << std::endl;
-		std::cerr << "Actual: " << target2 << std::endl;
-	}
-	timings.device4 = Event::elapsedTime(start, end);
+		//device-4
+		target2.setZero();
+		start.record(stream);
+		ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 4>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+		end.record(stream);
+		if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+			std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
+			std::cerr << "Expected: " << target1 << std::endl;
+			std::cerr << "Actual: " << target2 << std::endl;
+		}
+		timings.device4 = Event::elapsedTime(start, end);
 
-	//device-8
-	target2.setZero();
-	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 8>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
-	end.record(stream);
-	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
-		std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
-		std::cerr << "Expected: " << target1 << std::endl;
-		std::cerr << "Actual: " << target2 << std::endl;
-	}
-	timings.device8 = Event::elapsedTime(start, end);
+		//device-8
+		target2.setZero();
+		start.record(stream);
+		ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 8>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+		end.record(stream);
+		if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+			std::cerr << "ReduceDevice-8 produced a wrong result!" << std::endl;
+			std::cerr << "Expected: " << target1 << std::endl;
+			std::cerr << "Actual: " << target2 << std::endl;
+		}
+		timings.device8 = Event::elapsedTime(start, end);
 
-	//device-16
-	target2.setZero();
-	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 16>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
-	end.record(stream);
-	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
-		std::cerr << "ReduceDevice-16 produced a wrong result!" << std::endl;
-		std::cerr << "Expected: " << target1 << std::endl;
-		std::cerr << "Actual: " << target2 << std::endl;
-	}
-	timings.device16 = Event::elapsedTime(start, end);
+		//device-16
+		target2.setZero();
+		start.record(stream);
+		ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 16>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+		end.record(stream);
+		if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+			std::cerr << "ReduceDevice-16 produced a wrong result!" << std::endl;
+			std::cerr << "Expected: " << target1 << std::endl;
+			std::cerr << "Actual: " << target2 << std::endl;
+		}
+		timings.device16 = Event::elapsedTime(start, end);
 
-	//device-32
-	target2.setZero();
-	start.record(stream);
-	ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 32>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
-	end.record(stream);
-	if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
-		std::cerr << "ReduceDevice-32 produced a wrong result!" << std::endl;
-		std::cerr << "Expected: " << target1 << std::endl;
-		std::cerr << "Actual: " << target2 << std::endl;
+		//device-32
+		target2.setZero();
+		start.record(stream);
+		ReduceDevice<functor::Sum<_Scalar>, _Scalar, _Axis, 32>::run(source, target2, functor::Sum<_Scalar>(), _Scalar(0));
+		end.record(stream);
+		if (compare && !static_cast<bool>(((target1 - target2) <= _Scalar(1e-5)).all())) {
+			std::cerr << "ReduceDevice-32 produced a wrong result!" << std::endl;
+			std::cerr << "Expected: " << target1 << std::endl;
+			std::cerr << "Actual: " << target2 << std::endl;
+		}
+		timings.device32 = Event::elapsedTime(start, end);
 	}
-	timings.device32 = Event::elapsedTime(start, end);
 
 	return timings;
 }
@@ -205,26 +219,26 @@ void benchmarkAndPrint(Index rows, Index cols, Index batches, bool compare)
  * axis: "row", "col", "batch"
  */
 Timings benchmark(Index rows, Index cols, Index batches,
-	const std::string& scalar, const std::string& axis, bool compare)
+	const std::string& scalar, const std::string& axis, bool compare, bool optimize)
 {
 	if (scalar == "int")
 	{
 		if (axis == "row")
-			return benchmark<int, Axis::Row>(rows, cols, batches, compare);
+			return benchmark<int, Axis::Row>(rows, cols, batches, compare, optimize);
 		if (axis == "col")
-			return benchmark<int, Axis::Column>(rows, cols, batches, compare);
+			return benchmark<int, Axis::Column>(rows, cols, batches, compare, optimize);
 		if (axis == "batch")
-			return benchmark<int, Axis::Batch>(rows, cols, batches, compare);
+			return benchmark<int, Axis::Batch>(rows, cols, batches, compare, optimize);
 		throw std::exception(("Unsupported axis: " + axis).c_str());
 	}
 	if (scalar == "float")
 	{
 		if (axis == "row")
-			return benchmark<float, Axis::Row>(rows, cols, batches, compare);
+			return benchmark<float, Axis::Row>(rows, cols, batches, compare, optimize);
 		if (axis == "col")
-			return benchmark<float, Axis::Column>(rows, cols, batches, compare);
+			return benchmark<float, Axis::Column>(rows, cols, batches, compare, optimize);
 		if (axis == "batch")
-			return benchmark<float, Axis::Batch>(rows, cols, batches, compare);
+			return benchmark<float, Axis::Batch>(rows, cols, batches, compare, optimize);
 		throw std::exception(("Unsupported axis: " + axis).c_str());
 	}
 	throw std::exception(("Unsupported scalar datatype: " + scalar).c_str());
