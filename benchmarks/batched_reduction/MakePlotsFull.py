@@ -11,9 +11,18 @@ if len(sys.argv)>2:
     setPath = sys.argv[1]
     title = sys.argv[2]
 else:
-    setPath = "../batched_reductions_full_col"
-    title = "Column" 
+    setPath = "../batched_reductions_full_row"
+    title = "Row" 
 setName = setPath[setPath.rfind('/')+1:]
+
+# get decision function
+from AlgorithmDecision import Algorithm, get_alg_row, get_alg_col, get_alg_batch
+if title=="Row":
+    decisionFun = get_alg_row
+elif title=="Column":
+    decisionFun = get_alg_col
+else:
+    decisionFun = get_alg_batch
 
 # load result file
 resultFile = setPath + ".txt"
@@ -40,12 +49,11 @@ for r in results:
     y = batchSize.index(bs)
     Z[x,y] = np.argmin([r[i] for i in range(2, len(fieldNames))])
 Z = Z.T
-colors = sns.color_palette("muted", len(fieldNames)-1)
-cmap = mpl.colors.ListedColormap( \
-    [(1.0,1.0,1.0)]+ \
+colors = [(1.0,1.0,1.0)]+ \
      sns.color_palette("muted", 3)+ \
      sns.color_palette("ch:4.5,-.2,dark=.3", 5)+ \
-     sns.color_palette("ch:3.5,-.2,dark=.3", 6))
+     sns.color_palette("ch:3.5,-.2,dark=.3", 6)
+cmap = mpl.colors.ListedColormap(colors)
 bounds=[v-1.5 for v in range(len(fieldNames))]
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 
@@ -54,7 +62,7 @@ norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 #fig.suptitle("Reduction axis: "+title)
 plt.title("Reduction axis: "+title)
 
-# create 3d plot
+# create plot of measurements
 #ax = fig.add_subplot(1, 2, 1)
 ax = plt.gca()
 img = ax.imshow(Z,interpolation='nearest',
@@ -73,6 +81,33 @@ ax.set_yticks([i for i in range(len(batchSize)) if is_power_of_two(batchSize[i])
 ax.set_yticklabels([str(int(math.log2(batchSize[i]))) for i in range(len(batchSize)) if is_power_of_two(batchSize[i])])
 cbar = plt.colorbar(img, cmap=cmap, norm=norm, boundaries=bounds, ticks=range(-1, len(fieldNames)-1))
 cbar.ax.set_yticklabels(['N/A'] + list(fieldNames[2:]))
+
+# plot decisions / clusters
+Xcluster = numBatches
+Ycluster = batchSize
+UPSCALING = 4
+Xcluster = np.interp(
+    [x/UPSCALING for x in range(UPSCALING*(len(Xcluster)-1)+1)],
+    range(len(Xcluster)),
+    Xcluster)
+Ycluster = np.interp(
+    [x/UPSCALING for x in range(UPSCALING*(len(Ycluster)-1)+1)],
+    range(len(Ycluster)),
+    Ycluster)
+print("Xcluster",Xcluster)
+print("Ycluster",Ycluster)
+Zcluster = np.full((len(Xcluster),len(Ycluster)), -1, dtype=np.float)
+for x,nb in enumerate(Xcluster):
+    for y,bs in enumerate(Ycluster):
+        Zcluster[x,y] = decisionFun(nb, bs)-1
+    #break
+Zcluster = Zcluster.T
+ax.imshow(Zcluster,
+                interpolation='nearest',
+                cmap = cmap, norm=norm,
+                origin='lower',
+                alpha=0.2,
+                extent = img.get_extent())
 
 # create cross section
 #ax = fig.add_subplot(1, 2, 2)
