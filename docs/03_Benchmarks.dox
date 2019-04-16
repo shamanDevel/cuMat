@@ -129,36 +129,64 @@ The base size of the tensor was chosen as \f$s=2^{22}=4194304\f$. The number of 
 The number of entries along the two remaining axes are computed as \f$ X_1 = \lfloor\sqrt{s/N}\rfloor, X_2 = s/(N*X_1) \f$.
 In the leftmost entry, only 2 entries are reduced per batch. In the rightmost entry, 4 batched are reduced with \f$2^{20}\f$ entries each.
 
-\htmlonly <style>div.image img[src="batched_reductions_22_Row.png"]{width:500px;}</style> \endhtmlonly
-\image html "batched_reductions_22_Row.png"
-\image latex "batched_reductions_22_Row" width=10cm
-\htmlonly <style>div.image img[src="batched_reductions_22_Column.png"]{width:500px;}</style> \endhtmlonly
-\image html "batched_reductions_22_Column.png"
-\image latex "batched_reductions_22_Column" width=10cm
-\htmlonly <style>div.image img[src="batched_reductions_22_Batch.png"]{width:500px;}</style> \endhtmlonly
-\image html "batched_reductions_22_Batch.png"
-\image latex "batched_reductions_22_Batch" width=10cm
+<table><tr>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_22_Row.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_22_Row.png"
+</td>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_22_Column.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_22_Column.png"
+</td>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_22_Batch.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_22_Batch.png"
+</td>
+</tr></table>
 
-The plots overall show the same shape, but the exact turning points where one algorithm gets faster than the other varies with the reduction axis.
-We assume that this is because different memory access patterns and better coalescing for some algorithms.
-The following list shows the winning algorithms for the different values of entries along the reduced dimension \f$ N \f$.
- - inner index / row reduction:
-   - \f$ 2^1 \leq N \leq 2^4 \f$: thread-reduction
-   - \f$ 2^5 \leq N \leq 2^{15} \f$: warp-reduction
-   - \f$ 2^{15} \leq N \leq 2^{16} \f$: baseline with SegmentedReduce
-   - \f$ 2^{17} \leq N \f$: device-reduction with 8 streams
- - middle index / column reduction:
-   - \f$ 2^1 \leq N \leq 2^9 \f$: thread-reduction
-   - \f$ 2^9 \leq N \leq 2^{13} \f$: warp-reduction
-   - \f$ 2^{14} \leq N \leq 2^{16} \f$: baseline with SegmentedReduce
-   - \f$ 2^{17} \leq N \f$: device-reduction with 8 streams
- - outer index / batch reduction:
-   - \f$ 2^1 \leq N \leq 2^9 \f$: thread-reduction
-   - \f$ 2^9 \leq N \leq 2^{12} \f$: warp-reduction
-   - \f$ 2^{13} \leq N \leq 2^{17} \f$: baseline with SegmentedReduce
-   - \f$ 2^{18} \leq N \f$: device-reduction with 8 streams
+This already gives an impression on which algorithm is the fastest for which ratio of batch size to the number of batches.
+But how do the algorithms scale with the input size?
+For that the following benchmark plots the fastest algorithm for each combination of batch size and number of batches.
+Note that the results from the main diagonal are exactly the timings from the plots above (x-axis is flipped).
 
-These results are used to decide which algorithm is used when calling e.g. \ref MatrixBase::sum().
+<table><tr>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_full_row.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_full_row.png"
+</td>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_full_col.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_full_col.png"
+</td>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_full_batch.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_full_batch.png"
+</td>
+</tr></table>
+
+Using these plots, we specified clusters of which algorithm to use given the specified number of batches and batch size.
+These clusters are shown as transparent overlays in the above images.
+
+When calling a reduction algorith, the user can specify the algorithm to use with the different constants specified in \ref ReductionAlgorithm, 
+or pass the special value \ref ReductionAlgorithm::Auto to let the library choose the algorithm dynamically based on the input tensor shape.
+
+Note that the timings and clusters are based on the measurements on my local machine. For a different GPU, the timings might look differently.
+If you want to optimize the reduction algorithms for your system, you can run the benchmark in <code>benchmarks/batched_reduction</code> to generate the above plots.
+The clusters are specified in the file (TODO: reference to the cluster specification in c++)
+
+Furthermore, one can obtain the following intuition about the different algorithms based on the plots:
+ - The device-wide reduction with CUB is only effective for large enough batches and low number of batches. The latter is not surprising since a separate kernel launch is needed for each batch.
+   If enough batches are available (in the above bounds), it is advantageous to parallelize the execution over multiple parallel streams.
+   More than four parallel streams don't improve the performance.
+ - Thread and Warp reductions are the best option for many batches or small to medium size.
+   Warp-reduction gaines the advantage over Thread-reduction for batches larger than 16 elements on average.
+ - The effects of coalesced memory access can be seen clearly between Thread- and Warp reduction.
+    - For Row-reduction, the elements to reduce are directly linear after each other in memory. Hence warped reduction (faster) employes coalesced memory access whereas thread reduction (slower) does not.
+    - For Column- and Row-reduction, the elements to reduce are separated by a larger stride whereas the elements with the same index in different batches are linear in memory. Thread-reduction accesses the memory in a coalesced way in this case.
+ - Block reduction is only advanteous for small number of batches and a medium batch size. It requires a lot of entries per batch to fully saturate the block reduction that uses e.g. 512 threads per batch.
+   It does not make much of a difference how large the block size is. The timings for block sizes from 64 to 512 are almost identical. We therefore only use a block size of 512 for the automatic algorithm selection.
+ - The segmented reduction provided by CUB is only the fastest algorithm for a narrow band of parameters: Batch sizes of at least \f$ 2^12 \f$ and number of batches between 32 and 512, depending on the reduction axis.
+
 
 \section Benchmark_GMM Benchmark 6: Gaussian Mixture Model
 
