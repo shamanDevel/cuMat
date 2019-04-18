@@ -101,6 +101,44 @@ enum Axis
 };
 
 /**
+ * \brief Tags for the different reduction algorithms
+ */
+namespace ReductionAlg
+{
+	/**
+	 * \brief reduction with cub::DeviceSegmentedReduce
+	 */
+	struct Segmented {};
+	/**
+	 * \brief Thread reduction. Each thread reduces a batch.
+	 */
+	struct Thread {};
+	/**
+	 * \brief Warp reduction. Each warp reduces a batch.
+	 */
+	struct Warp {};
+	/**
+	 * \brief Block reduction. Each block reduces a batch.
+	 * \tparam N the block size
+	 */
+	template<int N>
+	struct Block {};
+	/**
+	 * \brief Device reduction. 
+	 * Each reduction per batch is computed with a separate call to cub::DeviceReduce,
+	 * parallelized over N cuda streams.
+	 * \tparam N the number of parallel streams
+	 */
+	template<int N>
+	struct Device {};
+	/**
+	 * \brief Automatic algorithm selection.
+	 * Chooses the algorithm during runtime based on the matrix sizes.
+	 */
+	struct Auto {};
+}
+
+/**
 * \brief Specifies the assignment mode in \c Assignment::assign() .
 * This is the difference between regular assignment (operator==, \c AssignmentMode::ASSIGN)
 * and inplace modifications like operator+= (\c AssignmentMode::ADD).

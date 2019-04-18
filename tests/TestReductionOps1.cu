@@ -1,6 +1,12 @@
 #include <catch/catch.hpp>
 #include <vector>
 
+#define CUMAT_UNITTESTS_LAST_REDUCTION 1
+namespace cuMat
+{
+	std::string LastReductionAlgorithm;
+}
+
 #include <cuMat/Core>
 #include "Utils.h"
 
@@ -30,11 +36,16 @@ BMatrixXiR createTestMatrix()
 TEST_CASE("raw_reduce_none", "[reduce]")
 {
 	auto m = createTestMatrix();
-	BMatrixXiR out(4, 3, 2);
-	internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, 0, cub::Sum, int>
-		::eval(m, out, cub::Sum(), 0);
-	assertMatrixEquality(m, out);
+	SECTION("Segmented") {
+		BMatrixXiR out(4, 3, 2);
+		internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, 0, cub::Sum, int, ReductionAlg::Segmented>
+			::eval(m, out, cub::Sum(), 0);
+		REQUIRE(LastReductionAlgorithm == "noop");
+		assertMatrixEquality(m, out);
+	}
 }
+
+#if 0
 
 TEST_CASE("raw_reduce_R", "[reduce]")
 {
@@ -141,3 +152,5 @@ TEST_CASE("raw_reduce_RCB", "[reduce]")
     out.copyToHost(&result);
     CHECK(result == 300);
 }
+
+#endif

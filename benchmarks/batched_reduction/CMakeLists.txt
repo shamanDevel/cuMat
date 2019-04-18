@@ -11,6 +11,7 @@ set(CUMAT_BENCHMARK_BATCHED_REDUCTIONS
   reductions.cu
   MakePlotsLinear.py
   MakePlotsFull.py
+  AlgorithmDecision.py
   configuration.json
   )
   

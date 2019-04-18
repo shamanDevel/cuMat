@@ -92,8 +92,8 @@ template<typename _Child, typename _UnaryFunctor> class UnaryOp;
 template<typename _Left, typename _Right, typename _BinaryFunctor> class BinaryOp;
 template<typename _Child, typename _Target> class CastingOp;
 template<typename _Derived, bool _Conjugated> class TransposeOp;
-template<typename _Child, typename _ReductionOp> class ReductionOp_DynamicSwitched;
-template<typename _Child, typename _ReductionOp, int _Axis> class ReductionOp_StaticSwitched;
+template<typename _Child, typename _ReductionOp, typename _Algorithm> class ReductionOp_DynamicSwitched;
+template<typename _Child, typename _ReductionOp, int _Axis, typename _Algorithm> class ReductionOp_StaticSwitched;
 
 namespace internal { 
     enum class ProductArgOp; 
