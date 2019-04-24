@@ -20,7 +20,7 @@ namespace internal
 		Segmented,
 		Thread,
 		Warp,
-		Block512,
+		Block256,
 		Device1,
 		Device2,
 		Device4
@@ -70,12 +70,11 @@ namespace internal
 		static ReductionAlgorithm inner(Index numBatches, Index batchSize)
 		{
 			//adopt to new architectures
-			condition test[] = { condition{1.2, 1.0, 19.5}, condition{-1,0,-2.5} };
 			static const choice CONDITONS[] = {
 				choice{ReductionAlgorithm::Device1, 2, {condition{1.2, 1.0, 19.5}, condition{-1,0,-2.5}}},
 				choice{ReductionAlgorithm::Device2, 3, {condition{0.42857142857142855,1,17.821428571428573}, condition{-1,0,-4.25}, condition{1,0,2.5}}},
 				choice{ReductionAlgorithm::Device4, 3, {condition{0,1,16.25}, condition{-1,0,-5.5}, condition{1,0,4.25}}},
-				choice{ReductionAlgorithm::Block512,2, {condition{-1.6, 1, 8}, condition{-1,0,-5}}},
+				choice{ReductionAlgorithm::Block256,2, {condition{-1.6, 1, 8}, condition{-1,0,-5}}},
 				choice{ReductionAlgorithm::Thread,  2, {condition{0.475, -1, 2.01875}, condition{0, -1, -4.75}}}
 			};
 			static const ReductionAlgorithm DEFAULT = ReductionAlgorithm::Warp;
@@ -89,7 +88,7 @@ namespace internal
 				choice{ReductionAlgorithm::Device1, 2, {condition{1.5,1,19.5}, condition{-1,0,-2.5}}},
 				choice{ReductionAlgorithm::Device2, 3, {condition{0,1,15.5}, condition{1,0,2.5}, condition{-1,0,-4}}},
 				choice{ReductionAlgorithm::Device4, 3, {condition{0,1,15.75}, condition{1,0,4}, condition{-1,0,-5.75}}},
-				choice{ReductionAlgorithm::Block512,2, {condition{0,1,9}, condition{-1,0,-2.5}}},
+				choice{ReductionAlgorithm::Block256,2, {condition{0,1,9}, condition{-1,0,-2.5}}},
 				choice{ReductionAlgorithm::Warp,  2, {condition{0,1,4}, condition{-1,0,-11.75}}}
 			};
 			static const ReductionAlgorithm DEFAULT = ReductionAlgorithm::Thread;
@@ -104,7 +103,7 @@ namespace internal
 				choice{ReductionAlgorithm::Device4, 3, {condition{1,0,2}, condition{-1,0,-4.25}, condition{10, 9, 184.25}}},
 				choice{ReductionAlgorithm::Device2, 3, {condition{1,0,2}, condition{-1,0,-4.25}, condition{-0.22222, 1, 14.085555}}},
 				choice{ReductionAlgorithm::Segmented, 3, {condition{1,0,4}, condition{0,1,11.5}, condition{-1,0,-8.5}}},
-				choice{ReductionAlgorithm::Block512,2, {condition{0,1,8}, condition{-1,0,-2}}},
+				choice{ReductionAlgorithm::Block256,2, {condition{0,1,8}, condition{-1,0,-2}}},
 				choice{ReductionAlgorithm::Warp,  2, {condition{0,1,2.75}, condition{-1,0,-11.75}}}
 			};
 			static const ReductionAlgorithm DEFAULT = ReductionAlgorithm::Thread;

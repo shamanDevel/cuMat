@@ -10,7 +10,7 @@
 #include "MatrixBase.h"
 #include "Logging.h"
 #include "CublasApi.h"
-
+#include "Errors.h"
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -333,9 +333,9 @@ namespace internal
 
             //call cuBLAS
 
-            int m = op.rows();
-            int n = op.cols();
-            int k = op.innerSize();
+            int m = internal::narrow_cast<int>(op.rows());
+            int n = internal::narrow_cast<int>(op.cols());
+            int k = internal::narrow_cast<int>(op.innerSize());
 
             //to be filled
             const Scalar *A, *B;
@@ -368,8 +368,8 @@ namespace internal
             if (CUMAT_IS_ROW_MAJOR(traits<_Dst>::Flags))
             {
                 //flip rows and cols
-                n = op.rows();
-                m = op.cols();
+                n = internal::narrow_cast<int>(op.rows());
+                m = internal::narrow_cast<int>(op.cols());
             }
 
             //compute strides
@@ -399,8 +399,8 @@ namespace internal
                     transA, transB, m, n, k,
                     internal::CublasApi::cast(&alpha), internal::CublasApi::cast(A), lda, strideA,
                     internal::CublasApi::cast(B), ldb, strideB,
-                    internal::CublasApi::cast(&beta), internal::CublasApi::cast(C), ldc, strideC, op.batches());
-
+                    internal::CublasApi::cast(&beta), internal::CublasApi::cast(C), ldc, strideC,
+                    internal::narrow_cast<int>(op.batches()));
             }
             else
             {

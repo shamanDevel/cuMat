@@ -195,7 +195,7 @@ namespace internal
 
 	//cub::DeviceReduce
 	template<typename _Input, typename _Output, int _Axis, typename _Op, typename _Scalar, int MiniBatch>
-	struct ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Device<MiniBatch>>
+	struct ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Device<MiniBatch> >
 	{
 		static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
 		{
@@ -229,7 +229,7 @@ namespace internal
 				temp_storage[b] = DevicePointer<uint8_t>(temp_storage_bytes, substreams[b]);
 			}
 			//perform reduction
-			for (Index b = 0; b < B; ++b)
+			for (Index b = 0; b < numBatches; ++b)
 			{
 				const int i = b % MiniBatch;
 				cub::DeviceReduce::Reduce(
@@ -256,7 +256,7 @@ namespace internal
 
 	//cub::DeviceReduce, one stream
 	template<typename _Input, typename _Output, int _Axis, typename _Op, typename _Scalar>
-	struct ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Device<1>>
+	struct ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Device<1> >
 	{
 		static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
 		{
@@ -279,7 +279,7 @@ namespace internal
 				op, initial,
 				mainStream);
 			//perform reduction
-			for (Index b = 0; b < B; ++b)
+			for (Index b = 0; b < numBatches; ++b)
 			{
 				cub::DeviceReduce::Reduce(
 					temp_storage.pointer(),
@@ -354,7 +354,7 @@ namespace internal
 				//final warp reduce
 				#pragma unroll
 				for (int offset = 16; offset > 0; offset /= 2)
-					v += __shfl_down_sync(0xffffffff, v, offset);
+					v = op(v, __shfl_down_sync(0xffffffff, v, offset));
 				//write output
 				if (warp == 0) output[i] = v;
 			CUMAT_KERNEL_1D_LOOP_END
@@ -410,7 +410,7 @@ namespace internal
 		}
 	}
 	template<typename _Input, typename _Output, int _Axis, typename _Op, typename _Scalar, int BlockSize>
-	struct ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Block<BlockSize>>
+	struct ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Block<BlockSize> >
 	{
 		static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
 		{
@@ -430,9 +430,9 @@ namespace internal
 				<< typeid(kernels::ReduceBlockKernel<decltype(iterIn), decltype(iterOut), _Op, _Scalar, BlockSize>).name()
 				<< " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 			KernelLaunchConfig cfg = {
-				dim3(numBatches, 1, 1),
-				dim3(bestBlockSize, 1, 1),
-				dim3(minGridSize, 1, 1)
+				dim3(internal::narrow_cast<unsigned>(numBatches), 1, 1),
+				dim3(internal::narrow_cast<unsigned>(bestBlockSize), 1, 1),
+				dim3(internal::narrow_cast<unsigned>(minGridSize), 1, 1)
 			};
 
 			kernels::ReduceBlockKernel<decltype(iterIn), decltype(iterOut), _Op, _Scalar, BlockSize>
@@ -497,8 +497,8 @@ namespace internal
 				ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Warp>
 					::eval(in, out, op, initial);
 				break;
-			case ReductionAlgorithm::Block512:
-				ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Block<512>>
+			case ReductionAlgorithm::Block256:
+				ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Block<256>>
 					::eval(in, out, op, initial);
 				break;
 			case ReductionAlgorithm::Device1:
@@ -630,6 +630,7 @@ namespace internal
 	SPECIALIZE_ALG(ReductionAlg::Auto);
 	SPECIALIZE_ALG_PARAM(ReductionAlg::Block);
 	SPECIALIZE_ALG_PARAM(ReductionAlg::Device);
+	SPECIALIZE_ALG(ReductionAlg::Device<1>);
 
 #undef SPECIALIZE_ALG
 #undef SPECIALIZE_ALG_PARAM

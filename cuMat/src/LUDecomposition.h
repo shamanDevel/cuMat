@@ -99,9 +99,9 @@ public:
 			decompositedMatrix_ = matrix;
         
         //perform LU factorization
-        const int m = Transposed ? decompositedMatrix_.cols() : decompositedMatrix_.rows();
-        const int n = Transposed ? decompositedMatrix_.rows() : decompositedMatrix_.cols();
-        const int batches = decompositedMatrix_.batches();
+        const int m = internal::narrow_cast<int>(Transposed ? decompositedMatrix_.cols() : decompositedMatrix_.rows());
+        const int n = internal::narrow_cast<int>(Transposed ? decompositedMatrix_.rows() : decompositedMatrix_.cols());
+        const int batches = internal::narrow_cast<int>(decompositedMatrix_.batches());
         const int lda = m;
         Matrix<int, 1, 1, Batches, RowMajor> devInfo(1, 1, batches);
         for (Index batch = 0; batch < batches; ++batch) {

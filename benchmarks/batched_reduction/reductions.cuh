@@ -26,7 +26,7 @@ void ReduceDefault(
 	internal::ReductionEvaluator<
 		Matrix<_Scalar, Dynamic, Dynamic, Dynamic, ColumnMajor>, 
 		Matrix<_Scalar, Dynamic, Dynamic, Dynamic, ColumnMajor>,
-		_Axis, _Op, _Scalar>
+		_Axis, _Op, _Scalar, ReductionAlg::Segmented>
 	::eval(in.derived(), out.derived(), op, initial);
 }
 
