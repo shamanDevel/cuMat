@@ -203,8 +203,8 @@ public:
 
         //2. assemble arguments to GETRS
         cublasOperation_t trans = Transposed ? CUBLAS_OP_T : CUBLAS_OP_N;
-        int n = rhs.rows();
-        int nrhs = rhs.cols();
+        int n = internal::narrow_cast<int>(rhs.rows());
+        int nrhs = internal::narrow_cast<int>(rhs.cols());
         const Scalar* A = decompositedMatrix_.data();
         int lda = n;
         const int *devIpiv = pivots_.data();
