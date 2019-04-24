@@ -308,12 +308,10 @@ TEST_CASE("raw_reduce_CB_prod", "[reduce]")
 		REQUIRE(LastReductionAlgorithm == "Thread");
 	}
     //internal::ReductionEvaluator<BMatrixXiR, BMatrixXiR, Axis::Column | Axis::Batch, functor::Prod<int>, int>::eval(m, out, functor::Prod<int>(), 1);
-	INFO("input: " << m);
-	INFO("output: " << out);
     std::vector<int> result(4);
     out.copyToHost(&result[0]);
     CHECK(result[0] == 16380);
-    CHECK(result[2] == 587520);
-    CHECK(result[1] == 5831784);
+    CHECK(result[1] == 587520);
+    CHECK(result[2] == 4021920);
     CHECK(result[3] == 16030080);
 }

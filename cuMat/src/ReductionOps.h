@@ -279,6 +279,7 @@ namespace internal
 				op, initial,
 				mainStream);
 			//perform reduction
+			temp_storage = DevicePointer<uint8_t>(temp_storage_bytes);
 			for (Index b = 0; b < numBatches; ++b)
 			{
 				cub::DeviceReduce::Reduce(

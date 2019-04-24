@@ -167,12 +167,12 @@ Note that the results from the main diagonal are exactly the timings from the pl
 Using these plots, we specified clusters of which algorithm to use given the specified number of batches and batch size.
 These clusters are shown as transparent overlays in the above images.
 
-When calling a reduction algorith, the user can specify the algorithm to use with the different constants specified in \ref ReductionAlgorithm, 
-or pass the special value \ref ReductionAlgorithm::Auto to let the library choose the algorithm dynamically based on the input tensor shape.
+When calling a reduction algorith, the user can specify the algorithm to use with the different constants specified in \ref ReductionAlg, 
+or pass the special value \ref ReductionAlg::Auto to let the library choose the algorithm dynamically based on the input tensor shape.
 
 Note that the timings and clusters are based on the measurements on my local machine. For a different GPU, the timings might look differently.
 If you want to optimize the reduction algorithms for your system, you can run the benchmark in <code>benchmarks/batched_reduction</code> to generate the above plots.
-The clusters are specified in the file (TODO: reference to the cluster specification in c++)
+The clusters are specified in the file ReductionAlgorithmSelection.h
 
 Furthermore, one can obtain the following intuition about the different algorithms based on the plots:
  - The device-wide reduction with CUB is only effective for large enough batches and low number of batches. The latter is not surprising since a separate kernel launch is needed for each batch.
@@ -185,7 +185,7 @@ Furthermore, one can obtain the following intuition about the different algorith
     - For Column- and Row-reduction, the elements to reduce are separated by a larger stride whereas the elements with the same index in different batches are linear in memory. Thread-reduction accesses the memory in a coalesced way in this case.
  - Block reduction is only advanteous for small number of batches and a medium batch size. It requires a lot of entries per batch to fully saturate the block reduction that uses e.g. 512 threads per batch.
    It does not make much of a difference how large the block size is. The timings for block sizes from 64 to 512 are almost identical. We therefore only use a block size of 256 for the automatic algorithm selection.
- - The segmented reduction provided by CUB is only the fastest algorithm for a narrow band of parameters: Batch sizes of at least \f$ 2^12 \f$ and number of batches between 32 and 512, depending on the reduction axis.
+ - The segmented reduction provided by CUB is only the fastest algorithm for a narrow band of parameters: Batch sizes of at least \f$ 2^{12} \f$ and number of batches between 32 and 512, depending on the reduction axis.
 
 
 \section Benchmark_GMM Benchmark 6: Gaussian Mixture Model
