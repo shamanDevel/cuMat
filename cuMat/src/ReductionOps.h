@@ -117,7 +117,7 @@ namespace internal
 				? thrust::make_tuple(in.cols(), Index(1), in.cols()*in.rows())
 				: thrust::make_tuple(Index(1), in.rows(), in.rows()*in.cols()));
 		}
-		static auto iterOut(_Output& out)
+		static typename _Output::Scalar* iterOut(_Output& out)
 		{
 			return out.data();
 		}
@@ -133,7 +133,7 @@ namespace internal
 			return StridedMatrixInputIterator<_Input>(in,
 				thrust::make_tuple(1, in.rows()*in.batches(), in.rows()));
 		}
-		static auto iterOut(_Output& out)
+		static typename _Output::Scalar* iterOut(_Output& out)
 		{
 			return out.data();
 		}
@@ -149,7 +149,7 @@ namespace internal
 			return StridedMatrixInputIterator<_Input>(in,
 				thrust::make_tuple(in.cols()*in.batches(), 1, in.cols()));
 		}
-		static auto iterOut(_Output& out)
+		static typename _Output::Scalar* iterOut(_Output& out)
 		{
 			return out.data();
 		}
