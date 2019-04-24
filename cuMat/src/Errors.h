@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdarg>
 #include <vector>
+#include <stdexcept>
 #include <stdio.h>
 
 #include "Macros.h"

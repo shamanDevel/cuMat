@@ -6,9 +6,9 @@
 #include "Constants.h"
 #include "Iterator.h"
 #include "ReductionAlgorithmSelection.h"
+#include "Errors.h"
 
 #include <cub/cub.cuh>
-#include <stdexcept>
 
 #ifndef CUMAT_CUB_DEBUG
 #define CUMAT_CUB_DEBUG false
