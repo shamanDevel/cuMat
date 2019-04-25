@@ -515,7 +515,7 @@ namespace internal
 					::eval(in, out, op, initial);
 				break;
 			default:
-				throw std::exception("unknown dynamic reduction algorithm");
+				throw std::runtime_error("unknown dynamic reduction algorithm");
 			}
 		}
 	};
