@@ -4,6 +4,7 @@
 #include <ostream>
 #include <string>
 #include <exception>
+#include <string.h>
 
 #include <cuMat/src/ForwardDeclarations.h>
 
