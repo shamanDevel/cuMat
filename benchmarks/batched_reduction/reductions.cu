@@ -1,6 +1,7 @@
 #include "reductions.h"
 
 #include <cuMat/src/Macros.h>
+#include <cuMat/src/Errors.h>
 #include "reductions.cuh"
 
 using namespace cuMat;
@@ -229,7 +230,7 @@ Timings benchmark(Index rows, Index cols, Index batches,
 			return benchmark<int, Axis::Column>(rows, cols, batches, compare, optimize);
 		if (axis == "batch")
 			return benchmark<int, Axis::Batch>(rows, cols, batches, compare, optimize);
-		throw std::exception(("Unsupported axis: " + axis).c_str());
+		throw std::runtime_error(("Unsupported axis: " + axis).c_str());
 	}
 	if (scalar == "float")
 	{
@@ -239,7 +240,7 @@ Timings benchmark(Index rows, Index cols, Index batches,
 			return benchmark<float, Axis::Column>(rows, cols, batches, compare, optimize);
 		if (axis == "batch")
 			return benchmark<float, Axis::Batch>(rows, cols, batches, compare, optimize);
-		throw std::exception(("Unsupported axis: " + axis).c_str());
+		throw std::runtime_error(("Unsupported axis: " + axis).c_str());
 	}
-	throw std::exception(("Unsupported scalar datatype: " + scalar).c_str());
+	throw std::runtime_error(("Unsupported scalar datatype: " + scalar).c_str());
 }

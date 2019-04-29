@@ -192,7 +192,7 @@ public:
 	}
 };
 template<typename InputIteratorT, typename OffsetT>
-inline StridedIterator<InputIteratorT, typename OffsetT>
+StridedIterator<InputIteratorT, OffsetT>
 make_strided_iterator(const InputIteratorT& child, OffsetT stride)
 {
 	return StridedIterator<InputIteratorT, OffsetT>(child, stride);
