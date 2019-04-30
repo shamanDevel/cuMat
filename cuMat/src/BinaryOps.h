@@ -353,7 +353,7 @@ CUMAT_NAMESPACE_END
             CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>> >::type>\
     T Name(const _Left& left, const CUMAT_NAMESPACE MatrixBase<_Right>& right) \
     { \
-        return CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>>(CUMAT_NAMESPACE make_host_scalar<S>(left), right); \
+        return CUMAT_NAMESPACE BinaryOp<CUMAT_NAMESPACE HostScalar<S>, _Right, CUMAT_NAMESPACE Op<S>>(CUMAT_NAMESPACE make_host_scalar<S>(S(left)), right); \
     } \
     template<typename _Left, typename _Right, \
         typename S = typename CUMAT_NAMESPACE internal::traits<_Left>::Scalar, \
@@ -361,7 +361,7 @@ CUMAT_NAMESPACE_END
             CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>> >::type>\
     T Name(const CUMAT_NAMESPACE MatrixBase<_Left>& left, const _Right& right) \
     { \
-        return CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>>(left, CUMAT_NAMESPACE make_host_scalar<S>(right)); \
+        return CUMAT_NAMESPACE BinaryOp<_Left, CUMAT_NAMESPACE HostScalar<S>, CUMAT_NAMESPACE Op<S>>(left, CUMAT_NAMESPACE make_host_scalar<S>(S(right))); \
     }
 #define BINARY_OP(Name, Op) \
     template<typename _Left, typename _Right> \

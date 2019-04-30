@@ -14,7 +14,7 @@ class DevicePointer
 private:
 	T* pointer_;
 	size_t* counter_;
-	cuMat::Context* context_;
+	CUMAT_NAMESPACE Context* context_;
     friend class DevicePointer<typename std::remove_const<T>::type>;
 
     __host__ __device__
@@ -31,11 +31,11 @@ private:
 	}
 
 public:
-	DevicePointer(size_t size) 
+	DevicePointer(size_t size, CUMAT_NAMESPACE Context& ctx)
 		: pointer_(nullptr)
 		, counter_(nullptr)
 	{
-		context_ = &cuMat::Context::current();
+		context_ = &ctx;
 		pointer_ = static_cast<T*>(context_->mallocDevice(size * sizeof(T)));
 		try {
 			counter_ = new size_t(1);
@@ -46,6 +46,9 @@ public:
 			throw;
 		}
 	}
+	DevicePointer(size_t size)
+		: DevicePointer(size, CUMAT_NAMESPACE Context::current())
+	{}
 
     __host__ __device__
 	DevicePointer()

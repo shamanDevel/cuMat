@@ -82,9 +82,55 @@
 #define CUMAT_STR_DETAIL(x) #x
 #define CUMAT_STR(x) CUMAT_STR_DETAIL(x)
 
-//TODO: move assertions to Errors.h ?
 
-#if !defined(NDEBUG) && !defined(_NDEBUG)
+/*
+ * \brief enable verbose error checking after each kernel launch.
+ * This implies a synchronization point after kernel.
+ * 
+ * By default, this is only enabled in a debug build, but it can be 
+ * manually activated by defining <code>CUMAT_VERBOSE_ERROR_CHECKING=1</code>
+ */
+#ifndef CUMAT_VERBOSE_ERROR_CHECKING
+#if defined(_DEBUG) || (!defined(NDEBUG) && !defined(_NDEBUG))
+#define CUMAT_VERBOSE_ERROR_CHECKING 1
+#else
+#define CUMAT_VERBOSE_ERROR_CHECKING 0
+#endif
+#endif
+
+/*
+* \brief enable host assertions.
+* The assertion macros (CUMAT_ASSERT* without CUMAT_ASSERT_CUDA)
+* will throw an exception if triggered.
+*
+* By default, this is only enabled in a debug build, but it can be
+* manually activated by defining <code>CUMAT_ENABLE_HOST_ASSERTIONS=1</code>
+*/
+#ifndef CUMAT_ENABLE_HOST_ASSERTIONS
+#if defined(_DEBUG) || (!defined(NDEBUG) && !defined(_NDEBUG))
+#define CUMAT_ENABLE_HOST_ASSERTIONS 1
+#else
+#define CUMAT_ENABLE_HOST_ASSERTIONS 0
+#endif
+#endif
+
+/*
+* \brief enable device assertions.
+* The assertion macros CUMAT_ASSERT_CUDA
+* will throw an exception if triggered.
+*
+* By default, this is only enabled in a debug build, but it can be
+* manually activated by defining <code>CUMAT_ENABLE_DEVICE_ASSERTIONS=1</code>
+*/
+#ifndef CUMAT_ENABLE_DEVICE_ASSERTIONS
+#if defined(_DEBUG) || (!defined(NDEBUG) && !defined(_NDEBUG))
+#define CUMAT_ENABLE_DEVICE_ASSERTIONS 1
+#else
+#define CUMAT_ENABLE_DEVICE_ASSERTIONS 0
+#endif
+#endif
+
+#if CUMAT_ENABLE_HOST_ASSERTIONS==1
 
 /**
  * \brief Runtime assertion, uses assert()
@@ -102,12 +148,6 @@
 #define CUMAT_ASSERT_DIMENSION(x) \
 	if (!(x)) throw std::invalid_argument(__FILE__ ":" CUMAT_STR(__LINE__) ": Invalid dimensions: " #x);
 
-/**
- * \brief Assertions in device code (if supported)
- * \param x the expression that must be true
- */
-#define CUMAT_ASSERT_CUDA(x) assert(x) //do nothing, not supported
-
 #else
 
 #define CUMAT_ASSERT(x)
@@ -115,8 +155,17 @@
 #define CUMAT_ASSERT_BOUNDS(x)
 #define CUMAT_ASSERT_ERROR(x)
 #define CUMAT_ASSERT_DIMENSION(x)
-#define CUMAT_ASSERT_CUDA(x)
 
+#endif
+
+#if CUMAT_ENABLE_DEVICE_ASSERTIONS==1
+/**
+ * \brief Assertions in device code (if supported)
+ * \param x the expression that must be true
+ */
+#define CUMAT_ASSERT_CUDA(x) assert(x)
+#else
+#define CUMAT_ASSERT_CUDA(x)
 #endif
 
 /**

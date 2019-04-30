@@ -85,8 +85,8 @@ public:
 			decompositedMatrix_ = matrix;
         
         //perform  factorization
-        const int n = decompositedMatrix_.rows();
-        const int batches = decompositedMatrix_.batches();
+        const int n = internal::narrow_cast<int>(decompositedMatrix_.rows());
+        const int batches = internal::narrow_cast<int>(decompositedMatrix_.batches());
         const int lda = n;
         Matrix<int, 1, 1, Batches, RowMajor> devInfo(1, 1, batches);
         for (Index batch = 0; batch < batches; ++batch) {
@@ -158,15 +158,15 @@ public:
             "Cholesky-Decomposition-Solve can only be evaluated into a Column-Major matrix");
 
         //broadcasting over the batches is allowed
-        int batches = rhs.batches();
+        int batches = internal::narrow_cast<int>(rhs.batches());
         Index strideA = Batches == 1 ? 1 : rows()*rows();
 
         //1. copy the rhs into m (with optional transposition)
         internal::Assignment<_Target, const _RHS, AssignmentMode::ASSIGN, typename _Target::DstTag, typename _RHS::SrcTag>::assign(target.derived(), rhs.derived());
 
         //2. assemble arguments to POTRS
-        int n = rhs.rows();
-        int nrhs = rhs.cols();
+        int n = internal::narrow_cast<int>(rhs.rows());
+        int nrhs = internal::narrow_cast<int>(rhs.cols());
         const Scalar* A = decompositedMatrix_.data();
         int lda = n;
         Scalar* B = target.derived().data();

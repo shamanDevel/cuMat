@@ -19,6 +19,8 @@ The operation system used to execute the benchmarks:
  - Numpy version 1.12.0
  - Eigen 3.3.2 with MKL enabled
 
+
+
 \section LinearCombination Benchmark 1: linear combination
 
 The first benchmark measures the performance of a linear combination (series of AXPY's)
@@ -47,6 +49,8 @@ Second test case: constant size of the vectors (\f$n=1000000\f$), varying number
 This test case shows the power of the kernel merging performed by cuMat. The linear combination is evaluated in a single kernel in cuMat (without storing the intermediate results in memory), while cuBLAS needs one call to AXPY per factor (and writes the intermediate results into memory every time).
 Between 3 and 4 linear combinations, cuMat becomes faster than cuBLAS. 
 
+
+
 \section Benchmark_Dotproduct Benchmark 2: Dotproduct
 
 As a demonstration of our reduction API we evaluate the performance of the inner product (scalar/dot product) of two vectors.
@@ -59,6 +63,8 @@ We compare our implementation to Eigen, cuBLAS, Thrust and CUB.
 One can see that all GPU versions are almost exactly equal. One might say that our implementation of the reduction is a bit slower than cuBLAS or CUB, but this is due to a little overhead of index computations. 
 These index computations, however, allow the reduction kernels to perform reductions over arbitrary axises and arbitrary complex operations.
 
+
+
 \section Benchmark_CSRMV Benchmark 3: Sparse Matrix - Vector multiplication
 
 Next we compute the performance of our custom sparse matrix (CSR-format) - vector multiplication routine with the implementations in Eigen and in cuSparse.
@@ -68,6 +74,8 @@ Our implementation achieves even a slightly better performance than the optimize
 \htmlonly <style>div.image img[src="CSRMV - 2D-Poisson Matrix.png"]{width:500px;}</style> \endhtmlonly
 \image html "CSRMV - 2D-Poisson Matrix.png"
 \image latex "CSRMV - 2D-Poisson Matrix.png" width=10cm
+
+
 
 \section Benchmark_CG Benchmark 4: Conjugate Gradient Solver
 
@@ -79,7 +87,108 @@ This is because the sparse matrix-vector multiplication and reductions are much 
 \image html "Conjugate Gradient - 2D-Poisson Matrix.png"
 \image latex "Conjugate Gradient - 2D-Poisson Matrix" width=10cm
 
-\section Benchmark_GMM Benchmark 5: Gaussian Mixture Model
+
+
+\section Benchmark_Reduction Benchmark 5: Batched Reduction algorithms
+
+This micro-benchmark tests different algorithms for batched reduction. It is used to select the algorithm implemented in cuMat
+
+Assume you are given a 3rd-order tensor of shape \f$B \times C \times R\f$ (batches, column, rows). This equals a batched cuMat Matrix in Column Major format.
+The linear index is then given by \f$\text{idx}(i,j,k) = i+R(j+Ck)\f$.
+
+Now there are three different basic reductions:
+1. inner index: \f$ R(j,k) = \sum_{i=0}^{R-1} i + R(j+Ck)\f$ &rarr; reduced elements in linear chunks, stride=1, offset=\f$ R(j+Ck) \f$.
+2. middle index: \f$ R(i,k) = \sum_{j=0}^{C-1} Rj + i+RCk\f$ &rarr; strided reduce, stride=\f$ R \f$, offset=\f$ i+RCk \f$.
+3. outer index: \f$ R(i,j) = \sum_{k=0}^{B-1} RCk + i+Rj\f$ &rarr; strided reduce, stride=\f$ RC \f$, offset=\f$ i+Rj \f$.
+
+These three cases can be written in general form. Let \f$N\f$ be the number of entries along the reduced axis, let \f$i=0..I\f$ be the index along the non-reduced axis.
+Then:
+\f[
+    R_i = \sum_{n=0}^{N-1} Sn+O(i)
+\f]
+with \f$S\f$ being the stride and \f$O(i)\f$ being the offset at the current index, computed as shown above.
+
+As the baseline, we used the segmented reduction that is implemented in CUB. Note that this algorithm is more flexible than all others described, since it could deal with segments of various lengths.
+See https://nvlabs.github.io/cub/structcub_1_1_device_segmented_reduce.html
+
+Next, we devised four alternative reduction algorithms, differenced on what granularity the reduction takes place.
+The computations of the strides and offset are encapsulated in helper classes and not shown here.
+1. Thread-reduction. Each CUDA thread reduces one batch
+   \include ReduceThread.cu
+2. Warp-reduction. Each CUDA warp of 32 threads reduces one batch
+   \include ReduceWarp.cu
+3. Block-reduction. Each CUDA block reduces one batch. In the benchmarks we tried out different block sizes
+   \include ReduceBlock.cu
+4. Device-reduction. The reduction is done device-wide with a kernel execution per batch. Multiple kernels/batches are executed in parallel using MiniBatch-many CUDA streams.
+   The benchmarks show the results for different numbers of parallel streams.
+   Note that we have to insert stream-stream synchronization
+   \include ReduceDevice.cu
+   
+The following three images show the benchmarking results for the different algorithms and reduction axis.
+The base size of the tensor was chosen as \f$s=2^{22}=4194304\f$. The number of entries along the reduced axis \f$N\f$ varies in power of twos.
+The number of entries along the two remaining axes are computed as \f$ X_1 = \lfloor\sqrt{s/N}\rfloor, X_2 = s/(N*X_1) \f$.
+In the leftmost entry, only 2 entries are reduced per batch. In the rightmost entry, 4 batched are reduced with \f$2^{20}\f$ entries each.
+
+<table><tr>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_22_Row.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_22_Row.png"
+</td>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_22_Column.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_22_Column.png"
+</td>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_22_Batch.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_22_Batch.png"
+</td>
+</tr></table>
+
+This already gives an impression on which algorithm is the fastest for which ratio of batch size to the number of batches.
+But how do the algorithms scale with the input size?
+For that the following benchmark plots the fastest algorithm for each combination of batch size and number of batches.
+Note that the results from the main diagonal are exactly the timings from the plots above (x-axis is flipped).
+
+<table><tr>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_full_row.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_full_row.png"
+</td>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_full_col.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_full_col.png"
+</td>
+<td>
+  \htmlonly <style>div.image img[src="batched_reductions_full_batch.png"]{width:300px;}</style> \endhtmlonly
+  \image html "batched_reductions_full_batch.png"
+</td>
+</tr></table>
+
+Using these plots, we specified clusters of which algorithm to use given the specified number of batches and batch size.
+These clusters are shown as transparent overlays in the above images.
+
+When calling a reduction algorith, the user can specify the algorithm to use with the different constants specified in \ref ReductionAlg, 
+or pass the special value \ref ReductionAlg::Auto to let the library choose the algorithm dynamically based on the input tensor shape.
+
+Note that the timings and clusters are based on the measurements on my local machine. For a different GPU, the timings might look differently.
+If you want to optimize the reduction algorithms for your system, you can run the benchmark in <code>benchmarks/batched_reduction</code> to generate the above plots.
+The clusters are specified in the file ReductionAlgorithmSelection.h
+
+Furthermore, one can obtain the following intuition about the different algorithms based on the plots:
+ - The device-wide reduction with CUB is only effective for large enough batches and low number of batches. The latter is not surprising since a separate kernel launch is needed for each batch.
+   If enough batches are available (in the above bounds), it is advantageous to parallelize the execution over multiple parallel streams.
+   More than four parallel streams don't improve the performance.
+ - Thread and Warp reductions are the best option for many batches or small to medium size.
+   Warp-reduction gaines the advantage over Thread-reduction for batches larger than 16 elements on average.
+ - The effects of coalesced memory access can be seen clearly between Thread- and Warp reduction.
+    - For Row-reduction, the elements to reduce are directly linear after each other in memory. Hence warped reduction (faster) employes coalesced memory access whereas thread reduction (slower) does not.
+    - For Column- and Row-reduction, the elements to reduce are separated by a larger stride whereas the elements with the same index in different batches are linear in memory. Thread-reduction accesses the memory in a coalesced way in this case.
+ - Block reduction is only advanteous for small number of batches and a medium batch size. It requires a lot of entries per batch to fully saturate the block reduction that uses e.g. 512 threads per batch.
+   It does not make much of a difference how large the block size is. The timings for block sizes from 64 to 512 are almost identical. We therefore only use a block size of 256 for the automatic algorithm selection.
+ - The segmented reduction provided by CUB is only the fastest algorithm for a narrow band of parameters: Batch sizes of at least \f$ 2^{12} \f$ and number of batches between 32 and 512, depending on the reduction axis.
+
+
+\section Benchmark_GMM Benchmark 6: Gaussian Mixture Model
 
 This last benchmarks can also be seen as a demonstration of how a larger application can be build with cuMat.
 

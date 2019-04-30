@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdarg>
 #include <vector>
+#include <stdexcept>
 #include <stdio.h>
 
 #include "Macros.h"
@@ -29,15 +30,6 @@ public:
 };
 
 namespace internal {
-
-	//enable verbose error checking (slow)
-#ifndef CUMAT_VERBOSE_ERROR_CHECKING
-#ifdef _DEBUG
-#define CUMAT_VERBOSE_ERROR_CHECKING 1
-#else
-#define CUMAT_VERBOSE_ERROR_CHECKING 0
-#endif
-#endif
 
 	class ErrorHelpers
 	{
@@ -143,6 +135,38 @@ namespace internal {
  * \brief Issue this after kernel launches to check for errors in the kernel.
  */
 #define CUMAT_CHECK_ERROR()    CUMAT_NAMESPACE internal::ErrorHelpers::cudaCheckError( __FILE__, __LINE__ )
+
+	//TODO: find a better place in some Utility header
+
+	/**
+	 * \brief Numeric type conversion with overflow check.
+	 * If <code>CUMAT_ENABLE_HOST_ASSERTIONS==1</code>, this method
+	 * throws an std::runtime_error if the conversion results in
+	 * an overflow.
+	 * 
+	 * If CUMAT_ENABLE_HOST_ASSERTIONS is not defined (default in release mode),
+	 * this method simply becomes <code>static_cast</code>.
+	 * 
+	 * Source: The C++ Programming Language 4th Edition by Bjarne Stroustrup
+	 * https://stackoverflow.com/a/30114062/1786598
+	 * 
+	 * \tparam Target the target type
+	 * \tparam Source the source type
+	 * \param v the source value
+	 * \return the casted target value
+	 */
+	template<class Target, class Source>
+	CUMAT_STRONG_INLINE Target narrow_cast(Source v)
+	{
+#if CUMAT_ENABLE_HOST_ASSERTIONS==1
+		auto r = static_cast<Target>(v); // convert the value to the target type
+		if (static_cast<Source>(r) != v)
+			throw std::runtime_error("narrow_cast<>() failed");
+		return r;
+#else
+		return static_cast<Target>(v);
+#endif
+	}
 
 }
 CUMAT_NAMESPACE_END

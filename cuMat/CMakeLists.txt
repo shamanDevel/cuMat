@@ -30,6 +30,7 @@ set(CUMAT_HEADERS
   src/BinaryOpsPlugin.inl
   src/ReductionOps.h
   src/ReductionOpsPlugin.inl
+  src/ReductionAlgorithmSelection.h
   src/Iterator.h
   src/CublasApi.h
   src/SimpleRandom.h

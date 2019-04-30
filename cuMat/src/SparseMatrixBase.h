@@ -66,7 +66,7 @@ struct SparsityPattern<SparseFlags::CSC>
 	 * \brief Allocates the data matrix for this sparsity type with the specified number of batches.
 	 */
 	template<typename _Scalar, int _Batches>
-	DataMatrix<_Scalar, _Batches> allocateDataMatrix(int batches) const
+	DataMatrix<_Scalar, _Batches> allocateDataMatrix(Index batches) const
     {
 		return DataMatrix<_Scalar, _Batches>(nnz, 1, batches);
     }
@@ -126,7 +126,7 @@ struct SparsityPattern<SparseFlags::CSR>
 	 * \brief Allocates the data matrix for this sparsity type with the specified number of batches.
 	 */
 	template<typename _Scalar, int _Batches>
-	DataMatrix<_Scalar, _Batches> allocateDataMatrix(int batches) const
+	DataMatrix<_Scalar, _Batches> allocateDataMatrix(Index batches) const
 	{
 		return DataMatrix<_Scalar, _Batches>(nnz, 1, batches);
 	}
@@ -186,7 +186,7 @@ struct SparsityPattern<SparseFlags::ELLPACK>
 	 * \brief Allocates the data matrix for this sparsity type with the specified number of batches.
 	 */
 	template<typename _Scalar, int _Batches>
-	DataMatrix<_Scalar, _Batches> allocateDataMatrix(int batches) const
+	DataMatrix<_Scalar, _Batches> allocateDataMatrix(Index batches) const
 	{
 		return DataMatrix<_Scalar, _Batches>(rows, nnzPerRow, batches);
 	}

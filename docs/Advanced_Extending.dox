@@ -176,7 +176,7 @@ public:
 \endcode
 
 The implementation of the operation itself is pretty self-explaning.
-One bit of implementation detail stil lacks explanations: the parameter \c index in the method \coeff().
+One bit of implementation detail stil lacks explanations: the parameter \c index in the method \c coeff().
 This is the linear index that is used to write into the target matrix. It is used to optimize the access for sparse matrix operations.
 If the operation does not change the access order, this index should be passed through. If the access order is changed, as it is the case here, the index should be set to \c -1 when calling the child expressions.
 This will trigger an assertion in debug mode if \ref SparseMatrix::direct() is used on that child expression.

@@ -99,9 +99,9 @@ public:
 			decompositedMatrix_ = matrix;
         
         //perform LU factorization
-        const int m = Transposed ? decompositedMatrix_.cols() : decompositedMatrix_.rows();
-        const int n = Transposed ? decompositedMatrix_.rows() : decompositedMatrix_.cols();
-        const int batches = decompositedMatrix_.batches();
+        const int m = internal::narrow_cast<int>(Transposed ? decompositedMatrix_.cols() : decompositedMatrix_.rows());
+        const int n = internal::narrow_cast<int>(Transposed ? decompositedMatrix_.rows() : decompositedMatrix_.cols());
+        const int batches = internal::narrow_cast<int>(decompositedMatrix_.batches());
         const int lda = m;
         Matrix<int, 1, 1, Batches, RowMajor> devInfo(1, 1, batches);
         for (Index batch = 0; batch < batches; ++batch) {
@@ -203,8 +203,8 @@ public:
 
         //2. assemble arguments to GETRS
         cublasOperation_t trans = Transposed ? CUBLAS_OP_T : CUBLAS_OP_N;
-        int n = rhs.rows();
-        int nrhs = rhs.cols();
+        int n = internal::narrow_cast<int>(rhs.rows());
+        int nrhs = internal::narrow_cast<int>(rhs.cols());
         const Scalar* A = decompositedMatrix_.data();
         int lda = n;
         const int *devIpiv = pivots_.data();

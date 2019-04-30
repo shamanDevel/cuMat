@@ -819,7 +819,7 @@ namespace internal
         template<typename Derived, int DynamicSize>
         static void evalImpl(const Op& op, Derived& m, std::integral_constant<int, DynamicSize>)
         {
-            int size = op.getMatrix().rows();
+            const Index size = op.getMatrix().rows();
             CUMAT_ASSERT_DIMENSION(op.rows() == op.cols());
 			CUMAT_ASSERT_DIMENSION(op.rows() == m.rows());
 			CUMAT_ASSERT_DIMENSION(op.cols() == m.cols());
