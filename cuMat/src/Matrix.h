@@ -3,6 +3,7 @@
 
 #include "Macros.h"
 #include "ForwardDeclarations.h"
+#include "Errors.h"
 #include "NumTraits.h"
 #include "CudaUtils.h"
 #include "Constants.h"
@@ -806,7 +807,7 @@ public:
      * \return A row-major matrix with the specified contents
      */
     template<int Rows, int Cols, int Batches>
-    static Matrix<_Scalar, (Rows>1) ? Dynamic : 1, (Cols>1) ? Dynamic : 1, (Batches>1) ? Dynamic : 1, RowMajor>
+    static Matrix<_Scalar, ((Rows>1) ? Dynamic : 1), ((Cols>1) ? Dynamic : 1), ((Batches>1) ? Dynamic : 1), RowMajor>
         fromArray(const _Scalar (&a)[Batches][Rows][Cols])
     {
         typedef Matrix<_Scalar, (Rows > 1) ? Dynamic : Rows, (Cols > 1) ? Dynamic : Cols, (Batches > 1) ? Dynamic : Batches, RowMajor> mt;
@@ -1049,7 +1050,7 @@ public:
     template<typename Derived>                                                                          \
     CUMAT_STRONG_INLINE Type& op (const MatrixBase<Derived>& expr)                                      \
     {                                                                                                   \
-        /*expr.template evalTo<Type, AssignmentMode:: mode >(*this);*/                                  \
+        CUMAT_ERROR_IF_NO_NVCC(compoundAssignment)                                                      \
         internal::Assignment<Type, Derived, AssignmentMode:: mode , internal::DenseDstTag, typename internal::traits<Derived>::SrcTag>::assign(*this, expr.derived());   \
         return *this;                                                                                   \
     }
@@ -1080,7 +1081,7 @@ public:
         typename T = typename std::enable_if<CUMAT_NAMESPACE internal::canBroadcast<Scalar, S>::value, Type>::type >
     CUMAT_STRONG_INLINE T& operator*= (const S& scalar)
 	{
-        //Type::Constant(rows(), cols(), batches(), scalar).template evalTo<Type, AssignmentMode::MUL>(*this);
+		CUMAT_ERROR_IF_NO_NVCC(inplaceMultiplication)
         using Expr = decltype(Type::Constant(rows(), cols(), batches(), scalar));
         internal::Assignment<Type, Expr, AssignmentMode::MUL, internal::DenseDstTag, typename internal::traits<Expr>::SrcTag>::assign(*this, Type::Constant(rows(), cols(), batches(), scalar));
         return *this;
@@ -1101,6 +1102,7 @@ public:
     template<typename _Derived>
     CUMAT_STRONG_INLINE Type& operator*= (const MatrixBase<_Derived>& rhs)
     {
+		CUMAT_ERROR_IF_NO_NVCC(inplaceMatmul)
         //check that the rhs is in fact square
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(internal::traits<_Derived>::RowsAtCompileTime != Dynamic && internal::traits<_Derived>::ColsAtCompileTime != Dynamic,
             internal::traits<_Derived>::RowsAtCompileTime == internal::traits<_Derived>::ColsAtCompileTime),

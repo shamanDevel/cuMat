@@ -89,8 +89,8 @@ cuMat also supports broadcasting, e.g. combine a vector and a matrix by a binary
 <caption id="binary_ops">Unary operations</caption>
 <tr><th>Function on element \f$ x,x \f$ </th>  <th>Method style on matrix \c m1 and \c m2 </th>  <th>Function style on matrix \c m1 and \c m2 </th>  <th>Supported types</th></tr>
 
-<tr><td> \f$ x + y \f$ </td>  <td> \c m1.cwiseAdd(m2) </td>  <td> \c m1+m2 </td> <td>f, i, c</td></tr>
-<tr><td> \f$ x - y \f$ </td>  <td> \c m1.cwiseSub(m2) </td>  <td> \c m1-m2 </td> <td>f, i, c</td></tr>
+<tr><td> \f$ x + y \f$ </td>  <td> not available </td>  <td> \c m1+m2 </td> <td>f, i, c</td></tr>
+<tr><td> \f$ x - y \f$ </td>  <td> not available </td>  <td> \c m1-m2 </td> <td>f, i, c</td></tr>
 <tr><td> \f$ x * y \f$ </td>  <td> \c m1.cwiseMul(m2) </td>  <td> not available </td> <td>f, i, c</td></tr>
 <tr><td> \f$ x / y \f$ </td>  <td> \c m1.cwiseDiv(m2) </td>  <td> not available </td> <td>f, i, c</td></tr>
 <tr><td> \f$ x \% y \f$ </td>  <td> \c m1.cwiseMod(m2) </td>  <td> \c m1 \% \c m2 </td> <td>i</td></tr>

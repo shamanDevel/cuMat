@@ -8,7 +8,9 @@
 #include "ReductionAlgorithmSelection.h"
 #include "Errors.h"
 
+#if CUMAT_NVCC==1
 #include <cub/cub.cuh>
+#endif
 
 #ifndef CUMAT_CUB_DEBUG
 #define CUMAT_CUB_DEBUG false
@@ -162,6 +164,7 @@ namespace internal
 	// (excluding no-op and full reduction. It is handled above)
 	//----------------------------------------------------------------------
 
+#if CUMAT_NVCC==1
 	//cub::DeviceSegmentedReduce
 	template<typename _Input, typename _Output, int _Axis, typename _Op, typename _Scalar>
 	struct ReductionEvaluator<_Input, _Output, _Axis, _Op, _Scalar, ReductionAlg::Segmented>
@@ -446,6 +449,7 @@ namespace internal
 #endif
 		}
 	};
+#endif
 
 	//-------------------------------------------------
 	// Automatic algorithm selection
@@ -551,6 +555,7 @@ namespace internal
 	template <typename _Input, typename _Output, typename _Op, typename _Scalar>
 	struct ReductionEvaluatorSpecial<_Input, _Output, Axis::Row | Axis::Column | Axis::Batch, _Op, _Scalar>
 	{
+#if CUMAT_NVCC==1
 		static void eval(const MatrixBase<_Input>& in, _Output& out, const _Op& op, const _Scalar& initial)
 		{
 			/* create iterators */
@@ -580,6 +585,7 @@ namespace internal
 			LastReductionAlgorithm = "full";
 #endif
 		}
+#endif
 	};
 
 #define SPECIALIZE_ALG(alg)																						\

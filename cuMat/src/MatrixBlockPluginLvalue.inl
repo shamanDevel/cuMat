@@ -26,6 +26,7 @@ MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, Type>
 block(Index start_row, Index start_column, Index start_batch, Index num_rows = NRows,
     Index num_columns = NColumns, Index num_batches = NBatches)
 {
+	CUMAT_ERROR_IF_NO_NVCC(block)
     CUMAT_ASSERT_ARGUMENT(NRows > 0 ? NRows == num_rows : true);
     CUMAT_ASSERT_ARGUMENT(NColumns > 0 ? NColumns == num_columns : true);
     CUMAT_ASSERT_ARGUMENT(NBatches > 0 ? NBatches == num_batches : true);
@@ -59,6 +60,7 @@ block(Index start_row, Index start_column, Index start_batch, Index num_rows = N
 MatrixBlock<_Scalar, Dynamic, Dynamic, Dynamic, _Flags, Type>
 block(Index start_row, Index start_column, Index start_batch, Index num_rows, Index num_columns, Index num_batches)
 {
+	CUMAT_ERROR_IF_NO_NVCC(block)
     CUMAT_ASSERT_ARGUMENT(start_row >= 0);
     CUMAT_ASSERT_ARGUMENT(start_column >= 0);
     CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
@@ -91,6 +93,7 @@ MatrixBlock<_Scalar, NRows, NColumns, NBatches, _Flags, const Type>
 block(Index start_row, Index start_column, Index start_batch, Index num_rows = NRows,
     Index num_columns = NColumns, Index num_batches = NBatches) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(block)
     CUMAT_ASSERT_ARGUMENT(NRows > 0 ? NRows == num_rows : true);
     CUMAT_ASSERT_ARGUMENT(NColumns > 0 ? NColumns == num_columns : true);
     CUMAT_ASSERT_ARGUMENT(NBatches > 0 ? NBatches == num_batches : true);
@@ -122,6 +125,7 @@ block(Index start_row, Index start_column, Index start_batch, Index num_rows = N
 MatrixBlock<_Scalar, Dynamic, Dynamic, Dynamic, _Flags, const Type>
 block(Index start_row, Index start_column, Index start_batch, Index num_rows, Index num_columns, Index num_batches) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(block)
     CUMAT_ASSERT_ARGUMENT(start_row >= 0);
     CUMAT_ASSERT_ARGUMENT(start_column >= 0);
     CUMAT_ASSERT_ARGUMENT(start_batch >= 0);
@@ -143,6 +147,7 @@ block(Index start_row, Index start_column, Index start_batch, Index num_rows, In
 MatrixBlock<_Scalar, 1, _Columns, _Batches, _Flags, const Type>
 row(Index row) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(row)
     CUMAT_ASSERT_ARGUMENT(row >= 0);
     CUMAT_ASSERT_ARGUMENT(row < rows());
     return MatrixBlock<_Scalar, 1, _Columns, _Batches, _Flags, const Type>(
@@ -155,6 +160,7 @@ row(Index row) const
 MatrixBlock<_Scalar, 1, _Columns, _Batches, _Flags, Type>
 row(Index row)
 {
+	CUMAT_ERROR_IF_NO_NVCC(row)
     CUMAT_ASSERT_ARGUMENT(row >= 0);
     CUMAT_ASSERT_ARGUMENT(row < rows());
     return MatrixBlock<_Scalar, 1, _Columns, _Batches, _Flags, Type>(
@@ -168,6 +174,7 @@ row(Index row)
 MatrixBlock<_Scalar, _Rows, 1, _Batches, _Flags, const Type>
 col(Index column) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(col)
     CUMAT_ASSERT_ARGUMENT(column >= 0);
     CUMAT_ASSERT_ARGUMENT(column < cols());
     return MatrixBlock<_Scalar, _Rows, 1, _Batches, _Flags, const Type>(
@@ -181,6 +188,7 @@ col(Index column) const
 MatrixBlock<_Scalar, _Rows, 1, _Batches, _Flags, Type>
 col(Index column)
 {
+	CUMAT_ERROR_IF_NO_NVCC(col)
     CUMAT_ASSERT_ARGUMENT(column >= 0);
     CUMAT_ASSERT_ARGUMENT(column < cols());
     return MatrixBlock<_Scalar, _Rows, 1, _Batches, _Flags, Type>(
@@ -194,6 +202,7 @@ col(Index column)
 MatrixBlock<_Scalar, _Rows, _Columns, 1, _Flags, const Type>
 slice(Index batch) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(slice)
     CUMAT_ASSERT_ARGUMENT(batch >= 0);
     CUMAT_ASSERT_ARGUMENT(batch < batches());
     return MatrixBlock<_Scalar, _Rows, _Columns, 1, _Flags, const Type>(
@@ -206,6 +215,7 @@ slice(Index batch) const
 MatrixBlock<_Scalar, _Rows, _Columns, 1, _Flags, Type>
 slice(Index batch)
 {
+	CUMAT_ERROR_IF_NO_NVCC(slice)
     CUMAT_ASSERT_ARGUMENT(batch >= 0);
     CUMAT_ASSERT_ARGUMENT(batch < batches());
     return MatrixBlock<_Scalar, _Rows, _Columns, 1, _Flags, Type>(
@@ -269,6 +279,7 @@ template<int N>
 auto //FixedVectorSegmentXpr<N>::Type
 segment(Index start) const -> decltype(segmentHelper<N>(start, std::integral_constant<bool, _Columns == 1>()))
 {
+	CUMAT_ERROR_IF_NO_NVCC(segment)
     CUMAT_STATIC_ASSERT(
         (_Rows == 1 || _Columns == 1),
         "segment can only act on compile-time vectors");
@@ -286,6 +297,7 @@ template<int N>
 auto //FixedVectorSegmentXpr<N>::Type
 segment(Index start) -> decltype(segmentHelper<N>(start, std::integral_constant<bool, _Columns == 1>()))
 {
+	CUMAT_ERROR_IF_NO_NVCC(segment)
     CUMAT_STATIC_ASSERT(
         (_Rows == 1 || _Columns == 1),
         "segment can only act on compile-time vectors");
@@ -300,6 +312,7 @@ segment(Index start) -> decltype(segmentHelper<N>(start, std::integral_constant<
 template<int N>
 auto head() const -> decltype(segment<N>(0))
 {
+	CUMAT_ERROR_IF_NO_NVCC(head)
     return segment<N>(0);
 }
 /**
@@ -311,6 +324,7 @@ auto head() const -> decltype(segment<N>(0))
 template<int N>
 auto head() -> decltype(segment<N>(0))
 {
+	CUMAT_ERROR_IF_NO_NVCC(head)
     return segment<N>(0);
 }
 
@@ -322,6 +336,7 @@ auto head() -> decltype(segment<N>(0))
 template<int N>
 auto tail() const -> decltype(segment<N>(0))
 {
+	CUMAT_ERROR_IF_NO_NVCC(tail)
     return segment<N>(std::max(rows(), cols()) - N);
 }
 /**
@@ -333,6 +348,7 @@ auto tail() const -> decltype(segment<N>(0))
 template<int N>
 auto tail() -> decltype(segment<N>(0))
 {
+	CUMAT_ERROR_IF_NO_NVCC(tail)
     return segment<N>(std::max(rows(), cols()) - N);
 }
 
@@ -384,6 +400,7 @@ public:
 auto
 segment(Index start, Index length) const -> decltype(segmentHelper(start, length, std::integral_constant<bool, _Columns == 1>()))
 {
+	CUMAT_ERROR_IF_NO_NVCC(segment)
     CUMAT_STATIC_ASSERT(
         (_Rows == 1 || _Columns == 1),
         "segment can only act on compile-time vectors");
@@ -399,6 +416,7 @@ segment(Index start, Index length) const -> decltype(segmentHelper(start, length
 auto
 segment(Index start, Index length) -> decltype(segmentHelper(start, length, std::integral_constant<bool, _Columns == 1>()))
 {
+	CUMAT_ERROR_IF_NO_NVCC(segment)
     CUMAT_STATIC_ASSERT(
         (_Rows == 1 || _Columns == 1),
         "segment can only act on compile-time vectors");
@@ -412,6 +430,7 @@ segment(Index start, Index length) -> decltype(segmentHelper(start, length, std:
 */
 auto head(Index length) const -> decltype(segment(0, length))
 {
+	CUMAT_ERROR_IF_NO_NVCC(head)
     return segment(0, length);
 }
 /**
@@ -422,6 +441,7 @@ auto head(Index length) const -> decltype(segment(0, length))
 */
 auto head(Index length) -> decltype(segment(0, length))
 {
+	CUMAT_ERROR_IF_NO_NVCC(head)
     return segment(0, length);
 }
 
@@ -432,6 +452,7 @@ auto head(Index length) -> decltype(segment(0, length))
 */
 auto tail(Index length) const -> decltype(segment(0, length))
 {
+	CUMAT_ERROR_IF_NO_NVCC(tail)
     return segment(std::max(rows(), cols()) - length, length);
 }
 /**
@@ -442,5 +463,6 @@ auto tail(Index length) const -> decltype(segment(0, length))
 */
 auto tail(Index length) -> decltype(segment(0, length))
 {
+	CUMAT_ERROR_IF_NO_NVCC(tail)
     return segment(std::max(rows(), cols()) - length, length);
 }

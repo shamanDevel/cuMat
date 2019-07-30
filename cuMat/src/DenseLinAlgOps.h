@@ -635,6 +635,7 @@ public:
 
 namespace internal
 {
+#if CUMAT_NVCC==1
     template<typename _Dst, typename _Src, AssignmentMode _AssignmentMode, typename _DstTag>
     struct Assignment<_Dst, _Src, _AssignmentMode, _DstTag, DeterminantSrcTag>
     {
@@ -872,8 +873,10 @@ namespace internal
             evalImpl(src.derived(), dst.derived(), std::integral_constant<int, Op::InputSize>());
         }
     };
+#endif
 }
 
+#if CUMAT_NVCC==1
 template<typename Derived, int Dims, typename InverseType, typename DetType>
 struct ComputeInverseWithDet
 {
@@ -885,11 +888,12 @@ struct ComputeInverseWithDet
 		using DetOut = typename DetType::Type;
 		KernelLaunchConfig cfg = ctx.createLaunchConfig1D(input.batches(), internal::kernels::InverseKernelWithDet<MatIn, MatOut, DetOut, Dims>);
 		internal::kernels::InverseKernelWithDet<MatIn, MatOut, DetOut, Dims>
-			<< <cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >> >
+			<<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>>
 			(cfg.virtual_size, input.derived(), invOut.derived(), detOut.derived());
 		CUMAT_CHECK_ERROR();
 	}
 };
+#endif
 
 CUMAT_NAMESPACE_END
 

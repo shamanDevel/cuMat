@@ -71,6 +71,22 @@
 #define CUMAT_EIGEN_SUPPORT 0
 #endif
 
+#ifdef __CUDACC__
+/**
+ * If the current source file is compiled with the NVCC as a CUDA source file, 
+ * this macro is set to one, else to zero.
+ */
+#define CUMAT_NVCC 1
+#else
+#define CUMAT_NVCC 0
+#endif
+
+#if CUMAT_NVCC==0
+#define CUMAT_ERROR_IF_NO_NVCC(name) {THIS_FUNCTION_REQUIRES_THE_FILE_TO_BE_COMPILED_WITH_NVCC name;}
+#else
+#define CUMAT_ERROR_IF_NO_NVCC(name)
+#endif
+
 /**
  * \brief Define this macro in a class that should not be copyable or assignable
  * \param TypeName the name of the class

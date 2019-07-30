@@ -21,6 +21,11 @@ typedef thrust::complex<double> cdouble;
 */
 typedef ptrdiff_t Index;
 
+/**
+ * \brief Type used as a error message to indicate ops that are only supported in .cu files
+ */
+struct THIS_FUNCTION_REQUIRES_THE_FILE_TO_BE_COMPILED_WITH_NVCC;
+
 //Declares, not defines all types
 
 namespace internal {

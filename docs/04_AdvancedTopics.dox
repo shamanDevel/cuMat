@@ -4,11 +4,17 @@ namespace cuMat {
 
 These pages document the internal design decisions of cuMat and how to extend it.
 
+Design decision, class structure, common interfaces and evaluation mechanisms:
 \subpage Advanced_Concepts
 
+How to extend cuMat with custom operators:
 \subpage Advanced_Extending
 
+How to extend cuMat with custom scalar data types:
 \subpage Advanced_CustomScalarTypes
+
+Compiling cuMat with a pure C++-compiler instead of the NVCC and what to pay attention to:
+\subpage Advanced_CppCompiler
 
 */
 

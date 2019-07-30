@@ -184,9 +184,14 @@ namespace functor
     DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseLog10, log10(x));
 
     DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseSqrt, sqrt(x));
-	DEFINE_FUNCTOR_FLOAT(cwiseRsqrt, rsqrt(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseCbrt, cbrt(x));
+#if CUMAT_NVCC==1
+	DEFINE_FUNCTOR_FLOAT(cwiseRsqrt, rsqrt(x));
 	DEFINE_FUNCTOR_FLOAT(cwiseRcbrt, rcbrt(x));
+#else
+	DEFINE_FUNCTOR_FLOAT(cwiseRsqrt, (x)); //Fallback to prevent the error that rsqrt and rcbrt are not found if not compiled with NVCC
+	DEFINE_FUNCTOR_FLOAT(cwiseRcbrt, (x)); //An error is thrown when they are used either way by CUMAT_ERROR_IF_NO_NVCC
+#endif
 	
     DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseSin, sin(x));
     DEFINE_FUNCTOR_FLOAT_COMPLEX(cwiseCos, cos(x));
@@ -796,6 +801,7 @@ CUMAT_FUNCTION_NAMESPACE_BEGIN
     CUMAT_NAMESPACE UnaryOp<_Derived, CUMAT_NAMESPACE functor::UnaryMathFunctor_ ## Op <typename CUMAT_NAMESPACE internal::traits<_Derived>::Scalar>> \
     Name(const CUMAT_NAMESPACE MatrixBase<_Derived>& mat) \
     { \
+		CUMAT_ERROR_IF_NO_NVCC(Op)  \
         return CUMAT_NAMESPACE UnaryOp<_Derived, CUMAT_NAMESPACE functor::UnaryMathFunctor_ ## Op <typename CUMAT_NAMESPACE internal::traits<_Derived>::Scalar>>(mat.derived()); \
     }
 
@@ -837,12 +843,14 @@ UNARY_OP(conjugate, conjugate);
 template<typename _Child>
 CUMAT_NAMESPACE ExtractComplexPartOp<_Child, false, false> real(const CUMAT_NAMESPACE MatrixBase<_Child>& mat)
 {
+	CUMAT_ERROR_IF_NO_NVCC(real)
     CUMAT_STATIC_ASSERT(CUMAT_NAMESPACE internal::NumTraits<typename CUMAT_NAMESPACE internal::traits<_Child>::Scalar>::IsComplex, "Matrix must be complex");
     return CUMAT_NAMESPACE ExtractComplexPartOp<_Child, false, false>(mat.derived());
 }
 template<typename _Child>
 CUMAT_NAMESPACE ExtractComplexPartOp<_Child, true, false> imag(const CUMAT_NAMESPACE MatrixBase<_Child>& mat)
 {
+	CUMAT_ERROR_IF_NO_NVCC(imag)
     CUMAT_STATIC_ASSERT(CUMAT_NAMESPACE internal::NumTraits<typename CUMAT_NAMESPACE internal::traits<_Child>::Scalar>::IsComplex, "Matrix must be complex");
     return CUMAT_NAMESPACE ExtractComplexPartOp<_Child, true, false>(mat.derived());
 }

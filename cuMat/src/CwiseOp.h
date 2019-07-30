@@ -132,6 +132,7 @@ namespace internal
     {
         static void assign(_Dst& dst, const _Src& src)
         {
+#if CUMAT_NVCC==1
             typedef typename _Dst::Type DstActual;
             typedef typename _Src::Type SrcActual;
             CUMAT_PROFILING_INC(EvalCwise);
@@ -150,6 +151,9 @@ namespace internal
             kernels::CwiseEvaluationKernel<SrcActual, DstActual, _Mode> <<<cfg.block_count, cfg.thread_per_block, 0, ctx.stream() >>> (cfg.virtual_size, src.derived(), dst.derived());
             CUMAT_CHECK_ERROR();
             CUMAT_LOG_DEBUG("Evaluation done");
+#else
+			CUMAT_ERROR_IF_NO_NVCC(general_component_wise_evaluation)
+#endif
         }
     };
 }
