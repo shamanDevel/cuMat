@@ -184,6 +184,13 @@
 #define CUMAT_ASSERT_CUDA(x)
 #endif
 
+#define CUMAT_THROW_INVALID_ARGUMENT(msg) \
+	throw std::invalid_argument(__FILE__ ":" CUMAT_STR(__LINE__) ": " msg);
+#define CUMAT_THROW_RUNTIME_ERROR(msg) \
+	throw std::runtime_error(__FILE__ ":" CUMAT_STR(__LINE__) ": " msg);
+#define CUMAT_THROW_OUT_OF_RANGE(msg) \
+	throw std::out_of_range(__FILE__ ":" CUMAT_STR(__LINE__) ": " msg);
+
 /**
  * \brief A static assertion
  * \param exp the compile-time boolean expression that must be true

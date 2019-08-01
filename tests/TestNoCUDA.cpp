@@ -31,9 +31,6 @@ TEST_CASE("TestNoCUDA", "[NoCUDA]")
 	//deep copies without transposition should work
 	cuMat::BMatrixXiR m3 = m1.deepClone();
 
-	cuMat::BMatrixXf m4;
-	//TODO: matrix-multiplication, linalg, sparse
-
 	//for computations, we have to delegate to a CUDA source file
 	int sum = cudaSumAll(m1);
 	REQUIRE(sum == 37);

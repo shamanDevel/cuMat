@@ -336,6 +336,10 @@ namespace internal
             int m = internal::narrow_cast<int>(op.rows());
             int n = internal::narrow_cast<int>(op.cols());
             int k = internal::narrow_cast<int>(op.innerSize());
+			if (m==0 || n==0 || k==0)
+			{
+				CUMAT_THROW_INVALID_ARGUMENT("Attempt to multiply empty matrices");
+			}
 
             //to be filled
             const Scalar *A, *B;
