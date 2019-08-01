@@ -282,7 +282,8 @@ SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = 
 INCLUDE_FILE_PATTERNS  = 
 PREDEFINED             = CUMAT_PARSED_BY_DOXYGEN \
-                         CUMAT_EIGEN_SUPPORT=1
+                         CUMAT_EIGEN_SUPPORT=1 \
+                         CUMAT_NVCC=1
 EXPAND_AS_DEFINED      = CUMAT_NAMESPACE_BEGIN \
                          CUMAT_NAMESPACE_END \
                          CUMAT_NAMESPACE \
@@ -292,7 +293,7 @@ EXPAND_AS_DEFINED      = CUMAT_NAMESPACE_BEGIN \
                          BINARY_OP \
                          BINARY_OP_SCALAR \
                          UNARY_OP \
-						 CUMAT_COMPOUND_ASSIGNMENT
+                         CUMAT_COMPOUND_ASSIGNMENT
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 # Configuration options related to external references

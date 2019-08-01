@@ -35,7 +35,8 @@ namespace internal
             Assignment<_Dst, Op, _AssignmentMode, typename traits<_Dst>::DstTag, CwiseSrcTag>::assign(dst, op);
         }
     };
-    
+
+#if CUMAT_NVCC==1
     namespace kernels
     {
 
@@ -321,6 +322,7 @@ namespace internal
 			CUMAT_LOG_DEBUG("Evaluation done");
 		}
 	};
+#endif
 }
 
 CUMAT_NAMESPACE_END

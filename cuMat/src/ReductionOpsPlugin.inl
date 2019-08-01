@@ -8,6 +8,7 @@
 template<int axis = Axis::Row | Axis::Column | Axis::Batch, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_StaticSwitched<_Derived, functor::Sum<Scalar>, axis, Algorithm> sum() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(sum)
     return ReductionOp_StaticSwitched<_Derived, functor::Sum<Scalar>, axis, Algorithm>(
 		derived(), functor::Sum<Scalar>(), 0);
 }
@@ -19,6 +20,7 @@ ReductionOp_StaticSwitched<_Derived, functor::Sum<Scalar>, axis, Algorithm> sum(
 template<typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, functor::Sum<Scalar>, Algorithm> sum(int axis) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(sum)
     return ReductionOp_DynamicSwitched<_Derived, functor::Sum<Scalar>, Algorithm>(
 		derived(), axis, functor::Sum<Scalar>(), 0);
 }
@@ -30,6 +32,7 @@ ReductionOp_DynamicSwitched<_Derived, functor::Sum<Scalar>, Algorithm> sum(int a
 template<int axis = Axis::Row | Axis::Column | Axis::Batch, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_StaticSwitched<_Derived, functor::Prod<Scalar>, axis, Algorithm> prod() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(prod)
     return ReductionOp_StaticSwitched<_Derived, functor::Prod<Scalar>, axis, Algorithm>(
 		derived(), functor::Prod<Scalar>(), 1);
 }
@@ -41,6 +44,7 @@ ReductionOp_StaticSwitched<_Derived, functor::Prod<Scalar>, axis, Algorithm> pro
 template<typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, functor::Prod<Scalar>, Algorithm> prod(int axis) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(prod)
     return ReductionOp_DynamicSwitched<_Derived, functor::Prod<Scalar>, Algorithm>(
 		derived(), axis, functor::Prod<Scalar>(), 1);
 }
@@ -52,6 +56,7 @@ ReductionOp_DynamicSwitched<_Derived, functor::Prod<Scalar>, Algorithm> prod(int
 template<int axis = Axis::Row | Axis::Column | Axis::Batch, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_StaticSwitched<_Derived, functor::Min<Scalar>, axis, Algorithm> minCoeff() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(minCoeff)
     return ReductionOp_StaticSwitched<_Derived, functor::Min<Scalar>, axis, Algorithm>(
 		derived(), functor::Min<Scalar>(), std::numeric_limits<Scalar>::max());
 }
@@ -63,6 +68,7 @@ ReductionOp_StaticSwitched<_Derived, functor::Min<Scalar>, axis, Algorithm> minC
 template<typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, functor::Min<Scalar>, Algorithm> minCoeff(int axis) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(minCoeff)
     return ReductionOp_DynamicSwitched<_Derived, functor::Min<Scalar>, Algorithm>(
 		derived(), axis, functor::Min<Scalar>(), std::numeric_limits<Scalar>::max());
 }
@@ -74,6 +80,7 @@ ReductionOp_DynamicSwitched<_Derived, functor::Min<Scalar>, Algorithm> minCoeff(
 template<int axis = Axis::Row | Axis::Column | Axis::Batch, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_StaticSwitched<_Derived, functor::Max<Scalar>, axis, Algorithm> maxCoeff() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(maxCoeff)
     return ReductionOp_StaticSwitched<_Derived, functor::Max<Scalar>, axis, Algorithm>(
 		derived(), functor::Max<Scalar>(), std::numeric_limits<Scalar>::lowest());
 }
@@ -85,6 +92,7 @@ ReductionOp_StaticSwitched<_Derived, functor::Max<Scalar>, axis, Algorithm> maxC
 template<typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, functor::Max<Scalar>, Algorithm> maxCoeff(int axis) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(maxCoeff)
     return ReductionOp_DynamicSwitched<_Derived, functor::Max<Scalar>, Algorithm>(
 		derived(), axis, functor::Max<Scalar>(), std::numeric_limits<Scalar>::lowest());
 }
@@ -98,6 +106,7 @@ ReductionOp_DynamicSwitched<_Derived, functor::Max<Scalar>, Algorithm> maxCoeff(
 template<int axis = Axis::Row | Axis::Column | Axis::Batch, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_StaticSwitched<_Derived, functor::LogicalAnd<Scalar>, axis, Algorithm> all() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(all)
     CUMAT_STATIC_ASSERT((std::is_same<Scalar, bool>::value), "'all' can only be applied to boolean matrices");
     return ReductionOp_StaticSwitched<_Derived, functor::LogicalAnd<Scalar>, axis, Algorithm>(
 		derived(), functor::LogicalAnd<Scalar>(), true);
@@ -112,6 +121,7 @@ ReductionOp_StaticSwitched<_Derived, functor::LogicalAnd<Scalar>, axis, Algorith
 template<typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, functor::LogicalAnd<Scalar>, Algorithm> all(int axis) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(all)
     CUMAT_STATIC_ASSERT((std::is_same<Scalar, bool>::value), "'all' can only be applied to boolean matrices");
     return ReductionOp_DynamicSwitched<_Derived, functor::LogicalAnd<Scalar>, Algorithm>(
 		derived(), axis, functor::LogicalAnd<Scalar>(), true);
@@ -126,6 +136,7 @@ ReductionOp_DynamicSwitched<_Derived, functor::LogicalAnd<Scalar>, Algorithm> al
 template<int axis = Axis::Row | Axis::Column | Axis::Batch, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_StaticSwitched<_Derived, functor::LogicalOr<Scalar>, axis, Algorithm> any() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(any)
     CUMAT_STATIC_ASSERT((std::is_same<Scalar, bool>::value), "'any' can only be applied to boolean matrices");
     return ReductionOp_StaticSwitched<_Derived, functor::LogicalOr<Scalar>, axis, Algorithm>(
 		derived(), functor::LogicalOr<Scalar>(), false);
@@ -140,6 +151,7 @@ ReductionOp_StaticSwitched<_Derived, functor::LogicalOr<Scalar>, axis, Algorithm
 template<typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, functor::LogicalOr<Scalar>, Algorithm> any(int axis) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(any)
     CUMAT_STATIC_ASSERT((std::is_same<Scalar, bool>::value), "'any' can only be applied to boolean matrices");
     return ReductionOp_DynamicSwitched<_Derived, functor::LogicalOr<Scalar>, Algorithm>(
 		derived(), axis, functor::LogicalOr<Scalar>(), false);
@@ -153,6 +165,7 @@ ReductionOp_DynamicSwitched<_Derived, functor::LogicalOr<Scalar>, Algorithm> any
 template<int axis = Axis::Row | Axis::Column | Axis::Batch, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_StaticSwitched<_Derived, functor::BitwiseAnd<Scalar>, axis, Algorithm> bitwiseAnd() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(bitwiseAnd)
     CUMAT_STATIC_ASSERT(std::is_integral<Scalar>::value, "'bitwiseAnd' can only be applied to integral matrices");
     return ReductionOp_StaticSwitched<_Derived, functor::BitwiseAnd<Scalar>, axis, Algorithm>(
 		derived(), functor::BitwiseAnd<Scalar>(), ~(Scalar(0)));
@@ -166,6 +179,7 @@ ReductionOp_StaticSwitched<_Derived, functor::BitwiseAnd<Scalar>, axis, Algorith
 template<typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, functor::BitwiseAnd<Scalar>, Algorithm> bitwiseAnd(int axis) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(bitwiseAnd)
     CUMAT_STATIC_ASSERT(std::is_integral<Scalar>::value, "'bitwiseAnd' can only be applied to integral matrices");
     return ReductionOp_DynamicSwitched<_Derived, functor::BitwiseAnd<Scalar>, Algorithm>(
 		derived(), axis, functor::BitwiseAnd<Scalar>(), ~(Scalar(0)));
@@ -179,6 +193,7 @@ ReductionOp_DynamicSwitched<_Derived, functor::BitwiseAnd<Scalar>, Algorithm> bi
 template<int axis = Axis::Row | Axis::Column | Axis::Batch, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_StaticSwitched<_Derived, functor::BitwiseOr<Scalar>, axis, Algorithm> bitwiseOr() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(bitwiseOr)
     CUMAT_STATIC_ASSERT(std::is_integral<Scalar>::value, "'bitwiseOr' can only be applied to integral matrices");
     return ReductionOp_StaticSwitched<_Derived, functor::BitwiseOr<Scalar>, axis, Algorithm>(
 		derived(), functor::BitwiseOr<Scalar>(), Scalar(0));
@@ -192,6 +207,7 @@ ReductionOp_StaticSwitched<_Derived, functor::BitwiseOr<Scalar>, axis, Algorithm
 template<typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, functor::BitwiseOr<Scalar>, Algorithm> bitwiseOr(int axis) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(bitwiseOr)
     CUMAT_STATIC_ASSERT(std::is_integral<Scalar>::value, "'bitwiseOr' can only be applied to integral matrices");
     return ReductionOp_DynamicSwitched<_Derived, functor::BitwiseOr<Scalar>, Algorithm>(
 		derived(), axis, functor::BitwiseOr<Scalar>(), Scalar(0));
@@ -217,6 +233,7 @@ template<
 ReductionOp_StaticSwitched<_Derived, _Functor, axis, Algorithm>
 reduction(const _Functor& functor = _Functor(), const Scalar& initialValue = Scalar(0)) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(reduction)
     return ReductionOp_StaticSwitched<_Derived, _Functor, axis, Algorithm>(
 		derived(), functor, initialValue);
 }
@@ -237,6 +254,7 @@ template<typename _Functor, typename Algorithm = ReductionAlg::Auto>
 ReductionOp_DynamicSwitched<_Derived, _Functor, Algorithm>
 reduction(int axis, const _Functor& functor = _Functor(), const Scalar& initialValue = Scalar(0)) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(reduction)
     return ReductionOp_DynamicSwitched<_Derived, _Functor, Algorithm>(
 		derived(), axis, functor, initialValue);
 }
@@ -254,6 +272,7 @@ ReductionOp_StaticSwitched<
 	Axis::Row | Axis::Column,
 	Algorithm> trace() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(trace)
     return diagonal().sum<Axis::Row | Axis::Column, Algorithm>();
 }
 
@@ -270,6 +289,7 @@ using DotReturnType = ReductionOp_StaticSwitched<
 template<typename _Other, typename Algorithm = ReductionAlg::Auto>
 DotReturnType<_Other, Algorithm> dot(const MatrixBase<_Other>& rhs) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(dot)
     CUMAT_STATIC_ASSERT(internal::traits<_Derived>::RowsAtCompileTime == 1 || internal::traits<_Derived>::ColsAtCompileTime == 1,
         "This matrix must be a compile-time row or column vector");
     CUMAT_STATIC_ASSERT(internal::traits<_Other>::RowsAtCompileTime == 1 || internal::traits<_Other>::ColsAtCompileTime == 1,
@@ -290,6 +310,7 @@ using SquaredNormReturnType = ReductionOp_StaticSwitched<
 template<typename Algorithm = ReductionAlg::Auto>
 SquaredNormReturnType<Algorithm> squaredNorm() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(squaredNorm)
     return cwiseAbs2().sum<Axis::Row | Axis::Column, Algorithm>();
 }
 
@@ -308,6 +329,7 @@ using NormReturnType = UnaryOp<
 template<typename Algorithm = ReductionAlg::Auto>
 NormReturnType<Algorithm> norm() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(norm)
     return squaredNorm<Algorithm>().cwiseSqrt();
 }
 

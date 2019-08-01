@@ -210,6 +210,7 @@ public:
         : SimpleRandom(static_cast<int>(std::chrono::system_clock::now().time_since_epoch().count()))
     {}
 
+#if CUMAT_NVCC==1
     /**
      * \brief Fills the specified matrix-like type with random numbers.
      * The matrix must be component-wise writable, i.e. a Matrix or MatrixBlock.
@@ -236,6 +237,7 @@ public:
 		internal::kernels::RandomEvaluationKernel<ActualType, _Scalar> <<<1, cfg.thread_per_block.x, 0, ctx.stream() >>>(cfg.virtual_size, m.derived(), min, max, state_.pointer());
         CUMAT_CHECK_ERROR();
     }
+#endif
 };
 
 CUMAT_NAMESPACE_END

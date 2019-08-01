@@ -3,21 +3,25 @@
 #define BINARY_OP_ACCESSOR(Name) \
     template<typename _Right> \
 	BinaryOp<_Derived, _Right, functor::BinaryMathFunctor_ ## Name <Scalar> > Name (const MatrixBase<_Right>& rhs) const { \
+		CUMAT_ERROR_IF_NO_NVCC(Name)  \
 		return BinaryOp<_Derived, _Right, functor::BinaryMathFunctor_ ## Name <Scalar> >(derived(), rhs.derived()); \
 	} \
     template<typename _Right, typename T = typename std::enable_if<CUMAT_NAMESPACE internal::canBroadcast<_Right, Scalar>::value, \
         BinaryOp<_Derived, HostScalar<Scalar>, functor::BinaryMathFunctor_ ## Name <Scalar> > >::type > \
     T Name(const _Right& rhs) const { \
+		CUMAT_ERROR_IF_NO_NVCC(Name)  \
 		return BinaryOp<_Derived, HostScalar<Scalar>, functor::BinaryMathFunctor_ ## Name <Scalar> >(derived(), HostScalar<Scalar>(rhs)); \
 	}
 #define BINARY_OP_ACCESSOR_INV(Name) \
     template<typename _Left> \
         BinaryOp<_Left, _Derived, functor::BinaryMathFunctor_ ## Name <Scalar> > Name ## Inv(const MatrixBase<_Left>& lhs) const { \
+		CUMAT_ERROR_IF_NO_NVCC(Name)  \
 		return BinaryOp<_Left, _Derived, functor::BinaryMathFunctor_ ## Name <Scalar> >(lhs.derived(), derived()); \
 	} \
     template<typename _Left, typename T = typename std::enable_if<CUMAT_NAMESPACE internal::canBroadcast<_Left, Scalar>::value, \
         BinaryOp<HostScalar<Scalar>, _Derived, functor::BinaryMathFunctor_ ## Name <Scalar> > >::type > \
     T Name ## Inv(const _Left& lhs) const { \
+		CUMAT_ERROR_IF_NO_NVCC(Name)  \
 		return BinaryOp<HostScalar<Scalar>, _Derived, functor::BinaryMathFunctor_ ## Name <Scalar> >(HostScalar<Scalar>(lhs), derived()); \
 	}
 
@@ -120,5 +124,6 @@ BINARY_OP_ACCESSOR(cwiseLogicalXor)
 template<typename Right, typename Functor>
 UnaryOp<_Derived, Functor> binaryExpr(const Right& rhs, const Functor& functor = Functor()) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(binaryExpr)
     return BinaryOp<_Derived, Right, Functor>(derived(), rhs.derived(), functor);
 }

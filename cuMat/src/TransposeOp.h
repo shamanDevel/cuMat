@@ -193,6 +193,7 @@ namespace internal
         template<typename Derived, bool _Conj>
         static CUMAT_STRONG_INLINE void evalToImpl(const Op& src, MatrixBase<Derived>& m, std::false_type, std::integral_constant<bool, _Conj>)
         {
+			CUMAT_ERROR_IF_NO_NVCC(cwise_transpose)
             //don't pass _Conj further, it is equal to IsConjugated
             Assignment<Derived, Op, AssignmentMode::ASSIGN, typename Derived::DstTag, CwiseSrcTag>::assign(m.derived(), src);
         }
@@ -234,6 +235,7 @@ namespace internal
         static CUMAT_STRONG_INLINE void evalToImplDirect(const Op& src, Matrix<Scalar, _Rows, _Columns, _Batches, Op::OriginalFlags>& mat, std::false_type)
         {
             //fallback for integer types
+			CUMAT_ERROR_IF_NO_NVCC(transpose_integer)
             using Derived = Matrix<Scalar, _Rows, _Columns, _Batches, Op::OriginalFlags>;
             Assignment<Derived, Op, AssignmentMode::ASSIGN, typename Derived::DstTag, CwiseSrcTag>::assign(mat, src);
         }

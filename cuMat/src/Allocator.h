@@ -3,6 +3,9 @@
 
 #include "Macros.h"
 
+//TODO: add interface to support custom allocators
+//Up to now, the allocator from CUB is hard-coded
+
 CUMAT_NAMESPACE_BEGIN
 
 class AllocatorBase

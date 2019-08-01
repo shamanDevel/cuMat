@@ -1,0 +1,37 @@
+namespace cuMat {
+
+/** \page Advanced_CppCompiler Using a Cpp-compiler
+
+It is possible to compile cuMat without NVCC, just with a regular Cpp-compiler.
+In that case, all operations that generate custom kernel invocations are disabled.
+
+This feature allows cuMat-matrices to be easily used to send data around and through source files that don't directly operate on them.
+Without it, as soon as cuMat is included in some header, every source would have to be compiled NVCC, which is not always desired.
+
+\section Advanced_CppCompiler_Support Operations supported with any C++ compiler
+These operations don't require NVCC:
+
+ - Passing matrices around by value or reference
+ - Copy matrices without changing the storage format (\ref Matrix::deepClone())
+ - Operations based on cuBLAS: matrix transposing, matrix multiplication
+ - Converting cuMat matrix from and to an array
+
+\section Advanced_CppCompiler_NotSupported Operations that require NVCC
+These operations don't compile with a normal C++ compiler but require NVCC.
+
+ - All component-wise operations (nullary, unary, binary)
+ - Reductions
+ - Sparse operations
+ - block operations
+ 
+A typical error message if such an operation is attempted without NVCC can look like:
+
+    cuMat::MatrixXi m1, m2;
+    cuMat::MatrixXi m3 = m1 + m2; //compiler error without NVCC
+    -> error C2079: 'binaryOp' uses undefined struct 'cuMat::THIS_FUNCTION_REQUIRES_THE_FILE_TO_BE_COMPILED_WITH_NVCC'
+    
+This code snippet will compile without errors with NVCC.
+
+*/
+
+}

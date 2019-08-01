@@ -97,3 +97,10 @@ else(CUMAT_SEPARATE_TESTS)
     #target_compile_definitions(cuMat_tests PUBLIC CUMAT_CONTEXT_DEBUG_MEMORY=1 CUMAT_EIGEN_SUPPORT=1 CUMAT_PROFILING=1)
     add_test(NAME cuMatTest COMMAND cuMat_tests)
 endif(CUMAT_SEPARATE_TESTS)
+
+# Special test cases
+
+cuda_add_executable(TestNoCUDA Utils.h TestNoCUDA.h TestNoCUDA.cu TestNoCUDA.cpp main.cpp)
+cuda_add_cublas_to_target(TestNoCUDA)
+set_target_properties(TestNoCUDA PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(TestNoCUDA PROPERTIES FOLDER Tests)

@@ -2,6 +2,7 @@
 
 #define UNARY_OP_ACCESSOR(Name) \
 	UnaryOp<_Derived, functor::UnaryMathFunctor_ ## Name <Scalar> > Name () const { \
+		CUMAT_ERROR_IF_NO_NVCC(Name)  \
 		return UnaryOp<_Derived, functor::UnaryMathFunctor_ ## Name <Scalar> >(derived()); \
 	}
 
@@ -160,6 +161,7 @@ UNARY_OP_ACCESSOR(conjugate);
  * \brief Negates this matrix
  */
 UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() const {
+	CUMAT_ERROR_IF_NO_NVCC(negate)
 	return UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate <Scalar> >(derived());
 }
 
@@ -181,6 +183,7 @@ UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() co
 template<typename Functor>
 UnaryOp<_Derived, Functor> unaryExpr(const Functor& functor = Functor()) const
 {
+	CUMAT_ERROR_IF_NO_NVCC(unaryExpr)
     return UnaryOp<_Derived, Functor>(derived(), functor);
 }
 
@@ -207,6 +210,7 @@ TransposeOp<_Derived, true> adjoint() const
 template<typename _Target>
 CastingOp<_Derived, _Target> cast()
 {
+	CUMAT_ERROR_IF_NO_NVCC(cast)
 	return CastingOp<_Derived, _Target>(derived());
 }
 
@@ -216,6 +220,7 @@ CastingOp<_Derived, _Target> cast()
  */
 AsDiagonalOp<_Derived> asDiagonal() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(asDiagonal)
     return AsDiagonalOp<_Derived>(derived());
 }
 
@@ -225,6 +230,7 @@ AsDiagonalOp<_Derived> asDiagonal() const
  */
 ExtractDiagonalOp<_Derived> diagonal() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(diagonal)
     return ExtractDiagonalOp<_Derived>(derived());
 }
 
@@ -260,6 +266,7 @@ template<typename S = typename internal::traits<_Derived>::Scalar,
          typename = typename std::enable_if<internal::NumTraits<S>::IsComplex>::type>
 ExtractComplexPartOp<_Derived, false, false> real() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(real)
     CUMAT_STATIC_ASSERT(internal::NumTraits<typename internal::traits<_Derived>::Scalar>::IsComplex, "Matrix must be complex");
     return ExtractComplexPartOp<_Derived, false, false>(derived());
 }
@@ -272,6 +279,7 @@ ExtractComplexPartOp<_Derived, false, false> real() const
  */
 ExtractComplexPartOp<_Derived, true, false> imag() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(imag)
     CUMAT_STATIC_ASSERT(internal::NumTraits<typename internal::traits<_Derived>::Scalar>::IsComplex, "Matrix must be complex");
     return ExtractComplexPartOp<_Derived, true, false>(derived());
 }
@@ -295,5 +303,6 @@ ExtractComplexPartOp<_Derived, true, false> imag() const
 template<Axis _Row, Axis _Col, Axis _Batch>
 SwapAxisOp<_Derived, _Row, _Col, _Batch> swapAxis() const
 {
+	CUMAT_ERROR_IF_NO_NVCC(swapAxis)
 	return SwapAxisOp<_Derived, _Row, _Col, _Batch>(derived());
 }

@@ -77,6 +77,7 @@ namespace internal
 
 namespace internal {
 
+#if CUMAT_NVCC==1
     //General assignment for everything that fulfills CwiseSrcTag into SparseDstTag (cwise sparse evaluation)
     //The source expression is only evaluated at the non-zero entries of the target SparseMatrix
     template<typename _Dst, typename _Src, AssignmentMode _Mode>
@@ -135,7 +136,7 @@ namespace internal {
             CUMAT_LOG_DEBUG("Evaluation done");
         }
     };
-
+#endif
 }
 
 CUMAT_NAMESPACE_END
