@@ -239,7 +239,7 @@ public:
     */
 
     //Overwrites transpose()
-    typedef ProductOp<_Left, _Right, _OpLeft, _OpRight, internal::ProductArgOp(int(_OpOutput)^int(internal::ProductArgOp::TRANSPOSED))> transposed_mult_t;
+    typedef ProductOp<_Left, _Right, _OpLeft, _OpRight, internal::ProductArgOp((int)(_OpOutput)^(int)(internal::ProductArgOp::TRANSPOSED))> transposed_mult_t;
     transposed_mult_t transpose() const
     {
         //transposition just changes the _TransposedOutput-flag
