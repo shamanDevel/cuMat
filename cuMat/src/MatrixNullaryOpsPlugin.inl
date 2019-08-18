@@ -214,3 +214,30 @@ Zero()
     return NullaryOp_t<functor::ConstantFunctor<Scalar> >(
         Rows, Columns, Batches, functor::ConstantFunctor<Scalar>(Scalar(0)));
 }
+
+/**
+ * \brief Custom nullary expression.
+ * The nullary functor must look as follow:
+ * \code
+ * struct MyFunctor
+ * {
+ *     typedef OutputType ReturnType;
+ *     __device__ CUMAT_STRONG_INLINE ReturnType operator()(Index row, Index col, Index batch) const
+ *     {
+ *         return ...
+ *     }
+ * };
+ * \endcode
+ * with \c OutputType being the type of the matrix on which this nullary op is called.
+ */
+template<typename Functor>
+static NullaryOp_t<Functor>
+NullaryExpr(Index rows, Index cols, Index batches, const Functor& functor = Functor())
+{
+	if (Rows != Dynamic) CUMAT_ASSERT_ARGUMENT(Rows == rows && "runtime row count does not match compile time row count");
+	if (Columns != Dynamic) CUMAT_ASSERT_ARGUMENT(Columns == cols && "runtime row count does not match compile time row count");
+	if (Batches != Dynamic) CUMAT_ASSERT_ARGUMENT(Batches == batches && "runtime row count does not match compile time row count");
+	CUMAT_STATIC_ASSERT((std::is_same<typename Functor::ReturnType, Scalar>::value), "Functor must return the same type as the matrix it is called on");
+	return NullaryOp_t<Functor>(
+		rows, cols, batches, functor);
+}

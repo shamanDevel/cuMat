@@ -3,6 +3,8 @@
 set(CUMAT_DEMO_FILES 
   Transposing.cu
   Test.cu
+  BuddhabrotSimple.cu
+  BuddhabrotComplex.cu
   )
 
 if("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
@@ -13,7 +15,7 @@ add_definitions(-DCUMAT_EIGEN_SUPPORT=1 -DCUMAT_PROFILING=1)
 
 # a separate project for each demo file
 foreach( demosourcefile ${CUMAT_DEMO_FILES} )
-    string( REPLACE ".cpp" "" demoname ${demosourcefile} )
+    string( REPLACE ".cu" "" demoname ${demosourcefile} )
     cuda_add_executable(${demoname} ${demosourcefile})
     cuda_add_cublas_to_target(${demoname})
     set_target_properties(${demoname} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)

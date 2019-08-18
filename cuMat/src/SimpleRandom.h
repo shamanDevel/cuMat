@@ -210,7 +210,6 @@ public:
         : SimpleRandom(static_cast<int>(std::chrono::system_clock::now().time_since_epoch().count()))
     {}
 
-#if CUMAT_NVCC==1
     /**
      * \brief Fills the specified matrix-like type with random numbers.
      * The matrix must be component-wise writable, i.e. a Matrix or MatrixBlock.
@@ -230,14 +229,17 @@ public:
         typename _Scalar = typename internal::traits<_Derived>::Scalar >
     void fillUniform(MatrixBase<_Derived>& m, const _Scalar& min = internal::MinMaxDefaults<_Scalar>::min(), const _Scalar& max = internal::MinMaxDefaults<_Scalar>::max())
     {
+#if CUMAT_NVCC==1
         if (m.size() == 0) return;
 		typedef typename _Derived::Type ActualType;
         Context& ctx = Context::current();
         KernelLaunchConfig cfg = ctx.createLaunchConfig1D(m.size(), internal::kernels::RandomEvaluationKernel<ActualType, _Scalar>);
 		internal::kernels::RandomEvaluationKernel<ActualType, _Scalar> <<<1, cfg.thread_per_block.x, 0, ctx.stream() >>>(cfg.virtual_size, m.derived(), min, max, state_.pointer());
         CUMAT_CHECK_ERROR();
-    }
+#else
+		CUMAT_ERROR_IF_NO_NVCC(fillUniform);
 #endif
+    }
 };
 
 CUMAT_NAMESPACE_END

@@ -1,0 +1,34 @@
+namespace cuMat {
+
+/** \page Demos Demos
+
+This page presents some demonstration examples showcasing interesting applications of cuMat.
+For more straight-forward linear algebra examples, e.g. Gaussian Mixture Models, see the \ref Benchmark page.
+
+All demos can be found in the <code>demos</code> folder.
+
+\section BuddhabrotSimple Mandelbrot and Buddhabrot fractal - Simple
+
+The first demo, <code>BuddhabrotSimple.cu</code> demonstrates how to use custom Nullary Operations in combination with atomics to compute arbitrary data.
+In this case, the Nullary Op returns the Mandelbrot fractal and on the way computes the Buddhabrot via atomics.
+For more information on the Mandelbrot and Buddhabrot, see https://en.wikipedia.org/wiki/Buddhabrot .
+
+![Simple Mandelbrot](MandelbrotSmall.png "Mandelbrot")
+![Simple Buddhabrot](BuddhabrotSmall.png "Buddhabrot")
+
+The approach used here as one severe limitation: Because the mandelbrot is computed with one single kernel call, it crashes with time-out errors if the iteration count is too large.
+This issue is solved in the next demo.
+
+\section BuddhabrotComplex Buddhabrot fractal - Complex
+
+To solve the time-out errors described above, we will use custom Unary Operations that gradually build up the final image by iteratively computing only a few iterations at one time.
+This prevents freezing and time-out errors and allows to log the progress of the computation. The code can be found in <code>BuddhabrotComplex.cu</code>.
+
+Furthermore, we assemble three different Buddhabrot renderings with different maximal iteration counts to create a colored image.
+Multisampling is used to reduce the noise in the final image.
+
+![High-resolution Buddhabrot](BuddhabrotLarge.png "Buddhabrot")
+
+*/
+
+}

@@ -167,7 +167,7 @@ UnaryOp<_Derived, functor::UnaryMathFunctor_cwiseNegate<Scalar> > operator-() co
 
 /**
  * \brief Custom unary expression.
- * The unary functor must support look as follow:
+ * The unary functor must look as follow:
  * \code
  * struct MyFunctor
  * {
@@ -208,7 +208,7 @@ TransposeOp<_Derived, true> adjoint() const
  * \tparam _Target the target type
  */
 template<typename _Target>
-CastingOp<_Derived, _Target> cast()
+CastingOp<_Derived, _Target> cast() const
 {
 	CUMAT_ERROR_IF_NO_NVCC(cast)
 	return CastingOp<_Derived, _Target>(derived());
