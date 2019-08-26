@@ -176,6 +176,22 @@ public:
 	}
 
 	/**
+	 * \brief Explicitly frees the context's resources.
+	 * Warning: use with care! All future calls on this context will fail
+	 * and the context can't be created again.
+	 * Use only if you shut down the CUDA driver before the normal program
+	 * termination.
+	 */
+	void destroy()
+	{
+		if (stream_ != nullptr)
+		{
+			CUMAT_SAFE_CALL(cudaStreamDestroy(stream_));
+			stream_ = nullptr;
+		}
+	}
+
+	/**
 	* \brief Returns the context of the current thread.
 	* It is automatically created if not explicitly initialized with
 	* assignDevice(int).
