@@ -165,7 +165,7 @@ public:
 	{
 		if (stream_ != nullptr)
 		{
-			CUMAT_SAFE_CALL(cudaStreamDestroy(stream_));
+			cudaStreamDestroy(stream_);
 			stream_ = nullptr;
 		}
 		CUMAT_LOG_DEBUG("Context deleted for thread 0x" << std::hex << std::this_thread::get_id());
