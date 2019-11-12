@@ -83,45 +83,43 @@ namespace internal {
 		// Taken from https://codeyarns.com/2011/03/02/how-to-do-error-checking-in-cuda/
 		// and adopted
 
-		static void cudaSafeCall(cudaError err, const char *file, const int line)
+	private:
+		static bool evalError(cudaError err, const char* file, const int line)
 		{
-			if (cudaSuccess != err) {
+			if (cudaErrorCudartUnloading == err) {
+				std::string msg = format("cudaCheckError() failed at %s:%i : %s\nThis error can happen in multi-threaded applications during shut-down and is ignored.\n",
+					file, line, cudaGetErrorString(err));
+				CUMAT_LOG_SEVERE(msg);
+				return false;
+			}
+			else if (cudaSuccess != err) {
 				std::string msg = format("cudaSafeCall() failed at %s:%i : %s\n",
 					file, line, cudaGetErrorString(err));
 				CUMAT_LOG_SEVERE(msg);
 				throw cuda_error(msg);
 			}
+			return true;
+		}
+	public:
+		static void cudaSafeCall(cudaError err, const char *file, const int line)
+		{
+			if (!evalError(err, file, line)) return;
 	#if CUMAT_VERBOSE_ERROR_CHECKING==1
 			//insert a device-sync
 			err = cudaDeviceSynchronize();
-			if (cudaSuccess != err) {
-				std::string msg = format("cudaSafeCall() failed at %s:%i : %s\n",
-					file, line, cudaGetErrorString(err));
-				CUMAT_LOG_SEVERE(msg);
-				throw cuda_error(msg);
-			}
+			evalError(err, file, line);
 	#endif
 		}
 
 		static void cudaCheckError(const char *file, const int line)
 		{
 			cudaError err = cudaGetLastError();
-			if (cudaSuccess != err) {
-				std::string msg = format("cudaCheckError() failed at %s:%i : %s\n",
-					file, line, cudaGetErrorString(err));
-				CUMAT_LOG_SEVERE(msg);
-				throw cuda_error(msg);
-			}
+			if (!evalError(err, file, line)) return;
 
 #if CUMAT_VERBOSE_ERROR_CHECKING==1
 			// More careful checking. However, this will affect performance.
 			err = cudaDeviceSynchronize();
-			if (cudaSuccess != err) {
-				std::string msg = format("cudaCheckError() failed at %s:%i : %s\n",
-					file, line, cudaGetErrorString(err));
-				CUMAT_LOG_SEVERE(msg);
-				throw cuda_error(msg);
-			}
+			evalError(err, file, line);
 #endif
 		}
 	};
