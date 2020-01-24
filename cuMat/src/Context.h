@@ -376,7 +376,7 @@ public:
 #else
 		//Improved version using cudaOccupancyMaxPotentialBlockSize
 		int minGridSize = 0, bestBlockSize = 0;
-		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
+		CUMAT_SAFE_CALL(cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func));
 		minGridSize = std::min(int(CUMAT_DIV_UP(size_, bestBlockSize)), minGridSize);
 		CUMAT_LOG_DEBUG("Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 		KernelLaunchConfig cfg = {
@@ -403,7 +403,7 @@ public:
 		CUMAT_ASSERT_ARGUMENT(sizex > 0);
 		CUMAT_ASSERT_ARGUMENT(sizey > 0);
 		int minGridSize = 0, bestBlockSize = 0;
-		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
+		CUMAT_SAFE_CALL(cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func));
 		CUMAT_LOG_DEBUG("Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 		KernelLaunchConfig cfg = {
 			dim3(sizex, sizey, 1),
@@ -430,7 +430,7 @@ public:
 		CUMAT_ASSERT_ARGUMENT(sizey > 0);
 		CUMAT_ASSERT_ARGUMENT(sizez > 0);
 		int minGridSize = 0, bestBlockSize = 0;
-		cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func);
+		CUMAT_SAFE_CALL(cudaOccupancyMaxPotentialBlockSize(&minGridSize, &bestBlockSize, func));
 		CUMAT_LOG_DEBUG("Best potential occupancy for " << typeid(T).name() << " found to be: blocksize=" << bestBlockSize << ", gridSize=" << minGridSize);
 		KernelLaunchConfig cfg = {
 			dim3(sizex, sizey, sizez),
