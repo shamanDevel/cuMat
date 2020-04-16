@@ -9,7 +9,7 @@
 #include "Errors.h"
 
 #if CUMAT_NVCC==1
-#include <cub/cub.cuh>
+#include "../../third-party/cub/cub.cuh"
 #endif
 
 #ifndef CUMAT_CUB_DEBUG

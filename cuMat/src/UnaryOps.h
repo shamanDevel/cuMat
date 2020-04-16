@@ -7,7 +7,7 @@
 #include "NumTraits.h"
 
 #include <cmath>
-#include <cub/util_type.cuh>
+#include "../../third-party/cub/util_type.cuh"
 
 CUMAT_NAMESPACE_BEGIN
 
