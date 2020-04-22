@@ -13,7 +13,7 @@ class DevicePointer
 {
 private:
 	T* pointer_;
-	size_t* counter_;
+	int* counter_;
 	CUMAT_NAMESPACE Context* context_;
     friend class DevicePointer<typename std::remove_const<T>::type>;
 
@@ -22,9 +22,20 @@ private:
 	{
 #ifndef __CUDA_ARCH__
         //no decrement of the counter in CUDA-code, counter is in host-memory
+		assert(CUMAT_IMPLIES(counter_, (*counter_) > 0) && "Attempt to calling release() twice");
 		if ((counter_) && (--(*counter_) == 0))
 		{
 			delete counter_;
+
+			//DEBUG
+			if (&Context::current() != context_)
+			{
+				CUMAT_LOG_WARNING(
+					"Freeing memory with a different context than the current context.\n"
+					"This will likely crash with an invalid-resource-handle error due to different Cub-Allocators");
+				__debugbreak();
+			}
+
 			context_->freeDevice(pointer_);
 		}
 #endif
@@ -38,7 +49,7 @@ public:
 		context_ = &ctx;
 		pointer_ = static_cast<T*>(context_->mallocDevice(size * sizeof(T)));
 		try {
-			counter_ = new size_t(1);
+			counter_ = new int(1);
 		}
 		catch (...)
 		{

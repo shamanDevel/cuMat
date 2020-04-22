@@ -154,7 +154,11 @@ public:
 		std::lock_guard<std::mutex> lock(mutex);
 #endif
 
+#if CUMAT_SINGLE_THREAD_CONTEXT==0
+		//each context has its own stream
 		CUMAT_SAFE_CALL(cudaStreamCreateWithFlags(&stream_, cudaStreamNonBlocking));
+#endif
+		//for a global context, use the global stream
 
 		//TODO: init BLAS context and so on
 
