@@ -33,7 +33,6 @@ private:
 				CUMAT_LOG_WARNING(
 					"Freeing memory with a different context than the current context.\n"
 					"This will likely crash with an invalid-resource-handle error due to different Cub-Allocators");
-				__debugbreak();
 			}
 
 			context_->freeDevice(pointer_);
