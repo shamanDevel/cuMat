@@ -78,7 +78,7 @@ namespace io
     	template<typename T>
 	    struct TypeCast
     	{
-            typedef typename T Type;
+            typedef T Type;
     	};
     	template<>
     	struct TypeCast<bool>
