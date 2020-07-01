@@ -13,13 +13,12 @@
 #include "CwiseOp.h"
 #include "NullaryOps.h"
 #include "TransposeOp.h"
+#include "IO.h"
 
 #if CUMAT_EIGEN_SUPPORT==1
 #include <Eigen/Core>
 #include "EigenInteropHelpers.h"
 #endif
-
-#include <ostream>
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -1311,13 +1310,19 @@ __host__ std::ostream& operator<<(std::ostream& os, const Matrix<_Scalar, _Rows,
     os << ", cols=" << m.cols() << " (" << (_Columns == Dynamic ? "dynamic" : "compile-time") << ")";
     os << ", batches=" << m.batches() << " (" << (_Batches == Dynamic ? "dynamic" : "compile-time") << ")";
     os << ", storage=" << (CUMAT_IS_ROW_MAJOR(_Flags) ? "Row-Major" : "Column-Major") << std::endl;
-    for (int batch = 0; batch < m.batches(); ++batch)
-    {
-        const auto emat = m.template block<Dynamic, Dynamic, 1>(0, 0, batch, m.rows(), m.cols(), 1).eval().toEigen();
-        if (m.batches() > 1) os << "batch " << batch << std::endl;
-        os << emat << std::endl;
-    }
-    return os;
+
+	//New code, custom printing implementation
+	io::print_matrix(os, m, io::IOFormat());
+	
+	//Old code for reference, uses Eigen
+    //for (int batch = 0; batch < m.batches(); ++batch)
+    //{
+    //    const auto emat = m.template block<Dynamic, Dynamic, 1>(0, 0, batch, m.rows(), m.cols(), 1).eval().toEigen();
+    //    if (m.batches() > 1) os << "batch " << batch << std::endl;
+    //    os << emat << std::endl;
+    //}
+
+	return os;
 }
 
 namespace internal

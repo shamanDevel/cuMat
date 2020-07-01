@@ -9,6 +9,7 @@
 #include "MatrixBase.h"
 #include "Matrix.h"
 #include "SparseMatrixBase.h"
+#include "IO.h"
 
 CUMAT_NAMESPACE_BEGIN
 
@@ -431,12 +432,26 @@ __host__ std::ostream& operator<<(std::ostream& os, const SparseMatrix<_Scalar, 
     os << ", cols=" << m.cols();
     os << ", batches=" << m.batches() << " (" << (_Batches == Dynamic ? "dynamic" : "compile-time") << ")";
     os << ", storage=CSR" << std::endl;
-    os << " Outer Indices (row): " << m.getSparsityPattern().JA.toEigen().transpose() << std::endl;
-    os << " Inner Indices (column): " << m.getSparsityPattern().IA.toEigen().transpose() << std::endl;
-    for (int batch = 0; batch < m.batches(); ++batch)
-    {
-        os << " Data (Batch " << batch << "): " << m.getData().slice(batch).eval().toEigen().transpose() << std::endl;
-    }
+
+    //New code, custom printing implementation
+    io::IOFormat fmt;
+    os << " Outer Indices (row): "; io::print_matrix(os, m.getSparsityPattern().JA, fmt, true);
+    os << " Inner Indices (column): "; io::print_matrix(os, m.getSparsityPattern().IA, fmt, true);
+    os << " Data:\n";
+    fmt.rowPrefix = "   ";
+    fmt.batchPrefix = "  [\n";
+    fmt.batchSuffix = "\n  ]";
+    fmt.batchSeparator = "\n  ],[\n";
+    io::print_matrix(os, m.getData(), fmt, true);
+	
+    //Old code for reference, uses Eigen
+    //os << " Outer Indices (row): " << m.getSparsityPattern().JA.toEigen().transpose() << std::endl;
+    //os << " Inner Indices (column): " << m.getSparsityPattern().IA.toEigen().transpose() << std::endl;
+    //for (int batch = 0; batch < m.batches(); ++batch)
+    //{
+    //    os << " Data (Batch " << batch << "): " << m.getData().slice(batch).eval().toEigen().transpose() << std::endl;
+    //}
+	
     return os;
 }
 /**

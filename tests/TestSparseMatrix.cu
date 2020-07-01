@@ -24,6 +24,7 @@ TEST_CASE("Sparse -> Dense", "[Sparse]")
         SMatrix_t smatrix(pattern);
         smatrix.getData().slice(0) = VectorXf::fromEigen((Eigen::VectorXf(9) << 1, 4, 2, 3, 5, 7, 8, 9, 6).finished());
         smatrix.getData().slice(1) = VectorXf::fromEigen((Eigen::VectorXf(9) << -1, -4, -2, -3, -5, -7, -8, -9, -6).finished());
+        std::cout << smatrix << std::endl;
         INFO(smatrix);
 
         //assign to dense matrix

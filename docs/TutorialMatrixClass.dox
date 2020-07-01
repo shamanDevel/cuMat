@@ -204,10 +204,7 @@ This will print something like this:
 
 \include QuickStart_example.out
 
-Note that it relies on Eigen to print the individual batches. Therefore, this operator is only available if Eigen-interop is enabled.
-See \ref TutorialEigenInterop for further details.
-
-Furtehr note that this requires a memory copy from the device to the host and is therefore slow.
+Note that this requires a memory copy from the device to the host and is therefore slow.
 It should only be used on small matrices as a debugging and testing tool.
 
 */

@@ -16,6 +16,7 @@ set(CUMAT_HEADERS
   src/EigenInteropHelpers.h
   src/MatrixBase.h
   src/Matrix.h
+  src/IO.h
   src/CwiseOp.h
   src/MatrixBlock.h
   src/MatrixBlockPluginLvalue.inl

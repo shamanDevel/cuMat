@@ -43,11 +43,10 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 # MKL
-find_package(MKL)
+find_package(MKL QUIET)
 if(MKL_FOUND)
 	target_include_directories(dotproduct PRIVATE ${MKL_INCLUDE_DIRS})
 	target_link_libraries(dotproduct ${MKL_LIBRARIES})
 	target_compile_definitions(dotproduct PRIVATE EIGEN_USE_MKL_ALL)
-else()
-	message("MKL not found. If you are missing FindMKL.cmake, you can download it at https://gist.github.com/scivision/5108cf6ab1515f581a84cd9ad1ef72aa")
+    message("Compile Eigen benchmarks with MKL support")
 endif()

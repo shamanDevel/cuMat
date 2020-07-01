@@ -20,6 +20,7 @@ This enables all BLAS-related modules
 #include "src/Matrix.h"
 #include "src/MatrixBlock.h"
 #include "src/EigenInteropHelpers.h"
+#include "src/IO.h"
 
 #include "src/Iterator.h"
 #include "src/NullaryOps.h"

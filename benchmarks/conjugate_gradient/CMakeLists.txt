@@ -40,9 +40,10 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 # MKL
-find_package(MKL)
+find_package(MKL QUIET)
 if(MKL_FOUND)
 	target_include_directories(conjugate_gradient PRIVATE ${MKL_INCLUDE_DIRS})
 	target_link_libraries(conjugate_gradient ${MKL_LIBRARIES})
 	target_compile_definitions(conjugate_gradient PRIVATE EIGEN_USE_MKL_ALL)
+	message("Compile Eigen benchmarks with MKL support")
 endif()
