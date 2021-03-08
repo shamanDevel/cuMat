@@ -94,13 +94,13 @@ public:
             "Datatype of left- and right hand side must match");
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Solver::Batches > 1 && _RHS::Batches > 0, _Solver::Batches == _RHS::Batches),
             "Static count of batches must match"); //note: _Solver::Batches>1 to allow broadcasting
-        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Solver::Rows > 0 && _Solver::Columns > 0, _Solver::Rows == _RHS::Columns),
+        CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Solver::Rows > 0 && _Solver::Columns > 0, _Solver::Rows == _Solver::Columns),
             "Static count of rows and columns must be equal (square matrix)");
         CUMAT_STATIC_ASSERT(CUMAT_IMPLIES(_Solver::Rows > 0 && _RHS::Rows > 0, _Solver::Rows == _RHS::Rows),
             "Left and right hand side are not compatible");
 
         CUMAT_ASSERT(CUMAT_IMPLIES(_Solver::Batches!=1, decomposition.batches() == rhs.batches()) && "batch size of the matrix and the right hand side does not match");
-        CUMAT_ASSERT(decomposition.rows() == decomposition.cols() && "matrix must be suare"); //TODO: relax for Least-Squares problems
+        CUMAT_ASSERT(decomposition.rows() == decomposition.cols() && "matrix must be square"); //TODO: relax for Least-Squares problems
         CUMAT_ASSERT(decomposition.cols() == rhs.rows() && "matrix size does not match right-hand-side");
     }
 
