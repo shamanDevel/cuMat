@@ -273,7 +273,7 @@ ReductionOp_StaticSwitched<
 	Algorithm> trace() const
 {
 	CUMAT_ERROR_IF_NO_NVCC(trace)
-    return diagonal().sum<Axis::Row | Axis::Column, Algorithm>();
+    return diagonal().template sum<Axis::Row | Axis::Column, Algorithm>();
 }
 
 template<typename _Other, typename Algorithm = ReductionAlg::Auto>
@@ -294,7 +294,7 @@ DotReturnType<_Other, Algorithm> dot(const MatrixBase<_Other>& rhs) const
         "This matrix must be a compile-time row or column vector");
     CUMAT_STATIC_ASSERT(internal::traits<_Other>::RowsAtCompileTime == 1 || internal::traits<_Other>::ColsAtCompileTime == 1,
         "The right-hand-side must be a compile-time row or column vector");
-    return ((*this).cwiseDot(rhs)).sum<Axis::Row | Axis::Column, Algorithm>();
+    return ((*this).cwiseDot(rhs)).template sum<Axis::Row | Axis::Column, Algorithm>();
 }
 
 template<typename Algorithm = ReductionAlg::Auto>
@@ -311,7 +311,7 @@ template<typename Algorithm = ReductionAlg::Auto>
 SquaredNormReturnType<Algorithm> squaredNorm() const
 {
 	CUMAT_ERROR_IF_NO_NVCC(squaredNorm)
-    return cwiseAbs2().sum<Axis::Row | Axis::Column, Algorithm>();
+    return cwiseAbs2().template sum<Axis::Row | Axis::Column, Algorithm>();
 }
 
 template<typename Algorithm = ReductionAlg::Auto>
