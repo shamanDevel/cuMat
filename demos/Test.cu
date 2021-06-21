@@ -4,8 +4,21 @@
 using namespace cuMat;
 using namespace std;
 
+// warnings occur for BATCHES=8..45
+// Origin is ReductionOps.h, ReductionEvaluator.eval(), ~line 203
+#ifndef BATCHES
+#define BATCHES 32
+#endif
+
 int main()
 {
+    std::cout << "Batches: " << BATCHES << "\n";
+    using MyVec = cuMat::Matrix<float, cuMat::Dynamic, 1, BATCHES, cuMat::ColumnMajor>;
+    MyVec vec = MyVec::Zero(100000, 1, BATCHES);
+    auto test = vec.sum<cuMat::Axis::Row | cuMat::Axis::Column>().eval();
+    return 0;
+	
+	/*
     double data[2][2][2] {
         {
             {1, 2},
@@ -24,6 +37,7 @@ int main()
     cout << "Along columns: " << mat.sum<Axis::Column>().eval() << endl;
     cout << "Along batches: " << mat.sum<Axis::Batch>().eval() << endl;
     cout << "Along rows and columns: " << mat.sum<Axis::Row | Axis::Column>().eval() << endl;
+    */
 
     /*
     //create a 2x4 matrix
